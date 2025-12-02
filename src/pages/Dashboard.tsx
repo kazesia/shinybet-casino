@@ -19,12 +19,12 @@ const ORIGINALS = [
 ];
 
 const SLOTS = [
-  { id: 1, name: 'Sweet Bonanza', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Sweet+Bonanza' },
-  { id: 2, name: 'Gates of Olympus', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Gates+of+Olympus' },
-  { id: 3, name: 'Wanted Dead or a Wild', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Wanted' },
-  { id: 4, name: 'Sugar Rush', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Sugar+Rush' },
-  { id: 5, name: 'Fruit Party', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Fruit+Party' },
-  { id: 6, name: 'Big Bass Bonanza', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Big+Bass' },
+  { id: 1, name: 'Sweet Bonanza', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Sweet+Bonanza' },
+  { id: 2, name: 'Gates of Olympus', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Gates+of+Olympus' },
+  { id: 3, name: 'Wanted Dead or a Wild', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Wanted' },
+  { id: 4, name: 'Sugar Rush', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Sugar+Rush' },
+  { id: 5, name: 'Fruit Party', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Fruit+Party' },
+  { id: 6, name: 'Big Bass Bonanza', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Big+Bass' },
 ];
 
 export default function Dashboard() {
@@ -71,7 +71,7 @@ export default function Dashboard() {
         {/* Casino Banner */}
         <Card className="lg:col-span-4 bg-[#1a2c38] border-0 shadow-lg overflow-hidden relative group cursor-pointer">
            <img 
-             src="https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x350/1475e1/FFF?text=Casino+Live" 
+             src="https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x350/1475e1/FFF?text=Casino+Live" 
              alt="Casino" 
              className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" 
            />
@@ -91,7 +91,7 @@ export default function Dashboard() {
         {/* Sports Banner */}
         <Card className="lg:col-span-4 bg-[#1a2c38] border-0 shadow-lg overflow-hidden relative group cursor-pointer">
            <img 
-             src="https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x350/00b894/FFF?text=UFC+299" 
+             src="https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x350/00b894/FFF?text=UFC+299" 
              alt="Sports" 
              className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" 
            />

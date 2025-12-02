@@ -61,7 +61,7 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
       
       <div className="space-y-2 w-full flex flex-col items-center">
         <NavItem to="/game/dice" icon={Dices} label="Casino" />
-        <NavItem to="/sports" icon={MonitorPlay} label="Sports" />
+        <NavItem to="/sports" icon={Trophy} label="Sports" />
       </div>
 
       <div className="w-8 h-[1px] bg-[#1a2c38]" />
@@ -70,7 +70,7 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
         <div className="flex flex-col items-center gap-2 px-2">
           <NavItem to="/promotions" icon={Gift} label="Promotions" />
           <NavItem to="/affiliate" icon={Users} label="Affiliate" />
-          <NavItem to="/vip-club" icon={Trophy} label="VIP Club" />
+          <NavItem to="/vip-club" icon={MonitorPlay} label="VIP Club" />
           <NavItem to="/blog" icon={Newspaper} label="Blog" />
           <NavItem to="/forum" icon={MessageSquare} label="Forum" />
         </div>
@@ -79,7 +79,7 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
       <div className="w-8 h-[1px] bg-[#1a2c38]" />
 
       <div className="space-y-2 w-full flex flex-col items-center pb-4">
-        <NavItem to="/support" icon={Headphones} label="Live Support" />
+        <NavItem to="/help" icon={Headphones} label="Live Support" />
         <NavItem to="/language" icon={Globe} label="Language" />
       </div>
     </div>

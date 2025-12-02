@@ -29,6 +29,7 @@ import Privacy from './pages/legal/Privacy';
 import ResponsibleGambling from './pages/legal/ResponsibleGambling';
 import Blog from './pages/community/Blog';
 import Forum from './pages/community/Forum';
+import SportsPage from './pages/Sports';
 
 // User Pages
 import Dashboard from './pages/Dashboard';
@@ -58,6 +59,7 @@ function App() {
             <Routes>
               {/* Public & User Routes (Wrapped in MainLayout with Sidebar) */}
               <Route path="/" element={<MainLayout><Home /></MainLayout>} />
+              <Route path="/sports" element={<MainLayout><SportsPage /></MainLayout>} />
               <Route path="/vip-club" element={<MainLayout><VIPClub /></MainLayout>} />
               <Route path="/promotions" element={<MainLayout><Promotions /></MainLayout>} />
               <Route path="/affiliate" element={<MainLayout><Affiliate /></MainLayout>} />
