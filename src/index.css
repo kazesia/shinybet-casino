@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* 
+      Background: #05070A -> HSL(216, 33%, 3%)
+      Surface: #0D1016 -> HSL(218, 26%, 7%)
+      Border: #1B2230 -> HSL(220, 28%, 15%)
+      Text-Primary: #FFFFFF -> HSL(0, 0%, 100%)
+      Text-Secondary: #A0A6B8 -> HSL(225, 13%, 67%)
+      Success: #2CE38F -> HSL(153, 76%, 53%)
+      Danger: #FF4D4F -> HSL(359, 100%, 65%)
+    */
+    --background: 216 33% 3%;
+    --foreground: 0 0% 100%;
+    
+    --card: 218 26% 7%;
+    --card-foreground: 0 0% 100%;
+    
+    --popover: 218 26% 7%;
+    --popover-foreground: 0 0% 100%;
+    
+    --primary: 43 87% 72%; /* Gold-ish for primary actions if needed, but we use custom classes mostly */
+    --primary-foreground: 216 33% 3%;
+    
+    --secondary: 220 28% 15%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 218 26% 12%;
+    --muted-foreground: 225 13% 67%;
+    
+    --accent: 220 28% 15%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 359 100% 65%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 220 28% 15%;
+    --input: 220 28% 15%;
+    --ring: 43 87% 72%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+@layer utilities {
+  .text-gold-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#F7D979] to-[#D9A94F];
+  }
+  .bg-gold-gradient {
+    @apply bg-gradient-to-r from-[#F7D979] to-[#D9A94F];
+  }
+  .border-gold-gradient {
+    background: linear-gradient(#05070A, #05070A) padding-box,
+                linear-gradient(to right, #F7D979, #D9A94F) border-box;
+    border: 1px solid transparent;
+  }
+  .shadow-gold {
+    box-shadow: 0 0 15px rgba(122, 81, 37, 0.4);
+  }
+  .glass-panel {
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+}
