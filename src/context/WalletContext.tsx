@@ -47,8 +47,10 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (data) {
         // We don't trigger visual feedback on initial fetch
-        setBalance(data.credits);
-        prevBalanceRef.current = data.credits;
+        // Ensure we default to 0 if credits is null/undefined to prevent NaN issues downstream
+        const safeCredits = data.credits ?? 0;
+        setBalance(safeCredits);
+        prevBalanceRef.current = safeCredits;
       }
     } catch (error) {
       console.error('Error fetching wallet:', error);
@@ -59,6 +61,9 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Allow components to update balance instantly for UI responsiveness
   const optimisticUpdate = (amount: number) => {
+    // Safety check: Prevent NaN from poisoning the balance state
+    if (isNaN(amount)) return;
+
     setBalance(prev => {
       const newBal = parseFloat((prev + amount).toFixed(2));
       prevBalanceRef.current = newBal; // Update ref to prevent double-toast on sync

@@ -1,10 +1,12 @@
 export interface Profile {
   id: string;
   username: string;
-  email?: string; // Added for admin view
+  email?: string;
   role: 'user' | 'admin' | 'super_admin';
   banned: boolean;
   created_at: string;
+  last_sign_in_at?: string;
+  wallet_balance?: number; // Joined field
 }
 
 export interface Wallet {
@@ -12,6 +14,7 @@ export interface Wallet {
   user_id: string;
   credits: number;
   version: number;
+  updated_at: string;
 }
 
 export interface Bet {
@@ -25,7 +28,7 @@ export interface Bet {
   profiles?: {
     username: string;
   };
-  raw_data?: any; // For expandable view
+  raw_data?: any;
 }
 
 export interface Transaction {
@@ -61,6 +64,7 @@ export interface Deposit {
   amount_credits: number;
   currency: string;
   status: 'pending' | 'confirmed';
+  tx_hash?: string;
   created_at: string;
   profiles?: {
     username: string;
@@ -71,4 +75,15 @@ export interface AppSetting {
   key: string;
   value: string;
   description?: string;
+  updated_at?: string;
+}
+
+export interface AdminStats {
+  total_users: number;
+  active_users_24h: number;
+  total_deposits: number;
+  total_withdrawals: number;
+  total_wagered: number;
+  house_edge_profit: number;
+  net_profit: number;
 }

@@ -26,39 +26,43 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "#1475e1", // Stake Blue Button
+          foreground: "#ffffff",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "#1a2c38", // Card Background
+          foreground: "#ffffff",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "#b1bad3", // Muted Text
+          foreground: "#b1bad3",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "#213743", // Hover/Input Background
+          foreground: "#ffffff",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "#1a2c38",
+          foreground: "#ffffff",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "#1a2c38",
+          foreground: "#ffffff",
         },
-        // Custom Palette Extension
-        brand: {
-          surface: "#0D1016",
-          success: "#2CE38F",
-          danger: "#FF4D4F",
-          textSecondary: "#A0A6B8",
+        // Custom Palette from Screenshot
+        stake: {
+          dark: "#0f212e", // Main App Background
+          card: "#1a2c38", // Component Background
+          hover: "#213743", // Hover State
+          text: "#b1bad3", // Secondary Text
+          white: "#ffffff",
+          blue: "#1475e1", // Wallet Button
+          green: "#00e701", // Online Dot
+          vip: "#b17827", // Bronze/VIP Color
         }
       },
       borderRadius: {
@@ -75,15 +79,10 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "float": {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-5px)" },
-        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "float": "float 3s ease-in-out infinite",
       },
     },
   },

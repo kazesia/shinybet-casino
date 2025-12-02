@@ -1,4 +1,6 @@
-import { Gamepad2, Twitter, Facebook, Instagram, Github } from 'lucide-react';
+import { Twitter, Facebook, Instagram, Github } from 'lucide-react';
+
+const LOGO_URL = "https://cdn.discordapp.com/attachments/1442155264613814302/1445539875116810392/Collabeco_2_-removebg-preview.png?ex=6930b76b&is=692f65eb&hm=9be06a69591c9fba9edca705a2295c341ddde42e5112db67b58dbc0d77f00ed5";
 
 const Footer = () => {
   return (
@@ -7,9 +9,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-gold-gradient flex items-center justify-center">
-                <Gamepad2 className="h-5 w-5 text-black" />
-              </div>
+              <img src={LOGO_URL} alt="Shiny Logo" className="h-8 w-auto" />
               <span className="text-xl font-bold tracking-tight">
                 Shiny<span className="text-gold-gradient">.bet</span>
               </span>

@@ -4,20 +4,21 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { 
   LayoutDashboard, 
   Users, 
-  Wallet, 
   ArrowDownLeft, 
   History, 
   Settings, 
   LogOut, 
   Menu, 
-  Gamepad2,
-  Shield
+  Shield,
+  Home
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const LOGO_URL = "https://cdn.discordapp.com/attachments/1442155264613814302/1445539875116810392/Collabeco_2_-removebg-preview.png?ex=6930b76b&is=692f65eb&hm=9be06a69591c9fba9edca705a2295c341ddde42e5112db67b58dbc0d77f00ed5";
 
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
@@ -38,13 +39,16 @@ export default function AdminLayout() {
     navigate('/');
   };
 
+  // Safe access to profile data
+  const username = profile?.username || 'Admin';
+  const role = profile?.role?.replace('_', ' ') || 'Staff';
+  const initials = username.substring(0, 2).toUpperCase();
+
   const NavContent = () => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-brand-surface">
       <div className="flex items-center gap-2 px-6 py-6 border-b border-white/5">
-        <div className="h-8 w-8 rounded-lg bg-gold-gradient flex items-center justify-center shadow-gold">
-          <Gamepad2 className="h-5 w-5 text-black" />
-        </div>
-        <span className="text-xl font-bold tracking-tight">
+        <img src={LOGO_URL} alt="Shiny Admin" className="h-8 w-auto" />
+        <span className="text-xl font-bold tracking-tight text-white">
           Shiny<span className="text-gold-gradient">.admin</span>
         </span>
       </div>
@@ -69,21 +73,30 @@ export default function AdminLayout() {
             </Link>
           );
         })}
+        
+        <div className="my-4 border-t border-white/5" />
+        
+        <Link to="/" onClick={() => setOpen(false)}>
+          <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground hover:text-white hover:bg-white/5">
+            <Home className="h-4 w-4" />
+            Back to Casino
+          </Button>
+        </Link>
       </div>
 
-      <div className="p-4 border-t border-white/5">
+      <div className="p-4 border-t border-white/5 bg-black/20">
         <div className="flex items-center gap-3 mb-4 px-2">
           <Avatar className="h-9 w-9 border border-white/10">
             <AvatarImage src="" />
             <AvatarFallback className="bg-[#F7D979] text-black font-bold">
-              {profile?.username?.substring(0, 2).toUpperCase()}
+              {initials}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col overflow-hidden">
-            <span className="text-sm font-medium truncate">{profile?.username}</span>
+            <span className="text-sm font-medium truncate text-white">{username}</span>
             <div className="flex items-center gap-1">
               <Shield className="h-3 w-3 text-[#F7D979]" />
-              <span className="text-xs text-muted-foreground capitalize">{profile?.role?.replace('_', ' ')}</span>
+              <span className="text-xs text-muted-foreground capitalize">{role}</span>
             </div>
           </div>
         </div>
@@ -95,23 +108,21 @@ export default function AdminLayout() {
   );
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="flex min-h-screen bg-background w-full">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-64 border-r border-white/5 bg-brand-surface fixed inset-y-0 left-0 z-50">
+      <aside className="hidden lg:flex w-64 border-r border-white/5 bg-brand-surface fixed inset-y-0 left-0 z-50 flex-col">
         <NavContent />
       </aside>
 
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 border-b border-white/5 bg-brand-surface/80 backdrop-blur-md z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-gold-gradient flex items-center justify-center">
-            <Gamepad2 className="h-5 w-5 text-black" />
-          </div>
-          <span className="font-bold">Admin Panel</span>
+          <img src={LOGO_URL} alt="Shiny Admin" className="h-8 w-auto" />
+          <span className="font-bold text-white">Admin Panel</span>
         </div>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="text-white">
               <Menu className="h-6 w-6" />
             </Button>
           </SheetTrigger>
@@ -122,8 +133,10 @@ export default function AdminLayout() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 p-4 lg:p-8 pt-20 lg:pt-8 overflow-x-hidden">
-        <Outlet />
+      <main className="flex-1 lg:ml-64 p-4 lg:p-8 pt-20 lg:pt-8 overflow-x-hidden w-full">
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
     </div>
   );

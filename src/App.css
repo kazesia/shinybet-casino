@@ -1,6 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+   Reset root to allow full-width layouts for Admin and App.
+   The previous max-width constraint was breaking the fixed sidebar layout.
+*/
 #root {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 2rem;
-    text-align: center;
-  }
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}

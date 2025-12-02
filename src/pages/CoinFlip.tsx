@@ -2,12 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Label } from '@/components/ui/label';
-import { Coins, History, Volume2, VolumeX, Trophy, Ban } from 'lucide-react';
+import { Settings2, Maximize2, BarChart2, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
@@ -15,17 +10,20 @@ import { useWallet } from '@/context/WalletContext';
 import { toast } from 'sonner';
 import { Bet } from '@/types';
 
-const CoinFlip = () => {
+export default function CoinFlip() {
   const { user } = useAuth();
   const { balance, optimisticUpdate } = useWallet();
   const controls = useAnimation();
   
   // Game State
-  const [betAmount, setBetAmount] = useState<number>(10);
+  const [betAmount, setBetAmount] = useState<number>(0);
   const [selectedSide, setSelectedSide] = useState<'heads' | 'tails'>('heads');
   const [isFlipping, setIsFlipping] = useState<boolean>(false);
   const [history, setHistory] = useState<Bet[]>([]);
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [mode, setMode] = useState<'manual' | 'auto'>('manual');
+  
+  // Animation State
+  const [coinRotation, setCoinRotation] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -47,309 +45,312 @@ const CoinFlip = () => {
 
   const handleBetInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value);
-    if (!isNaN(val) && val >= 0) {
-      setBetAmount(val);
-    }
+    setBetAmount(isNaN(val) ? 0 : val);
   };
 
-  const adjustBet = (factor: number | 'max' | 'min') => {
-    if (factor === 'max') setBetAmount(balance);
-    else if (factor === 'min') setBetAmount(1);
-    else setBetAmount(prev => parseFloat((prev * (factor as number)).toFixed(2)));
+  const adjustBet = (factor: number) => {
+    setBetAmount(prev => parseFloat((prev * factor).toFixed(8)));
   };
 
   const handleFlip = async () => {
-    if (!user) {
-      toast.error("Please log in to play");
-      return;
-    }
-    if (betAmount > balance) {
-      toast.error("Insufficient balance");
-      return;
-    }
-    if (betAmount <= 0) {
-      toast.error("Invalid bet amount");
-      return;
-    }
+    if (!user) return toast.error("Please log in to play");
+    if (betAmount <= 0) return toast.error("Invalid bet amount");
+    if (betAmount > balance) return toast.error("Insufficient balance");
     if (isFlipping) return;
 
     setIsFlipping(true);
-
-    // 1. Optimistic Update: Deduct Stake
     optimisticUpdate(-betAmount);
 
-    // 2. Determine Outcome (Client-side sim)
+    // Determine Outcome
     const outcome = Math.random() > 0.5 ? 'heads' : 'tails';
     const isWin = outcome === selectedSide;
-    const multiplier = 1.98; // 1% House Edge approx
+    const multiplier = 1.98; // ~1% House Edge
     const payout = isWin ? betAmount * multiplier : 0;
 
-    // 3. Animation
-    // Reset rotation to 0 (or current modulus) to prevent winding issues, then spin
-    // We want to land on: Heads = 0/360, Tails = 180
+    // Animation Logic
     const spins = 5;
-    const baseRotate = outcome === 'heads' ? 0 : 180;
-    const totalRotate = (spins * 360) + baseRotate;
+    const baseRotation = outcome === 'heads' ? 0 : 180;
+    const targetRotation = coinRotation + (spins * 360) + (baseRotation - (coinRotation % 360));
+    
+    const finalRotation = targetRotation < coinRotation + 720 ? targetRotation + 720 : targetRotation;
 
     await controls.start({
-      rotateY: totalRotate,
-      transition: { duration: 1.5, ease: "easeOut" }
+      rotateY: finalRotation,
+      transition: { duration: 2, ease: [0.2, 0.8, 0.2, 1] }
     });
 
-    // 4. Handle Result
+    setCoinRotation(finalRotation);
+
+    // Result Handling
     if (isWin) {
       optimisticUpdate(payout);
-      toast.success(`You won ${payout.toFixed(2)} Credits!`, {
-        icon: <Trophy className="w-5 h-5 text-yellow-500" />,
-        className: "border-green-500 bg-green-500/10 text-green-500 font-bold"
-      });
+      toast.success(`Won ${payout.toFixed(4)}!`, { className: "text-green-500" });
     } else {
-       toast("Better luck next time", {
-         icon: <Ban className="w-5 h-5 text-red-500" />,
-         className: "border-red-500 bg-red-500/10 text-red-500"
-       });
+      toast("Better luck next time", { className: "text-red-500" });
     }
 
-    // 5. DB Sync
+    // DB Sync
     try {
       const netChange = isWin ? (payout - betAmount) : -betAmount;
-
-      // A. Update Wallet
-      const { error: walletError } = await supabase.rpc('increment_balance', {
-           p_user_id: user.id,
-           p_amount: netChange
-      });
+      await supabase.rpc('increment_balance', { p_user_id: user.id, p_amount: netChange });
       
-      if (walletError) console.error("Wallet sync error", walletError);
+      const { data: bet } = await supabase.from('bets').insert({
+        user_id: user.id,
+        game_type: 'CoinFlip',
+        stake_credits: betAmount,
+        payout_credits: payout,
+        result: isWin ? 'win' : 'loss',
+        raw_data: { side: selectedSide, outcome }
+      }).select().single();
 
-      // B. Insert Bet
-      const { data: betData } = await supabase
-          .from('bets')
-          .insert({
-            user_id: user.id,
-            game_type: 'CoinFlip',
-            stake_credits: betAmount,
-            payout_credits: payout,
-            result: isWin ? 'win' : 'loss',
-            raw_data: { side: selectedSide, outcome }
-          })
-          .select()
-          .single();
-
-      // C. Insert Transactions
-      await supabase.from('transactions').insert({
-          user_id: user.id,
-          type: 'bet',
-          amount_credits: betAmount
-      });
-
-      if (isWin) {
-          await supabase.from('transactions').insert({
-            user_id: user.id,
-            type: 'payout',
-            amount_credits: payout
-          });
-      }
-
-      if (betData) {
-          setHistory(prev => [betData as unknown as Bet, ...prev].slice(0, 20));
-      }
-
-    } catch (error) {
-      console.error("DB Error", error);
+      if (bet) setHistory(prev => [bet as unknown as Bet, ...prev].slice(0, 20));
+    } catch (e) {
+      console.error(e);
     } finally {
-      // Reset rotation visually (optional, or keep it there)
-      // controls.set({ rotateY: baseRotate }); 
       setIsFlipping(false);
     }
   };
 
+  const handleRandomPick = () => {
+    setSelectedSide(Math.random() > 0.5 ? 'heads' : 'tails');
+  };
+
   return (
-    <div className="container py-8 min-h-[calc(100vh-64px)]">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+    <div className="min-h-[calc(100vh-64px)] bg-[#0f212e] p-4 md:p-8 font-sans text-[#b1bad3]">
+      <div className="max-w-[1200px] mx-auto space-y-6">
         
-        {/* Main Game Panel */}
-        <Card className="lg:col-span-8 border-border bg-brand-surface shadow-gold/5 relative overflow-hidden flex flex-col">
-           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-yellow-500/5 blur-3xl pointer-events-none" />
-
-          <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 pb-4">
-            <div className="flex items-center gap-2">
-              <Coins className="w-6 h-6 text-[#FFD700]" />
-              <CardTitle className="text-xl font-bold">Coin Flip</CardTitle>
-            </div>
-            <div className="flex items-center gap-2">
-               <Button variant="ghost" size="icon" onClick={() => setSoundEnabled(!soundEnabled)} className="text-muted-foreground hover:text-white">
-                 {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-               </Button>
-            </div>
-          </CardHeader>
-
-          <CardContent className="flex-1 flex flex-col justify-between p-6 gap-12">
+        {/* Main Game Container */}
+        <div className="flex flex-col lg:flex-row bg-[#1a2c38] rounded-lg overflow-hidden shadow-xl border border-[#213743]">
+          
+          {/* LEFT: Control Panel */}
+          <div className="w-full lg:w-[320px] bg-[#213743] p-4 flex flex-col gap-4 border-r border-[#1a2c38]">
             
-            {/* Coin Animation Area */}
-            <div className="flex-1 flex items-center justify-center perspective-[1000px] py-8">
+            {/* Mode Tabs */}
+            <div className="bg-[#0f212e] p-1 rounded-full flex">
+              <button 
+                onClick={() => setMode('manual')}
+                className={cn(
+                  "flex-1 py-2 text-sm font-bold rounded-full transition-all",
+                  mode === 'manual' ? "bg-[#2f4553] text-white shadow-md" : "text-[#b1bad3] hover:text-white"
+                )}
+              >
+                Manual
+              </button>
+              <button 
+                onClick={() => setMode('auto')}
+                className={cn(
+                  "flex-1 py-2 text-sm font-bold rounded-full transition-all",
+                  mode === 'auto' ? "bg-[#2f4553] text-white shadow-md" : "text-[#b1bad3] hover:text-white"
+                )}
+              >
+                Auto
+              </button>
+            </div>
+
+            {/* Bet Amount */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
+                <span>Bet Amount</span>
+                <span>{betAmount.toFixed(8)} LTC</span>
+              </div>
+              <div className="relative flex items-center">
+                <Input 
+                  type="number" 
+                  value={betAmount}
+                  onChange={handleBetInputChange}
+                  disabled={isFlipping}
+                  className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553] disabled:opacity-50" 
+                />
+                <div className="absolute right-1 flex gap-1">
+                  <button 
+                    onClick={() => adjustBet(0.5)} 
+                    disabled={isFlipping}
+                    className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors disabled:opacity-50"
+                  >
+                    ½
+                  </button>
+                  <button 
+                    onClick={() => adjustBet(2)} 
+                    disabled={isFlipping}
+                    className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors disabled:opacity-50"
+                  >
+                    2×
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Bet Button */}
+            <Button 
+              onClick={handleFlip}
+              disabled={isFlipping}
+              className="w-full h-12 mt-2 bg-[#00e701] hover:bg-[#00c701] text-[#0f212e] font-black text-base shadow-[0_4px_0_#00b301] active:shadow-none active:translate-y-[4px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isFlipping ? "Flipping..." : "Bet"}
+            </Button>
+
+            {/* Random Pick */}
+            <Button 
+              onClick={handleRandomPick}
+              disabled={isFlipping}
+              className="w-full h-10 bg-[#2f4553] hover:bg-[#3d5565] text-white font-bold border border-transparent hover:border-[#b1bad3]/20"
+            >
+              Random Pick
+            </Button>
+
+            {/* Side Selection */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSelectedSide('heads')}
+                disabled={isFlipping}
+                className={cn(
+                  "flex-1 h-12 rounded flex items-center justify-center gap-2 font-bold transition-all border border-transparent",
+                  selectedSide === 'heads' 
+                    ? "bg-[#2f4553] border-[#b1bad3]/20 text-white shadow-inner" 
+                    : "bg-[#0f212e] text-[#b1bad3] hover:bg-[#1a2c38]"
+                )}
+              >
+                <span>Heads</span>
+                <div className="w-3 h-3 rounded-full bg-[#FFD700]" />
+              </button>
+              <button
+                onClick={() => setSelectedSide('tails')}
+                disabled={isFlipping}
+                className={cn(
+                  "flex-1 h-12 rounded flex items-center justify-center gap-2 font-bold transition-all border border-transparent",
+                  selectedSide === 'tails' 
+                    ? "bg-[#2f4553] border-[#b1bad3]/20 text-white shadow-inner" 
+                    : "bg-[#0f212e] text-[#b1bad3] hover:bg-[#1a2c38]"
+                )}
+              >
+                <span>Tails</span>
+                <div className="w-3 h-3 rotate-45 bg-[#1475e1]" />
+              </button>
+            </div>
+
+            {/* Total Profit */}
+            <div className="space-y-1 mt-2">
+              <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
+                <span>Total Profit (1.98x)</span>
+                <span>0.00000000 LTC</span>
+              </div>
+              <div className="relative flex items-center">
+                <Input 
+                  readOnly
+                  value={isFlipping ? "..." : (betAmount * 0.98).toFixed(8)}
+                  className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-8 h-10" 
+                />
+                <div className="absolute right-3 text-[#00e701] font-bold">$</div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* RIGHT: Game Area */}
+          <div className="flex-1 bg-[#0f212e] flex flex-col relative min-h-[500px]">
+            
+            {/* Coin Animation Stage */}
+            <div className="flex-1 flex items-center justify-center perspective-[1000px]">
               <motion.div
-                className="relative w-48 h-48"
+                className="relative w-64 h-64"
                 animate={controls}
                 style={{ transformStyle: "preserve-3d" }}
               >
                 {/* Heads Side */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#F7D979] to-[#D9A94F] border-4 border-[#B8860B] shadow-[0_0_30px_rgba(255,215,0,0.3)] flex items-center justify-center backface-hidden">
-                  <div className="w-36 h-36 rounded-full border-2 border-[#B8860B]/50 flex items-center justify-center">
-                     <span className="text-5xl font-bold text-[#5C4033]">H</span>
+                <div className="absolute inset-0 rounded-full backface-hidden" 
+                     style={{ 
+                       background: 'radial-gradient(circle at 30% 30%, #FFD700, #DAA520)',
+                       boxShadow: 'inset 0 0 20px #B8860B, 0 0 15px rgba(0,0,0,0.5)',
+                       border: '8px solid #DAA520'
+                     }}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-40 h-40 rounded-full border-4 border-[#B8860B]/30 flex items-center justify-center">
+                      <div className="w-32 h-32 rounded-full bg-[#F7D979] flex items-center justify-center shadow-inner">
+                         <span className="text-6xl font-black text-[#B8860B] drop-shadow-md">H</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
                 {/* Tails Side */}
-                <div 
-                  className="absolute inset-0 rounded-full bg-gradient-to-br from-[#E0E0E0] to-[#A0A0A0] border-4 border-[#707070] shadow-[0_0_30px_rgba(255,255,255,0.1)] flex items-center justify-center backface-hidden"
-                  style={{ transform: "rotateY(180deg)" }}
-                >
-                  <div className="w-36 h-36 rounded-full border-2 border-[#707070]/50 flex items-center justify-center">
-                     <span className="text-5xl font-bold text-[#404040]">T</span>
+                <div className="absolute inset-0 rounded-full backface-hidden" 
+                     style={{ 
+                       transform: 'rotateY(180deg)',
+                       background: 'radial-gradient(circle at 30% 30%, #4a90e2, #0056b3)',
+                       boxShadow: 'inset 0 0 20px #003d80, 0 0 15px rgba(0,0,0,0.5)',
+                       border: '8px solid #0056b3'
+                     }}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-40 h-40 rounded-full border-4 border-[#003d80]/30 flex items-center justify-center">
+                      <div className="w-32 h-32 rotate-45 bg-[#1475e1] flex items-center justify-center shadow-inner">
+                         <span className="text-6xl font-black text-[#003d80] drop-shadow-md -rotate-45">T</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
+
+                {/* Edge/Thickness (Simulated) */}
+                <div className="absolute inset-0 rounded-full" style={{ transform: 'translateZ(-5px)', background: '#8B6914' }} />
               </motion.div>
             </div>
 
-            {/* Controls */}
-            <div className="space-y-8 max-w-2xl mx-auto w-full">
-              
-              {/* Side Selection */}
-              <div className="grid grid-cols-2 gap-4 p-1 bg-black/20 rounded-xl border border-white/5">
-                <button
-                  onClick={() => setSelectedSide('heads')}
-                  disabled={isFlipping}
-                  className={cn(
-                    "flex items-center justify-center gap-3 py-4 rounded-lg transition-all font-bold text-lg",
-                    selectedSide === 'heads' 
-                      ? "bg-gradient-to-r from-[#F7D979] to-[#D9A94F] text-black shadow-lg" 
-                      : "text-muted-foreground hover:bg-white/5"
-                  )}
-                >
-                  <div className="w-6 h-6 rounded-full bg-[#D9A94F] border border-black/20" />
-                  Heads
-                </button>
-                <button
-                  onClick={() => setSelectedSide('tails')}
-                  disabled={isFlipping}
-                  className={cn(
-                    "flex items-center justify-center gap-3 py-4 rounded-lg transition-all font-bold text-lg",
-                    selectedSide === 'tails' 
-                      ? "bg-gradient-to-r from-[#E0E0E0] to-[#A0A0A0] text-black shadow-lg" 
-                      : "text-muted-foreground hover:bg-white/5"
-                  )}
-                >
-                  <div className="w-6 h-6 rounded-full bg-[#A0A0A0] border border-black/20" />
-                  Tails
-                </button>
-              </div>
-
-              {/* Bet Input */}
-              <div className="flex flex-col md:flex-row gap-4 items-end">
-                <div className="flex-1 w-full space-y-2">
-                  <div className="flex justify-between">
-                    <Label className="text-brand-textSecondary">Bet Amount</Label>
-                    <span className="text-xs text-muted-foreground">Balance: {balance.toFixed(2)}</span>
-                  </div>
-                  <div className="relative">
-                    <Input 
-                      type="number" 
-                      value={betAmount} 
-                      onChange={handleBetInputChange}
-                      className="bg-black/20 border-white/10 h-12 text-lg font-bold pl-4 pr-20 focus-visible:ring-primary/50"
-                    />
-                    <div className="absolute right-1 top-1 bottom-1 flex gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => adjustBet(0.5)} className="h-full px-2 text-xs text-muted-foreground hover:text-white">1/2</Button>
-                        <Button variant="ghost" size="sm" onClick={() => adjustBet(2)} className="h-full px-2 text-xs text-muted-foreground hover:text-white">2x</Button>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 mt-2 overflow-x-auto pb-1">
-                    {[1, 10, 50, 100].map(amt => (
-                      <Button key={amt} variant="outline" size="sm" onClick={() => adjustBet(prev => prev + amt)} className="border-white/10 bg-white/5 hover:bg-white/10 text-xs">+{amt}</Button>
-                    ))}
-                    <Button variant="outline" size="sm" onClick={() => adjustBet('max')} className="border-white/10 bg-white/5 hover:bg-white/10 text-xs ml-auto">Max</Button>
-                  </div>
-                </div>
-
-                <Button 
-                  onClick={handleFlip} 
-                  disabled={isFlipping || !user}
-                  className={cn(
-                    "w-full md:w-48 h-12 text-lg font-bold text-black shadow-gold hover:scale-105 transition-all active:scale-95 disabled:opacity-70 disabled:hover:scale-100",
-                    selectedSide === 'heads' ? "bg-gold-gradient" : "bg-gradient-to-r from-gray-200 to-gray-400"
-                  )}
-                >
-                  {isFlipping ? "Flipping..." : (!user ? "Log in to Play" : `Flip ${selectedSide === 'heads' ? 'Heads' : 'Tails'}`)}
-                </Button>
-              </div>
-            </div>
-
-          </CardContent>
-        </Card>
-
-        {/* History Panel */}
-        <Card className="lg:col-span-4 border-border bg-brand-surface h-[600px] lg:h-auto flex flex-col">
-          <CardHeader className="border-b border-white/5 pb-4">
-            <div className="flex items-center gap-2">
-              <History className="w-5 h-5 text-muted-foreground" />
-              <CardTitle className="text-lg font-bold">Recent Flips</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0 flex-1 overflow-hidden">
-            <ScrollArea className="h-full w-full">
-              <Table>
-                <TableHeader className="bg-black/20 sticky top-0 backdrop-blur-sm z-10">
-                  <TableRow className="border-white/5 hover:bg-transparent">
-                    <TableHead className="text-xs w-[80px]">Choice</TableHead>
-                    <TableHead className="text-xs text-center">Result</TableHead>
-                    <TableHead className="text-xs text-right">Payout</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            {/* History Bar */}
+            <div className="absolute bottom-16 left-4 right-4 bg-[#1a2c38] rounded-lg p-3 border border-[#213743]">
+               <div className="text-xs font-bold text-[#b1bad3] mb-2">History</div>
+               <div className="flex gap-2 overflow-hidden">
                   {history.length === 0 ? (
-                    <TableRow className="hover:bg-transparent border-0">
-                      <TableCell colSpan={3} className="h-24 text-center text-muted-foreground text-sm">
-                        No flips yet.
-                      </TableCell>
-                    </TableRow>
+                    <div className="w-full h-8 flex items-center justify-center text-xs text-[#b1bad3]/50">No recent bets</div>
                   ) : (
-                    history.map((bet) => {
-                      const isWin = bet.result === 'win';
-                      const choice = bet.raw_data?.side || 'heads';
+                    history.map((bet, i) => {
+                      const side = bet.raw_data?.outcome || 'heads';
                       return (
-                        <TableRow key={bet.id} className="border-white/5 hover:bg-white/5">
-                          <TableCell className="text-xs font-medium capitalize flex items-center gap-2">
-                             <div className={cn("w-2 h-2 rounded-full", choice === 'heads' ? "bg-yellow-500" : "bg-gray-400")} />
-                             {choice}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant="outline" className={cn(
-                              "min-w-[60px] justify-center border-0 font-mono font-bold",
-                              isWin ? "bg-brand-success/10 text-brand-success" : "bg-brand-danger/10 text-brand-textSecondary"
-                            )}>
-                              {isWin ? 'WIN' : 'LOSS'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className={cn(
-                            "text-right text-xs font-bold font-mono",
-                            isWin ? "text-brand-success" : "text-muted-foreground"
-                          )}>
-                            {isWin ? `+${bet.payout_credits.toFixed(2)}` : `-${bet.stake_credits}`}
-                          </TableCell>
-                        </TableRow>
+                        <div 
+                          key={bet.id} 
+                          className={cn(
+                            "w-6 h-8 rounded shrink-0 flex items-center justify-center shadow-sm border border-white/5",
+                            side === 'heads' ? "bg-[#FFD700] text-black" : "bg-[#1475e1] text-white"
+                          )}
+                        >
+                          <div className={cn("w-3 h-3 rounded-full", side === 'heads' ? "bg-white/50" : "rotate-45 bg-white/50")} />
+                        </div>
                       );
                     })
                   )}
-                </TableBody>
-              </Table>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+               </div>
+            </div>
 
+            {/* Footer Controls */}
+            <div className="absolute bottom-0 left-0 right-0 h-12 bg-[#0f212e] border-t border-[#213743] flex items-center justify-between px-4">
+               <div className="flex items-center gap-2">
+                 <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
+                    <Settings2 className="w-4 h-4" />
+                 </Button>
+                 <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
+                    <Maximize2 className="w-4 h-4" />
+                 </Button>
+                 <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
+                    <BarChart2 className="w-4 h-4" />
+                 </Button>
+               </div>
+               
+               <div className="absolute left-1/2 -translate-x-1/2 font-bold text-white tracking-tight text-lg">
+                  Shiny
+               </div>
+
+               <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 bg-[#213743] px-3 py-1 rounded-full hover:bg-[#2f4553] cursor-pointer transition-colors">
+                     <div className="w-3 h-3 rounded-full bg-green-500 flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                     </div>
+                     <span className="text-xs font-bold text-white">Fairness</span>
+                  </div>
+               </div>
+            </div>
+
+          </div>
+
+        </div>
       </div>
     </div>
   );
-};
-
-export default CoinFlip;
+}
