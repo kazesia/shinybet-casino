@@ -15,8 +15,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import AdminLayout from '@/components/admin/AdminLayout';
 
 // Public Pages
-import Hero from './components/home/Hero';
-import GameGrid from './components/home/GameGrid';
+import Home from './pages/Home';
 import DiceGame from './pages/DiceGame';
 import CoinFlip from './pages/CoinFlip';
 import MinesGame from './pages/MinesGame';
@@ -30,10 +29,12 @@ import ResponsibleGambling from './pages/legal/ResponsibleGambling';
 import Blog from './pages/community/Blog';
 import Forum from './pages/community/Forum';
 import SportsPage from './pages/Sports';
+import AuthPage from './pages/Auth';
 
 // User Pages
 import Dashboard from './pages/Dashboard';
 import WalletPage from './pages/Wallet';
+import Profile from './pages/Profile';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -41,14 +42,6 @@ import UsersManager from './pages/admin/UsersManager';
 import WithdrawalsCenter from './pages/admin/WithdrawalsCenter';
 import ActivityLogs from './pages/admin/ActivityLogs';
 import GlobalSettings from './pages/admin/GlobalSettings';
-
-// Home Page Component
-const Home = () => (
-  <main>
-    <Hero />
-    <GameGrid />
-  </main>
-);
 
 function App() {
   return (
@@ -59,6 +52,7 @@ function App() {
             <Routes>
               {/* Public & User Routes (Wrapped in MainLayout with Sidebar) */}
               <Route path="/" element={<MainLayout><Home /></MainLayout>} />
+              <Route path="/auth" element={<AuthPage />} />
               <Route path="/sports" element={<MainLayout><SportsPage /></MainLayout>} />
               <Route path="/vip-club" element={<MainLayout><VIPClub /></MainLayout>} />
               <Route path="/promotions" element={<MainLayout><Promotions /></MainLayout>} />
@@ -88,6 +82,11 @@ function App() {
               <Route path="/wallet" element={
                 <ProtectedRoute>
                   <MainLayout><WalletPage /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <MainLayout><Profile /></MainLayout>
                 </ProtectedRoute>
               } />
 

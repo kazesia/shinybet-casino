@@ -3,52 +3,43 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, ChevronRight, Star, Info, ChevronLeft, Gamepad2, Dices, Trophy } from 'lucide-react';
+import { Search, ChevronRight, Star, Info, ChevronLeft, Dices, Trophy, ChevronDown, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
-// Mock Data for Game Cards
+// Game Data matching the screenshot
 const ORIGINALS = [
-  { id: 'blackjack', name: 'Blackjack', color: 'bg-[#ff4d4d]', icon: '♠️', playing: 1415 },
-  { id: 'snakes', name: 'Snakes', color: 'bg-[#00b8ff]', icon: '🐍', playing: 303 },
-  { id: 'mines', name: 'Mines', color: 'bg-[#0052ff]', icon: '💣', playing: 2701 },
-  { id: 'dice', name: 'Dice', color: 'bg-[#9146ff]', icon: '🎲', playing: 2507 },
-  { id: 'chicken', name: 'Chicken', color: 'bg-[#5c5cff]', icon: '🐔', playing: 766 },
-  { id: 'plinko', name: 'Plinko', color: 'bg-[#ff469f]', icon: '🎯', playing: 1750 },
-  { id: 'diamonds', name: 'Diamonds', color: 'bg-[#a359ff]', icon: '💎', playing: 130 },
-  { id: 'limbo', name: 'Limbo', color: 'bg-[#ffaa00]', icon: '🚀', playing: 1905 },
-];
-
-const SLOTS = [
-  { id: 1, name: 'Sweet Bonanza', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Sweet+Bonanza' },
-  { id: 2, name: 'Gates of Olympus', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Gates+of+Olympus' },
-  { id: 3, name: 'Wanted Dead or a Wild', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Wanted' },
-  { id: 4, name: 'Sugar Rush', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Sugar+Rush' },
-  { id: 5, name: 'Fruit Party', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Fruit+Party' },
-  { id: 6, name: 'Big Bass Bonanza', image: 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/200x280/1a2c38/FFF?text=Big+Bass' },
+  { id: 'flip', name: 'Flip', color: 'bg-[#00e701]', icon: '🪙', playing: 254, link: '/game/coinflip' },
+  { id: 'blackjack', name: 'Blackjack', color: 'bg-[#ff4d4d]', icon: '🃏', playing: 1058, link: '#' },
+  { id: 'snakes', name: 'Snakes', color: 'bg-[#00b8ff]', icon: '🐍', playing: 196, link: '#' },
+  { id: 'mines', name: 'Mines', color: 'bg-[#0052ff]', icon: '💣', playing: 2054, link: '/game/mines' },
+  { id: 'dice', name: 'Dice', color: 'bg-[#9146ff]', icon: '🎲', playing: 2096, link: '/game/dice' },
+  { id: 'chicken', name: 'Chicken', color: 'bg-[#5c5cff]', icon: '🐔', playing: 568, link: '#' },
+  { id: 'plinko', name: 'Plinko', color: 'bg-[#ff469f]', icon: '🎯', playing: 1412, link: '#' },
+  { id: 'diamonds', name: 'Diamonds', color: 'bg-[#a359ff]', icon: '💎', playing: 87, link: '#' },
 ];
 
 export default function Dashboard() {
   const { profile } = useAuth();
-  const { wallet } = useDashboardData();
+  const { wallet } = useDashboardData(); // Using hook to get data if needed
 
   return (
-    <div className="container py-6 space-y-8 max-w-[1400px] mx-auto px-4 md:px-8">
+    <div className="container py-6 space-y-8 max-w-[1600px] mx-auto px-4 md:px-8">
       
-      {/* Hero Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      {/* Top Row: Profile + Banners */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Profile / VIP Card */}
-        <Card className="lg:col-span-4 bg-[#1a2c38] border-0 shadow-lg overflow-hidden relative group">
-           <div className="absolute inset-0 bg-gradient-to-br from-[#1a2c38] to-[#0f212e]" />
-           <CardContent className="relative p-6 h-full flex flex-col justify-between min-h-[220px]">
+        {/* 1. Profile / VIP Progress Card */}
+        <Card className="lg:col-span-4 bg-[#0f212e] border border-[#F7D979] shadow-lg overflow-hidden relative group h-[240px]">
+           <CardContent className="relative p-6 h-full flex flex-col justify-between">
               <div className="flex justify-between items-start">
                  <div className="flex items-center gap-3">
                     <h2 className="text-xl font-bold text-white">{profile?.username || 'Guest'}</h2>
                  </div>
-                 <Star className="w-5 h-5 text-[#b1bad3] hover:text-[#F7D979] cursor-pointer transition-colors" />
+                 <Star className="w-5 h-5 text-[#F7D979] cursor-pointer" />
               </div>
 
-              <div className="space-y-3 mt-auto">
+              <div className="space-y-4 mt-auto">
                  <div className="flex justify-between items-center text-sm">
                     <span className="text-white font-semibold flex items-center gap-1 hover:underline cursor-pointer">
                       Your VIP Progress <ChevronRight className="w-4 h-4" />
@@ -57,52 +48,52 @@ export default function Dashboard() {
                       20.01% <Info className="w-3 h-3 text-[#b1bad3]" />
                     </span>
                  </div>
-                 <div className="relative h-2 bg-[#0f212e] rounded-full overflow-hidden">
-                    <div className="absolute top-0 left-0 h-full w-[20%] bg-[#b17827] rounded-full" />
+                 <div className="relative h-2 bg-[#213743] rounded-full overflow-hidden">
+                    <div className="absolute top-0 left-0 h-full w-[20%] bg-[#b1bad3] rounded-full" />
                  </div>
                  <div className="flex justify-between text-xs text-[#b1bad3] font-medium">
-                    <span className="flex items-center gap-1"><Star className="w-3 h-3 text-[#b17827]" /> Bronze</span>
+                    <span className="flex items-center gap-1"><Star className="w-3 h-3" /> Bronze</span>
                     <span className="flex items-center gap-1"><Star className="w-3 h-3" /> Silver</span>
                  </div>
               </div>
            </CardContent>
         </Card>
 
-        {/* Casino Banner */}
-        <Card className="lg:col-span-4 bg-[#1a2c38] border-0 shadow-lg overflow-hidden relative group cursor-pointer">
+        {/* 2. Casino Banner */}
+        <Card className="lg:col-span-4 bg-[#0052ff] border-0 shadow-lg overflow-hidden relative group cursor-pointer h-[240px]">
            <img 
-             src="https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x350/1475e1/FFF?text=Casino+Live" 
+             src="https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x350/0052ff/FFF?text=Live+Dealers" 
              alt="Casino" 
-             className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" 
+             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
            />
-           <div className="absolute inset-0 bg-gradient-to-t from-[#0f212e] via-transparent to-transparent" />
-           <CardContent className="relative h-full flex flex-col justify-end p-4 min-h-[220px]">
+           <div className="absolute inset-0 bg-gradient-to-t from-[#000000]/80 via-transparent to-transparent" />
+           <CardContent className="relative h-full flex flex-col justify-end p-4">
               <div className="flex justify-between items-end">
                  <div className="flex items-center gap-2 text-white font-bold text-lg">
                     <Dices className="w-5 h-5" /> Casino
                  </div>
-                 <div className="flex items-center gap-1.5 text-xs font-medium text-[#b1bad3]">
-                    <div className="w-2 h-2 rounded-full bg-[#00e701]" /> 61,633
+                 <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                    <div className="w-2 h-2 rounded-full bg-[#00e701]" /> 39,406
                  </div>
               </div>
            </CardContent>
         </Card>
 
-        {/* Sports Banner */}
-        <Card className="lg:col-span-4 bg-[#1a2c38] border-0 shadow-lg overflow-hidden relative group cursor-pointer">
+        {/* 3. Sports Banner */}
+        <Card className="lg:col-span-4 bg-[#00b894] border-0 shadow-lg overflow-hidden relative group cursor-pointer h-[240px]">
            <img 
-             src="https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x350/00b894/FFF?text=UFC+299" 
+             src="https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x350/00b894/FFF?text=UFC+Fighters" 
              alt="Sports" 
-             className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" 
+             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
            />
-           <div className="absolute inset-0 bg-gradient-to-t from-[#0f212e] via-transparent to-transparent" />
-           <CardContent className="relative h-full flex flex-col justify-end p-4 min-h-[220px]">
+           <div className="absolute inset-0 bg-gradient-to-t from-[#000000]/80 via-transparent to-transparent" />
+           <CardContent className="relative h-full flex flex-col justify-end p-4">
               <div className="flex justify-between items-end">
                  <div className="flex items-center gap-2 text-white font-bold text-lg">
                     <Trophy className="w-5 h-5" /> Sports
                  </div>
-                 <div className="flex items-center gap-1.5 text-xs font-medium text-[#b1bad3]">
-                    <div className="w-2 h-2 rounded-full bg-[#00e701]" /> 21,686
+                 <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                    <div className="w-2 h-2 rounded-full bg-[#00e701]" /> 24,778
                  </div>
               </div>
            </CardContent>
@@ -110,17 +101,16 @@ export default function Dashboard() {
       </div>
 
       {/* Search Bar */}
-      <div className="relative group">
-         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+      <div className="relative flex items-center w-full h-14 bg-[#0f212e] border border-[#2f4553] rounded-full overflow-hidden hover:border-[#b1bad3]/50 transition-colors">
+         <div className="flex items-center h-full px-4 border-r border-[#2f4553] cursor-pointer hover:bg-[#213743] transition-colors">
+            <span className="text-sm font-bold text-white mr-2">Casino</span>
+            <ChevronDown className="h-4 w-4 text-[#b1bad3]" />
+         </div>
+         <div className="pl-4">
             <Search className="h-5 w-5 text-[#b1bad3]" />
          </div>
-         <div className="absolute inset-y-0 left-12 flex items-center">
-            <Button variant="ghost" className="h-8 text-sm font-semibold text-white hover:bg-[#213743] px-2">
-               Casino <ChevronRight className="ml-1 h-3 w-3" />
-            </Button>
-         </div>
          <Input 
-           className="w-full h-14 pl-36 bg-[#0f212e] border border-[#213743] rounded-full text-white placeholder:text-[#b1bad3] focus-visible:ring-1 focus-visible:ring-[#1475e1] hover:border-[#b1bad3]/30 transition-colors"
+           className="flex-1 h-full border-0 bg-transparent text-white placeholder:text-[#b1bad3] focus-visible:ring-0 text-sm font-medium"
            placeholder="Search your game"
          />
       </div>
@@ -129,13 +119,16 @@ export default function Dashboard() {
       <div className="space-y-4">
          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-white font-bold text-lg">
-               <Gamepad2 className="w-5 h-5" /> Continue Playing
+               <div className="bg-[#b1bad3] rounded-full p-0.5">
+                 <ChevronRight className="w-3 h-3 text-[#0f212e]" />
+               </div>
+               Continue Playing
             </div>
             <div className="flex gap-2">
-               <Button variant="ghost" size="icon" className="bg-[#1a2c38] hover:bg-[#213743] text-white rounded-full h-8 w-8">
+               <Button variant="ghost" size="icon" className="bg-[#1a2c38] hover:bg-[#213743] text-white rounded-md h-8 w-8 border border-[#2f4553]">
                   <ChevronLeft className="w-4 h-4" />
                </Button>
-               <Button variant="ghost" size="icon" className="bg-[#1a2c38] hover:bg-[#213743] text-white rounded-full h-8 w-8">
+               <Button variant="ghost" size="icon" className="bg-[#1a2c38] hover:bg-[#213743] text-white rounded-md h-8 w-8 border border-[#2f4553]">
                   <ChevronRight className="w-4 h-4" />
                </Button>
             </div>
@@ -143,77 +136,61 @@ export default function Dashboard() {
 
          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
             {ORIGINALS.map((game) => (
-               <Link to={`/game/${game.id}`} key={game.id} className="group relative aspect-[3/4] rounded-lg overflow-hidden hover:-translate-y-1 transition-transform duration-300">
-                  <div className={`absolute inset-0 ${game.color} flex flex-col items-center justify-center p-4`}>
-                     <div className="absolute top-2 right-2 bg-black/20 text-[10px] font-bold px-1.5 py-0.5 rounded text-white/80">
-                        Shiny
+               <Link to={game.link} key={game.id} className="group flex flex-col gap-2 cursor-pointer">
+                  <div className={`relative aspect-[3/4] rounded-lg overflow-hidden hover:-translate-y-1 transition-transform duration-300 shadow-lg`}>
+                     {/* Card Background */}
+                     <div className={`absolute inset-0 ${game.color} flex flex-col items-center justify-center p-4`}>
+                        {/* Top "Stake" Tag */}
+                        <div className="absolute top-3 right-3 transform rotate-12 bg-white/20 text-[8px] font-black px-1.5 py-0.5 rounded text-white uppercase tracking-wider">
+                           Stake
+                        </div>
+                        
+                        {/* Icon */}
+                        <div className="text-5xl mb-4 drop-shadow-xl transform group-hover:scale-110 transition-transform duration-300">
+                           {game.icon}
+                        </div>
+                        
+                        {/* Name */}
+                        <div className="text-white font-black text-xl uppercase tracking-wider drop-shadow-md text-center leading-none">
+                           {game.name}
+                        </div>
+                        
+                        {/* Bottom "Originals" Tag */}
+                        <div className="absolute bottom-4 text-[9px] font-bold text-white/70 uppercase tracking-[0.2em]">
+                           Stake Originals
+                        </div>
                      </div>
-                     <div className="text-4xl mb-2 drop-shadow-lg transform group-hover:scale-110 transition-transform">
-                        {game.icon}
-                     </div>
-                     <div className="text-white font-black text-lg uppercase tracking-wider drop-shadow-md">
-                        {game.name}
-                     </div>
-                     <div className="absolute bottom-4 text-[10px] font-medium text-white/60 uppercase tracking-widest">
-                        Shiny Originals
-                     </div>
+                     
+                     {/* Hover Overlay */}
+                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-[#1a2c38] flex items-center gap-1.5 text-[10px] text-[#b1bad3] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                     <div className="w-1.5 h-1.5 rounded-full bg-[#00e701]" /> {game.playing.toLocaleString()} playing
+                  
+                  {/* Playing Count */}
+                  <div className="flex items-center gap-1.5 text-[11px] text-[#b1bad3] font-medium px-1">
+                     <div className="w-1.5 h-1.5 rounded-full bg-[#00e701]" /> 
+                     <span className="text-white font-bold">{game.playing.toLocaleString()}</span> playing
                   </div>
                </Link>
             ))}
          </div>
       </div>
 
-      {/* Trending Games */}
-      <div className="space-y-4">
+      {/* Trending Games Header (Placeholder for more content) */}
+      <div className="space-y-4 pt-4">
          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-white font-bold text-lg">
-               <TrendingUpIcon className="w-5 h-5" /> Trending Games
+               <TrendingUp className="w-5 h-5" /> Trending Games
             </div>
             <div className="flex gap-2">
-               <Button variant="ghost" size="icon" className="bg-[#1a2c38] hover:bg-[#213743] text-white rounded-full h-8 w-8">
+               <Button variant="ghost" size="icon" className="bg-[#1a2c38] hover:bg-[#213743] text-white rounded-md h-8 w-8 border border-[#2f4553]">
                   <ChevronLeft className="w-4 h-4" />
                </Button>
-               <Button variant="ghost" size="icon" className="bg-[#1a2c38] hover:bg-[#213743] text-white rounded-full h-8 w-8">
+               <Button variant="ghost" size="icon" className="bg-[#1a2c38] hover:bg-[#213743] text-white rounded-md h-8 w-8 border border-[#2f4553]">
                   <ChevronRight className="w-4 h-4" />
                </Button>
             </div>
          </div>
-
-         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {SLOTS.map((game) => (
-               <div key={game.id} className="group relative aspect-[3/4] rounded-lg overflow-hidden bg-[#1a2c38] hover:-translate-y-1 transition-transform duration-300 cursor-pointer">
-                  <img src={game.image} alt={game.name} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                  <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                     <div className="text-white font-bold text-sm truncate">{game.name}</div>
-                  </div>
-               </div>
-            ))}
-         </div>
       </div>
     </div>
   );
-}
-
-function TrendingUpIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-      <polyline points="16 7 22 7 22 13" />
-    </svg>
-  )
 }

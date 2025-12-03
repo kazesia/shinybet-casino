@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface UIContextType {
   isAuthModalOpen: boolean;
@@ -10,6 +10,10 @@ interface UIContextType {
   openWalletModal: (tab?: 'deposit' | 'withdraw') => void;
   closeWalletModal: () => void;
   walletTab: 'deposit' | 'withdraw';
+
+  isSidebarCollapsed: boolean;
+  toggleSidebar: () => void;
+  setSidebarCollapsed: (collapsed: boolean) => void;
 }
 
 const UIContext = createContext<UIContextType>({
@@ -22,6 +26,10 @@ const UIContext = createContext<UIContextType>({
   openWalletModal: () => {},
   closeWalletModal: () => {},
   walletTab: 'deposit',
+
+  isSidebarCollapsed: false,
+  toggleSidebar: () => {},
+  setSidebarCollapsed: () => {},
 });
 
 export const useUI = () => useContext(UIContext);
@@ -32,6 +40,19 @@ export const UIProvider = ({ children }: { children: React.ReactNode }) => {
   
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [walletTab, setWalletTab] = useState<'deposit' | 'withdraw'>('deposit');
+
+  // Sidebar state - default to false (expanded) on desktop
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebarCollapsed');
+      return saved ? JSON.parse(saved) : false;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(isSidebarCollapsed));
+  }, [isSidebarCollapsed]);
 
   const openAuthModal = (view: 'login' | 'register' = 'login') => {
     setAuthView(view);
@@ -47,6 +68,9 @@ export const UIProvider = ({ children }: { children: React.ReactNode }) => {
 
   const closeWalletModal = () => setIsWalletModalOpen(false);
 
+  const toggleSidebar = () => setIsSidebarCollapsed(prev => !prev);
+  const setSidebarCollapsed = (val: boolean) => setIsSidebarCollapsed(val);
+
   return (
     <UIContext.Provider value={{
       isAuthModalOpen,
@@ -56,7 +80,10 @@ export const UIProvider = ({ children }: { children: React.ReactNode }) => {
       isWalletModalOpen,
       openWalletModal,
       closeWalletModal,
-      walletTab
+      walletTab,
+      isSidebarCollapsed,
+      toggleSidebar,
+      setSidebarCollapsed
     }}>
       {children}
     </UIContext.Provider>
