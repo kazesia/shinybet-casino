@@ -115,7 +115,7 @@ export default function Settings() {
                     <Button 
                       onClick={handleUpdateUsername}
                       disabled={loading || username === profile?.username}
-                      className="bg-[#00e701] hover:bg-[#00c701] text-[#0f212e] font-bold px-6"
+                      className="bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-bold px-6"
                     >
                       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Save Changes
@@ -127,7 +127,7 @@ export default function Settings() {
               <div className="bg-[#1a2c38] rounded-md p-6 border border-[#2f4553]">
                 <div className="flex items-center gap-2 mb-6">
                   <h2 className="text-lg font-bold text-white">Email</h2>
-                  <span className="bg-[#00e701] text-[#0f212e] text-[10px] font-black px-2 py-0.5 rounded uppercase">Verified</span>
+                  <span className="bg-[#FFD700] text-[#0f212e] text-[10px] font-black px-2 py-0.5 rounded uppercase">Verified</span>
                 </div>
                 <div className="space-y-4">
                   <div className="space-y-2">

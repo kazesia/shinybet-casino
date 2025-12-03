@@ -26,7 +26,7 @@ const Hero = () => {
               <div className="flex gap-4">
                 <Link to="/game/dice">
                   <Button 
-                    className="h-12 px-8 bg-[#00e701] hover:bg-[#00c701] text-[#0f212e] font-black text-base rounded-md w-full sm:w-auto shadow-[0_0_20px_rgba(0,231,1,0.3)]"
+                    className="h-12 px-8 bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-black text-base rounded-md w-full sm:w-auto shadow-[0_0_20px_rgba(0,231,1,0.3)]"
                   >
                     Play Now <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>

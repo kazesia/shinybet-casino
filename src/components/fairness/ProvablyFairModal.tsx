@@ -141,7 +141,7 @@ export function ProvablyFairModal() {
             <Button 
               onClick={handleRotate} 
               disabled={loading}
-              className="w-full bg-[#00e701] hover:bg-[#00c701] text-[#0f212e] font-bold"
+              className="w-full bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-bold"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
               Rotate Seed Pair

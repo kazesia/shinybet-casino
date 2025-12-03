@@ -325,7 +325,7 @@ export default function PlinkoGame() {
             {/* Play Button */}
             <Button 
               onClick={dropBall}
-              className="w-full h-12 mt-2 bg-[#00e701] hover:bg-[#00c701] text-[#0f212e] font-black text-base shadow-[0_4px_0_#00b301] active:shadow-none active:translate-y-[4px] transition-all"
+              className="w-full h-12 mt-2 bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-black text-base shadow-[0_4px_0_#B8860B] active:shadow-none active:translate-y-[4px] transition-all"
             >
               Bet
             </Button>
