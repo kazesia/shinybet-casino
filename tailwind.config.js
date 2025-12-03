@@ -26,11 +26,11 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#1475e1", // Stake Blue Button
+          DEFAULT: "#1475e1",
           foreground: "#ffffff",
         },
         secondary: {
-          DEFAULT: "#1a2c38", // Card Background
+          DEFAULT: "#1a2c38",
           foreground: "#ffffff",
         },
         destructive: {
@@ -38,11 +38,11 @@ export default {
           foreground: "hsl(var(--destructive-foreground))",
         },
         muted: {
-          DEFAULT: "#b1bad3", // Muted Text
+          DEFAULT: "#b1bad3",
           foreground: "#b1bad3",
         },
         accent: {
-          DEFAULT: "#213743", // Hover/Input Background
+          DEFAULT: "#213743",
           foreground: "#ffffff",
         },
         popover: {
@@ -53,16 +53,23 @@ export default {
           DEFAULT: "#1a2c38",
           foreground: "#ffffff",
         },
-        // Custom Palette from Screenshot
+        // Admin Specific Palette
+        admin: {
+          bg: "#05070A",       // Main Background
+          surface: "#0D1016",  // Card/Sidebar Background
+          accent: "#F59E0B",   // Gold Accent
+          border: "#1F2937",   // Dark Border
+        },
+        // Legacy/App Palette
         stake: {
-          dark: "#0f212e", // Main App Background
-          card: "#1a2c38", // Component Background
-          hover: "#213743", // Hover State
-          text: "#b1bad3", // Secondary Text
+          dark: "#0f212e",
+          card: "#1a2c38",
+          hover: "#213743",
+          text: "#b1bad3",
           white: "#ffffff",
-          blue: "#1475e1", // Wallet Button
-          green: "#00e701", // Online Dot
-          vip: "#b17827", // Bronze/VIP Color
+          blue: "#1475e1",
+          green: "#00e701",
+          vip: "#b17827",
         }
       },
       borderRadius: {

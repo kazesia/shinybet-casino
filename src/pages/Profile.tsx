@@ -1,18 +1,26 @@
+import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useWallet } from '@/context/WalletContext';
+import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { LogOut, Mail, User, Wallet, Shield, Calendar } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { LogOut, Mail, User, Wallet, Shield, Calendar, Edit2, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export default function Profile() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, refreshProfile } = useAuth();
   const { balance } = useWallet();
   const navigate = useNavigate();
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [newUsername, setNewUsername] = useState(profile?.username || '');
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -22,6 +30,33 @@ export default function Profile() {
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to log out");
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    if (!user) return;
+    if (newUsername.length < 3) {
+      toast.error("Username must be at least 3 characters");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ username: newUsername })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      await refreshProfile(); // Refresh context instead of page reload
+      toast.success("Profile updated successfully");
+      setIsEditing(false);
+    } catch (error: any) {
+      console.error("Update error:", error);
+      toast.error(error.message || "Failed to update profile");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -58,12 +93,22 @@ export default function Profile() {
           <CardHeader className="pt-16 pb-4 px-8">
             <div className="flex justify-between items-start">
               <div>
-                <CardTitle className="text-2xl font-bold text-white flex items-center gap-2">
-                  {profile?.username || 'User'}
+                <div className="flex items-center gap-3">
+                  <CardTitle className="text-2xl font-bold text-white flex items-center gap-2">
+                    {profile?.username || 'User'}
+                  </CardTitle>
                   <Badge variant="secondary" className="bg-[#F7D979] text-black hover:bg-[#F7D979]/90">
                     {profile?.role === 'super_admin' ? 'Super Admin' : profile?.role === 'admin' ? 'Admin' : 'Player'}
                   </Badge>
-                </CardTitle>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 text-muted-foreground hover:text-white"
+                    onClick={() => { setNewUsername(profile?.username || ''); setIsEditing(true); }}
+                  >
+                    <Edit2 className="h-3 w-3" />
+                  </Button>
+                </div>
                 <CardDescription className="flex items-center gap-2 mt-1">
                   <Mail className="w-4 h-4" /> {user.email}
                 </CardDescription>
@@ -121,9 +166,19 @@ export default function Profile() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Username</label>
-                <div className="flex items-center gap-2 p-3 rounded-md bg-[#0f212e] border border-[#2f4553] text-white">
-                  <User className="w-4 h-4 text-muted-foreground" />
-                  {profile?.username}
+                <div className="flex items-center justify-between p-3 rounded-md bg-[#0f212e] border border-[#2f4553] text-white group">
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                    {profile?.username}
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => { setNewUsername(profile?.username || ''); setIsEditing(true); }}
+                  >
+                    <Edit2 className="h-3 w-3" />
+                  </Button>
                 </div>
               </div>
               <div className="space-y-2">
@@ -157,6 +212,43 @@ export default function Profile() {
           </CardFooter>
         </Card>
       </div>
+
+      {/* Edit Profile Dialog */}
+      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+        <DialogContent className="bg-[#1a2c38] border-[#2f4553] text-white">
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+            <DialogDescription>Update your public profile information.</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">Username</label>
+              <Input 
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+                className="bg-[#0f212e] border-[#2f4553] text-white focus-visible:ring-[#F7D979]"
+                placeholder="Enter new username"
+              />
+              <p className="text-xs text-muted-foreground">This is how you will appear to other players.</p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsEditing(false)} className="text-muted-foreground hover:text-white">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleUpdateProfile} 
+              disabled={isSaving || !newUsername || newUsername === profile?.username}
+              className="bg-[#F7D979] text-black font-bold hover:bg-[#F7D979]/90"
+            >
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

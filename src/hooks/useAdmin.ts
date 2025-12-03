@@ -33,7 +33,6 @@ export const useAdminUsers = (page = 0, pageSize = 20, search = '') => {
       const { data, count, error } = await query;
       if (error) throw error;
       
-      // Flatten wallet balance for easier table display
       const users = data.map((u: any) => ({
         ...u,
         wallet_balance: u.wallets?.[0]?.credits || 0
@@ -42,6 +41,38 @@ export const useAdminUsers = (page = 0, pageSize = 20, search = '') => {
       return { users: users as Profile[], count: count || 0 };
     },
     placeholderData: (previousData) => previousData,
+  });
+};
+
+// Fetch specific user stats for the admin view
+export const useUserStats = (userId: string | null) => {
+  return useQuery({
+    queryKey: ['admin', 'user-stats', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      
+      // 1. Get Stats
+      const { data: stats, error: statsError } = await supabase
+        .rpc('get_user_stats', { user_id: userId });
+        
+      if (statsError) throw statsError;
+
+      // 2. Get Recent Activity
+      const { data: activity, error: activityError } = await supabase
+        .from('bets')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (activityError) throw activityError;
+
+      return {
+        stats,
+        recentActivity: activity
+      };
+    },
+    enabled: !!userId
   });
 };
 

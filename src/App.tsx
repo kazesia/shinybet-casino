@@ -9,6 +9,9 @@ import { AdminProtectedRoute } from '@/components/admin/AdminProtectedRoute';
 // Modals
 import { AuthModal } from '@/components/auth/AuthModal';
 import { WalletModal } from '@/components/wallet/WalletModal';
+import { StatisticsModal } from '@/components/profile/StatisticsModal';
+import { ProvablyFairModal } from '@/components/fairness/ProvablyFairModal';
+import { VaultModal } from '@/components/vault/VaultModal';
 
 // Layouts
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -19,6 +22,8 @@ import Home from './pages/Home';
 import DiceGame from './pages/DiceGame';
 import CoinFlip from './pages/CoinFlip';
 import MinesGame from './pages/MinesGame';
+import PlinkoGame from './pages/PlinkoGame';
+import CrashGame from './pages/CrashGame';
 import VIPClub from './pages/VIPClub';
 import Promotions from './pages/Promotions';
 import Affiliate from './pages/Affiliate';
@@ -34,12 +39,15 @@ import AuthPage from './pages/Auth';
 // User Pages
 import Dashboard from './pages/Dashboard';
 import WalletPage from './pages/Wallet';
+import Transactions from './pages/Transactions';
 import Profile from './pages/Profile';
+import Settings from './pages/Settings';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UsersManager from './pages/admin/UsersManager';
 import WithdrawalsCenter from './pages/admin/WithdrawalsCenter';
+import Deposits from './pages/admin/Deposits';
 import ActivityLogs from './pages/admin/ActivityLogs';
 import GlobalSettings from './pages/admin/GlobalSettings';
 
@@ -63,6 +71,8 @@ function App() {
               <Route path="/game/dice" element={<MainLayout><DiceGame /></MainLayout>} />
               <Route path="/game/coinflip" element={<MainLayout><CoinFlip /></MainLayout>} />
               <Route path="/game/mines" element={<MainLayout><MinesGame /></MainLayout>} />
+              <Route path="/game/plinko" element={<MainLayout><PlinkoGame /></MainLayout>} />
+              <Route path="/game/crash" element={<MainLayout><CrashGame /></MainLayout>} />
               
               {/* Legal */}
               <Route path="/terms" element={<MainLayout><Terms /></MainLayout>} />
@@ -84,9 +94,19 @@ function App() {
                   <MainLayout><WalletPage /></MainLayout>
                 </ProtectedRoute>
               } />
+              <Route path="/transactions" element={
+                <ProtectedRoute>
+                  <MainLayout><Transactions /></MainLayout>
+                </ProtectedRoute>
+              } />
               <Route path="/profile" element={
                 <ProtectedRoute>
                   <MainLayout><Profile /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <MainLayout><Settings /></MainLayout>
                 </ProtectedRoute>
               } />
 
@@ -99,6 +119,8 @@ function App() {
                 <Route index element={<AdminDashboard />} />
                 <Route path="users" element={<UsersManager />} />
                 <Route path="withdrawals" element={<WithdrawalsCenter />} />
+                <Route path="deposits" element={<Deposits />} />
+                <Route path="bets" element={<ActivityLogs />} />
                 <Route path="activity" element={<ActivityLogs />} />
                 <Route path="settings" element={<GlobalSettings />} />
               </Route>
@@ -108,6 +130,9 @@ function App() {
             {/* Global Modals */}
             <AuthModal />
             <WalletModal />
+            <StatisticsModal />
+            <ProvablyFairModal />
+            <VaultModal />
             <Toaster position="top-right" theme="dark" />
           </Router>
         </UIProvider>

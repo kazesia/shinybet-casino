@@ -33,7 +33,7 @@ export const sportsApi = {
     }
   },
 
-  // Place a bet (Calls Supabase Edge Function)
+  // Place a bet (Direct DB interaction to bypass Edge Function issues)
   placeBet: async (userId: string, betData: {
     eventId: string;
     selection: string;
@@ -45,21 +45,56 @@ export const sportsApi = {
     commenceTime: string;
   }) => {
     try {
-      // Delegate event creation and betting to the Edge Function to bypass RLS
-      const { data, error } = await supabase.functions.invoke('place-bet', {
-        body: {
-          user_id: userId,
-          stake: betData.stake,
-          odds: betData.odds,
-          selection: betData.selection,
-          event_data: {
+      // 1. Ensure Event Exists (Direct DB check instead of Edge Function)
+      const { data: event } = await supabase
+        .from('sports_events')
+        .select('id')
+        .eq('external_id', betData.eventId)
+        .single();
+      
+      let internalEventId = event?.id;
+
+      if (!internalEventId) {
+        // Create event if missing
+        const { data: newEvent, error: createError } = await supabase
+          .from('sports_events')
+          .insert({
             external_id: betData.eventId,
             sport_key: betData.sportKey,
             commence_time: betData.commenceTime,
             home_team: betData.homeTeam,
-            away_team: betData.awayTeam
-          }
+            away_team: betData.awayTeam,
+            completed: false
+          })
+          .select('id')
+          .single();
+          
+        if (createError) {
+           // Handle race condition (unique constraint) if created concurrently
+           if (createError.code === '23505') {
+              const { data: retryEvent } = await supabase
+                .from('sports_events')
+                .select('id')
+                .eq('external_id', betData.eventId)
+                .single();
+              internalEventId = retryEvent?.id;
+           } else {
+              throw createError;
+           }
+        } else {
+           internalEventId = newEvent?.id;
         }
+      }
+
+      if (!internalEventId) throw new Error("Failed to resolve Event ID");
+
+      // 2. Place Bet via RPC
+      const { data, error } = await supabase.rpc('place_sports_bet', {
+        p_user_id: userId,
+        p_event_id: internalEventId,
+        p_selection_name: betData.selection,
+        p_odds: betData.odds,
+        p_stake: betData.stake
       });
 
       if (error) throw error;

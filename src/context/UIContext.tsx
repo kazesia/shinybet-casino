@@ -11,9 +11,25 @@ interface UIContextType {
   closeWalletModal: () => void;
   walletTab: 'deposit' | 'withdraw';
 
+  isVaultModalOpen: boolean;
+  openVaultModal: () => void;
+  closeVaultModal: () => void;
+
+  isStatsModalOpen: boolean;
+  openStatsModal: () => void;
+  closeStatsModal: () => void;
+
+  isFairnessModalOpen: boolean;
+  openFairnessModal: () => void;
+  closeFairnessModal: () => void;
+
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
+
+  isChatOpen: boolean;
+  toggleChat: () => void;
+  setChatOpen: (open: boolean) => void;
 }
 
 const UIContext = createContext<UIContextType>({
@@ -27,9 +43,25 @@ const UIContext = createContext<UIContextType>({
   closeWalletModal: () => {},
   walletTab: 'deposit',
 
+  isVaultModalOpen: false,
+  openVaultModal: () => {},
+  closeVaultModal: () => {},
+
+  isStatsModalOpen: false,
+  openStatsModal: () => {},
+  closeStatsModal: () => {},
+
+  isFairnessModalOpen: false,
+  openFairnessModal: () => {},
+  closeFairnessModal: () => {},
+
   isSidebarCollapsed: false,
   toggleSidebar: () => {},
   setSidebarCollapsed: () => {},
+
+  isChatOpen: true,
+  toggleChat: () => {},
+  setChatOpen: () => {},
 });
 
 export const useUI = () => useContext(UIContext);
@@ -41,6 +73,11 @@ export const UIProvider = ({ children }: { children: React.ReactNode }) => {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [walletTab, setWalletTab] = useState<'deposit' | 'withdraw'>('deposit');
 
+  const [isVaultModalOpen, setIsVaultModalOpen] = useState(false);
+
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+  const [isFairnessModalOpen, setIsFairnessModalOpen] = useState(false);
+
   // Sidebar state - default to false (expanded) on desktop
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -50,9 +87,23 @@ export const UIProvider = ({ children }: { children: React.ReactNode }) => {
     return false;
   });
 
+  // Chat state - default to true (open) on desktop
+  const [isChatOpen, setIsChatOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('chatOpen');
+      // Default to true for larger screens if not set
+      return saved ? JSON.parse(saved) : window.innerWidth > 1280;
+    }
+    return true;
+  });
+
   useEffect(() => {
     localStorage.setItem('sidebarCollapsed', JSON.stringify(isSidebarCollapsed));
   }, [isSidebarCollapsed]);
+
+  useEffect(() => {
+    localStorage.setItem('chatOpen', JSON.stringify(isChatOpen));
+  }, [isChatOpen]);
 
   const openAuthModal = (view: 'login' | 'register' = 'login') => {
     setAuthView(view);
@@ -68,8 +119,20 @@ export const UIProvider = ({ children }: { children: React.ReactNode }) => {
 
   const closeWalletModal = () => setIsWalletModalOpen(false);
 
+  const openVaultModal = () => setIsVaultModalOpen(true);
+  const closeVaultModal = () => setIsVaultModalOpen(false);
+
+  const openStatsModal = () => setIsStatsModalOpen(true);
+  const closeStatsModal = () => setIsStatsModalOpen(false);
+
+  const openFairnessModal = () => setIsFairnessModalOpen(true);
+  const closeFairnessModal = () => setIsFairnessModalOpen(false);
+
   const toggleSidebar = () => setIsSidebarCollapsed(prev => !prev);
   const setSidebarCollapsed = (val: boolean) => setIsSidebarCollapsed(val);
+
+  const toggleChat = () => setIsChatOpen(prev => !prev);
+  const setChatOpen = (val: boolean) => setIsChatOpen(val);
 
   return (
     <UIContext.Provider value={{
@@ -81,9 +144,21 @@ export const UIProvider = ({ children }: { children: React.ReactNode }) => {
       openWalletModal,
       closeWalletModal,
       walletTab,
+      isVaultModalOpen,
+      openVaultModal,
+      closeVaultModal,
+      isStatsModalOpen,
+      openStatsModal,
+      closeStatsModal,
+      isFairnessModalOpen,
+      openFairnessModal,
+      closeFairnessModal,
       isSidebarCollapsed,
       toggleSidebar,
-      setSidebarCollapsed
+      setSidebarCollapsed,
+      isChatOpen,
+      toggleChat,
+      setChatOpen
     }}>
       {children}
     </UIContext.Provider>

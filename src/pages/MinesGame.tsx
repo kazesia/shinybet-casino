@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useWallet } from '@/context/WalletContext';
+import { useUI } from '@/context/UIContext';
 import { toast } from 'sonner';
 
 // --- Constants & Math ---
@@ -45,6 +46,7 @@ interface Tile {
 export default function MinesGame() {
   const { user } = useAuth();
   const { balance, optimisticUpdate } = useWallet();
+  const { openFairnessModal } = useUI();
   
   // --- State ---
   const [betAmount, setBetAmount] = useState<number>(0);
@@ -454,7 +456,10 @@ export default function MinesGame() {
                </div>
 
                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 bg-[#213743] px-3 py-1 rounded-full hover:bg-[#2f4553] cursor-pointer transition-colors">
+                  <div 
+                    className="flex items-center gap-2 bg-[#213743] px-3 py-1 rounded-full hover:bg-[#2f4553] cursor-pointer transition-colors"
+                    onClick={openFairnessModal}
+                  >
                      <div className="w-3 h-3 rounded-full bg-green-500 flex items-center justify-center">
                         <div className="w-1.5 h-1.5 rounded-full bg-white" />
                      </div>

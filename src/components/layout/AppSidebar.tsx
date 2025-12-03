@@ -13,15 +13,18 @@ import {
   Shield, 
   Headphones, 
   Globe, 
-  ChevronDown,
   Dices,
   Bomb,
   Coins,
-  Trophy,
+  Gamepad2,
   ShieldCheck
 } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from '@/components/ui/accordion';
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   onLinkClick?: () => void;
@@ -30,145 +33,258 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 export function AppSidebar({ className, onLinkClick }: SidebarProps) {
   const location = useLocation();
   const { isSidebarCollapsed } = useUI();
-  const { profile, user } = useAuth();
-  const isActive = (path: string) => location.pathname === path;
+  const { profile } = useAuth();
   
-  // Check for admin role OR specific email
-  const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin' || user?.email === 'shinybetting@gmail.com';
+  const isSports = location.pathname.includes('/sports');
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
-  // Helper for rendering nav items with tooltip support when collapsed
-  const NavItem = ({ to, icon: Icon, label, badge, color }: { to: string; icon: any; label: string; badge?: string; color?: string }) => {
-    const active = isActive(to);
-    
-    const content = (
-      <Link to={to} onClick={onLinkClick} className="w-full block mb-1">
-        <Button
-          variant="ghost"
-          className={cn(
-            "w-full h-11 font-semibold transition-all duration-200",
-            isSidebarCollapsed ? "justify-center px-0" : "justify-start px-4 gap-3",
-            active 
-              ? "bg-[#213743] text-white" 
-              : "text-[#b1bad3] hover:text-white hover:bg-[#213743]"
-          )}
-        >
-          <Icon className={cn("h-4 w-4 shrink-0", color)} />
-          {!isSidebarCollapsed && (
-            <>
-              <span className="flex-1 text-left truncate">{label}</span>
-              {badge && (
-                <span className="bg-[#1475e1] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">
-                  {badge}
-                </span>
-              )}
-            </>
-          )}
-        </Button>
-      </Link>
-    );
-
-    if (isSidebarCollapsed) {
-      return (
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>{content}</TooltipTrigger>
-            <TooltipContent side="right" className="bg-[#0f212e] border-[#2f4553] text-white font-bold ml-2">
-              {label}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-    }
-
-    return content;
-  };
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className={cn("flex flex-col h-full bg-[#0f212e] w-full py-2 transition-all duration-300", className)}>
-      <ScrollArea className="flex-1 px-2">
-        <div className="space-y-6 pb-8">
+    <div className={cn("flex flex-col h-full bg-[#0f212e] text-[#b1bad3] pt-4", className)}>
+      
+      <ScrollArea className="flex-1 px-4 pb-4">
+        {/* Main Navigation Card */}
+        <div className={cn(
+          "bg-[#1a2c38] rounded-xl overflow-hidden transition-all duration-300",
+          isSidebarCollapsed ? "bg-transparent" : "p-2"
+        )}>
           
-          {/* 1. Main Menu */}
-          <div className="space-y-0.5 mt-2">
-             
-             {/* Admin Link (Only for Admins) */}
-             {isAdmin && (
-               <>
-                 <NavItem to="/admin" icon={ShieldCheck} label="Admin Panel" color="text-[#F7D979]" />
-                 {!isSidebarCollapsed && <div className="my-2 border-t border-[#1a2c38]" />}
-               </>
-             )}
+          {/* Admin Section */}
+          {isAdmin && (
+            <div className="mb-2">
+              <Link to="/admin" onClick={onLinkClick}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-3 font-semibold text-[#F7D979] hover:text-[#F7D979] hover:bg-[#F7D979]/10",
+                    isSidebarCollapsed && "justify-center px-0"
+                  )}
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  {!isSidebarCollapsed && "Admin Panel"}
+                </Button>
+              </Link>
+            </div>
+          )}
 
-             {/* Games Section (First as requested) */}
-             {!isSidebarCollapsed && (
-               <div className="px-4 py-2 text-xs font-bold text-[#b1bad3] uppercase tracking-wider mt-2">
-                 Casino
-               </div>
-             )}
-             <NavItem to="/game/dice" icon={Dices} label="Dice" />
-             <NavItem to="/game/mines" icon={Bomb} label="Mines" />
-             <NavItem to="/game/coinflip" icon={Coins} label="CoinFlip" />
-             <NavItem to="/sports" icon={Trophy} label="Sports" />
-
-             {!isSidebarCollapsed && <div className="my-4 border-t border-[#1a2c38]" />}
-
-             {/* VIP & Promotions (Second) */}
-             <NavItem to="/vip-club" icon={Crown} label="VIP Club" />
-             <NavItem to="/promotions" icon={Gift} label="Promotions" />
-
-             {!isSidebarCollapsed && <div className="my-4 border-t border-[#1a2c38]" />}
-
-             {/* More Section (Third) */}
-             <NavItem to="/affiliate" icon={Users} label="Affiliate" />
-             <NavItem to="/blog" icon={Newspaper} label="Blog" />
-             <NavItem to="/forum" icon={MessageSquare} label="Forum" />
+          {/* Games Section */}
+          <div className="mb-2">
+             <Accordion type="single" collapsible defaultValue={!isSports ? "games" : undefined} className="w-full">
+              <AccordionItem value="games" className="border-none">
+                {!isSidebarCollapsed ? (
+                  <AccordionTrigger className="px-3 py-2 text-sm font-semibold text-[#b1bad3] hover:text-white hover:bg-[#213743] rounded-lg hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <Gamepad2 className="h-4 w-4" />
+                      <span>Casino Games</span>
+                    </div>
+                  </AccordionTrigger>
+                ) : (
+                   <div className="flex justify-center py-2">
+                      <Gamepad2 className="h-4 w-4" />
+                   </div>
+                )}
+                <AccordionContent className="pt-1 pb-0">
+                  <div className="space-y-1 pl-0">
+                    {[
+                      { to: '/game/dice', icon: Dices, label: 'Dice' },
+                      { to: '/game/mines', icon: Bomb, label: 'Mines' },
+                      { to: '/game/coinflip', icon: Coins, label: 'CoinFlip' },
+                    ].map((item) => (
+                      <Link key={item.to} to={item.to} onClick={onLinkClick} className="block">
+                        <Button
+                          variant="ghost"
+                          className={cn(
+                            "w-full justify-start gap-3 h-9 font-medium",
+                            isActive(item.to) ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
+                            isSidebarCollapsed && "justify-center px-0"
+                          )}
+                        >
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          {!isSidebarCollapsed && item.label}
+                        </Button>
+                      </Link>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
 
-          {/* 2. Bottom Section (Sponsorships & Support) */}
-          <div className={cn("pt-4", !isSidebarCollapsed && "border-t border-[#1a2c38] mt-4")}>
-             
-             {/* Sponsorships Dropdown */}
-             {!isSidebarCollapsed ? (
-               <Accordion type="single" collapsible className="w-full mb-1">
-                  <AccordionItem value="sponsorships" className="border-none">
-                     <AccordionTrigger className="px-4 py-2 text-[#b1bad3] hover:text-white hover:no-underline text-sm font-semibold h-11 rounded-md hover:bg-[#213743]">
-                        <div className="flex items-center gap-3">
-                           <Shield className="h-4 w-4" />
-                           Sponsorships
-                        </div>
-                     </AccordionTrigger>
-                     <AccordionContent className="px-4 pb-2 text-[#b1bad3] text-sm">
-                        <div className="pl-10 space-y-2 pt-2">
-                           <div className="hover:text-white cursor-pointer transition-colors">UFC</div>
-                           <div className="hover:text-white cursor-pointer transition-colors">Everton FC</div>
-                           <div className="hover:text-white cursor-pointer transition-colors">Alfa Romeo F1</div>
-                        </div>
-                     </AccordionContent>
-                  </AccordionItem>
-               </Accordion>
-             ) : (
-               <NavItem to="#" icon={Shield} label="Sponsorships" />
-             )}
+          {/* Main Menu Items */}
+          <div className="space-y-1">
+            
+            {/* Promotions */}
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="promotions" className="border-none">
+                {!isSidebarCollapsed ? (
+                  <AccordionTrigger className="px-3 py-2 text-sm font-semibold text-[#b1bad3] hover:text-white hover:bg-[#213743] rounded-lg hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <Gift className="h-4 w-4" />
+                      <span>Promotions</span>
+                    </div>
+                  </AccordionTrigger>
+                ) : (
+                   <Link to="/promotions" onClick={onLinkClick} className="flex justify-center py-2">
+                      <Gift className="h-4 w-4" />
+                   </Link>
+                )}
+                <AccordionContent className="pt-1 pb-0">
+                  <div className="pl-4 space-y-1">
+                    <Link to="/promotions" onClick={onLinkClick}>
+                      <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">View All</Button>
+                    </Link>
+                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">Welcome Bonus</Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
 
-             <div className="space-y-0.5">
-                <NavItem to="/responsible-gambling" icon={Shield} label="Responsible Gambling" />
-                <NavItem to="/help" icon={Headphones} label="Live Support" />
-             </div>
-             
-             {/* Language Selector */}
-             {!isSidebarCollapsed && (
-               <div className="px-2 py-4">
-                  <Button variant="ghost" className="w-full justify-between text-[#b1bad3] hover:text-white hover:bg-[#213743] border border-[#2f4553] bg-[#0f212e]">
-                     <div className="flex items-center gap-2">
-                        <Globe className="h-4 w-4" />
-                        <span>English</span>
-                     </div>
-                     <ChevronDown className="h-4 w-4" />
-                  </Button>
-               </div>
-             )}
+            {/* Affiliate */}
+            <Link to="/affiliate" onClick={onLinkClick} className="block">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start gap-3 h-10 font-semibold",
+                  isActive('/affiliate') ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
+                  isSidebarCollapsed && "justify-center px-0"
+                )}
+              >
+                <Users className="h-4 w-4 shrink-0" />
+                {!isSidebarCollapsed && "Affiliate"}
+              </Button>
+            </Link>
+
+            {/* VIP Club */}
+            <Link to="/vip-club" onClick={onLinkClick} className="block">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start gap-3 h-10 font-semibold",
+                  isActive('/vip-club') ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
+                  isSidebarCollapsed && "justify-center px-0"
+                )}
+              >
+                <Crown className="h-4 w-4 shrink-0" />
+                {!isSidebarCollapsed && "VIP Club"}
+              </Button>
+            </Link>
+
+            {/* Blog */}
+            <Link to="/blog" onClick={onLinkClick} className="block">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start gap-3 h-10 font-semibold",
+                  isActive('/blog') ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
+                  isSidebarCollapsed && "justify-center px-0"
+                )}
+              >
+                <Newspaper className="h-4 w-4 shrink-0" />
+                {!isSidebarCollapsed && "Blog"}
+              </Button>
+            </Link>
+
+            {/* Forum */}
+            <Link to="/forum" onClick={onLinkClick} className="block">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start gap-3 h-10 font-semibold",
+                  isActive('/forum') ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
+                  isSidebarCollapsed && "justify-center px-0"
+                )}
+              >
+                <MessageSquare className="h-4 w-4 shrink-0" />
+                {!isSidebarCollapsed && "Forum"}
+              </Button>
+            </Link>
+
+            {/* Divider */}
+            {!isSidebarCollapsed && <div className="h-px bg-[#2f4553] my-2 mx-3" />}
+
+            {/* Sponsorships */}
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="sponsorships" className="border-none">
+                {!isSidebarCollapsed ? (
+                  <AccordionTrigger className="px-3 py-2 text-sm font-semibold text-[#b1bad3] hover:text-white hover:bg-[#213743] rounded-lg hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <Shield className="h-4 w-4" />
+                      <span>Sponsorships</span>
+                    </div>
+                  </AccordionTrigger>
+                ) : (
+                   <div className="flex justify-center py-2">
+                      <Shield className="h-4 w-4" />
+                   </div>
+                )}
+                <AccordionContent className="pt-1 pb-0">
+                  <div className="pl-4 space-y-1">
+                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">UFC</Button>
+                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">Everton FC</Button>
+                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">Alfa Romeo F1</Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            {/* Responsible Gambling */}
+            <Link to="/responsible-gambling" onClick={onLinkClick} className="block">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start gap-3 h-10 font-semibold",
+                  isActive('/responsible-gambling') ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
+                  isSidebarCollapsed && "justify-center px-0"
+                )}
+              >
+                <Shield className="h-4 w-4 shrink-0" />
+                {!isSidebarCollapsed && "Responsible Gambling"}
+              </Button>
+            </Link>
+
+            {/* Live Support */}
+            <Link to="/help" onClick={onLinkClick} className="block">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start gap-3 h-10 font-semibold",
+                  isActive('/help') ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
+                  isSidebarCollapsed && "justify-center px-0"
+                )}
+              >
+                <Headphones className="h-4 w-4 shrink-0" />
+                {!isSidebarCollapsed && "Live Support"}
+              </Button>
+            </Link>
+
+            {/* Language */}
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="language" className="border-none">
+                {!isSidebarCollapsed ? (
+                  <AccordionTrigger className="px-3 py-2 text-sm font-semibold text-[#b1bad3] hover:text-white hover:bg-[#213743] rounded-lg hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <Globe className="h-4 w-4" />
+                      <span>Language: English</span>
+                    </div>
+                  </AccordionTrigger>
+                ) : (
+                   <div className="flex justify-center py-2">
+                      <Globe className="h-4 w-4" />
+                   </div>
+                )}
+                <AccordionContent className="pt-1 pb-0">
+                  <div className="pl-4 space-y-1">
+                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-white bg-[#213743]">English</Button>
+                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">Español</Button>
+                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">Français</Button>
+                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">Deutsch</Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
           </div>
-
         </div>
       </ScrollArea>
     </div>

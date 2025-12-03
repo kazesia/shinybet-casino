@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Search, Bell, Menu, User, MessageSquare, ChevronDown, Settings, LogOut, Wallet, Crown, Users } from 'lucide-react';
+import { Search, Bell, Menu, User, MessageSquare, ChevronDown, Settings, LogOut, Wallet, Crown, Users, Trophy, BarChart2, FileText, ClipboardCheck, Shield, Headset, Lock } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useWallet } from '@/context/WalletContext';
@@ -20,7 +20,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-// Use the logo from the previous context or a placeholder that matches the "Stake" text style if image fails
 const LOGO_URL = "https://cdn.discordapp.com/attachments/1442155264613814302/1445539875116810392/Collabeco_2_-removebg-preview.png?ex=6930b76b&is=692f65eb&hm=9be06a69591c9fba9edca705a2295c341ddde42e5112db67b58dbc0d77f00ed5";
 
 const MOCK_NOTIFICATIONS = [
@@ -31,7 +30,7 @@ const MOCK_NOTIFICATIONS = [
 const Navbar = () => {
   const { user, profile, signOut } = useAuth();
   const { balance } = useWallet();
-  const { openAuthModal, openWalletModal, toggleSidebar } = useUI();
+  const { openAuthModal, openWalletModal, toggleSidebar, openStatsModal, toggleChat, isChatOpen, openVaultModal } = useUI();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -47,6 +46,20 @@ const Navbar = () => {
       toast.error("Failed to log out");
     }
   };
+
+  // Dropdown Menu Items Configuration
+  const MENU_ITEMS = [
+    { label: 'Wallet', icon: Wallet, action: () => openWalletModal('deposit') },
+    { label: 'Vault', icon: Lock, action: () => openVaultModal() },
+    { label: 'VIP', icon: Trophy, link: '/vip-club' },
+    { label: 'Affiliate', icon: Users, link: '/affiliate' },
+    { label: 'Statistics', icon: BarChart2, action: () => openStatsModal() },
+    { label: 'Transactions', icon: FileText, link: '/transactions' },
+    { label: 'My Bets', icon: ClipboardCheck, link: '/profile' },
+    { label: 'Settings', icon: Settings, link: '/settings' },
+    { label: 'Play Smart', icon: Shield, link: '/responsible-gambling' },
+    { label: 'Live Support', icon: Headset, link: '/help' },
+  ];
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 w-full h-16 bg-[#1a2c38] shadow-md flex items-center px-4 gap-4 border-b border-[#1a2c38]">
@@ -77,23 +90,23 @@ const Navbar = () => {
         </Button>
 
         {/* 2. Casino / Sports Toggles (Pill Buttons) */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden md:flex items-center bg-[#0f212e] rounded-full p-1 border border-[#2f4553]">
            <Link to="/">
              <div className={cn(
-               "h-10 px-6 rounded-full flex items-center justify-center font-bold text-sm transition-all cursor-pointer",
+               "h-8 px-5 rounded-full flex items-center justify-center font-bold text-xs transition-all cursor-pointer",
                !isSports 
-                 ? "bg-[#213743] text-white shadow-inner" // Active State (Casino)
-                 : "bg-transparent text-[#b1bad3] hover:bg-[#213743] hover:text-white"
+                 ? "bg-[#2f4553] text-white shadow-sm" 
+                 : "bg-transparent text-[#b1bad3] hover:text-white"
              )}>
                Casino
              </div>
            </Link>
            <Link to="/sports">
              <div className={cn(
-               "h-10 px-6 rounded-full flex items-center justify-center font-bold text-sm transition-all cursor-pointer",
+               "h-8 px-5 rounded-full flex items-center justify-center font-bold text-xs transition-all cursor-pointer",
                isSports 
-                 ? "bg-[#213743] text-white shadow-inner" // Active State (Sports)
-                 : "bg-transparent text-[#b1bad3] hover:bg-[#213743] hover:text-white"
+                 ? "bg-[#2f4553] text-white shadow-sm" 
+                 : "bg-transparent text-[#b1bad3] hover:text-white"
              )}>
                Sports
              </div>
@@ -102,7 +115,7 @@ const Navbar = () => {
 
         {/* 3. Logo */}
         <Link to="/" className="flex items-center ml-2">
-          <img src={LOGO_URL} alt="Shiny Logo" className="h-6 md:h-8 w-auto" />
+          <img src={LOGO_URL} alt="Shiny Logo" className="h-6 md:h-7 w-auto" />
         </Link>
       </div>
 
@@ -115,10 +128,9 @@ const Navbar = () => {
         {user ? (
           <>
              {/* Balance Selector */}
-            <div className="hidden sm:flex items-center bg-[#0f212e] rounded-[4px] h-10 px-2 gap-3 border border-[#2f4553] cursor-pointer hover:border-[#b1bad3]/50 transition-colors mr-2">
+            <div className="hidden sm:flex items-center bg-[#0f212e] rounded-[4px] h-10 px-3 gap-3 cursor-pointer hover:bg-[#213743] transition-colors mr-2">
               <div className="flex items-center gap-2">
                  <span className="text-sm font-bold text-white">${balance.toFixed(2)}</span>
-                 {/* Litecoin Icon Placeholder */}
                  <div className="w-5 h-5 rounded-full bg-[#345d9d] flex items-center justify-center text-white text-[10px] font-bold">
                     Ł
                  </div>
@@ -148,13 +160,12 @@ const Navbar = () => {
                       <User className="h-5 w-5" />
                     </Button>
                  </DropdownMenuTrigger>
-                 <DropdownMenuContent align="end" className="w-64 bg-[#1a2c38] border-[#2f4553] text-white p-2">
-                    <DropdownMenuLabel className="font-normal">
+                 <DropdownMenuContent align="end" className="w-60 bg-[#1a2c38] border-[#2f4553] text-white p-2 shadow-xl mt-2">
+                    <DropdownMenuLabel className="font-normal mb-2">
                        <div className="flex flex-col space-y-1">
                           <p className="text-sm font-bold leading-none text-white">{profile?.username || 'User'}</p>
-                          <p className="text-xs leading-none text-[#b1bad3]">{user.email}</p>
+                          <p className="text-xs leading-none text-[#b1bad3] opacity-70">{user.email}</p>
                        </div>
-                       {/* Progress Bar Mock */}
                        <div className="mt-3 h-1.5 w-full bg-[#0f212e] rounded-full overflow-hidden">
                           <div className="h-full bg-[#F7D979] w-[20%]" />
                        </div>
@@ -163,40 +174,43 @@ const Navbar = () => {
                           <span>20%</span>
                        </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-[#2f4553]" />
                     
-                    <DropdownMenuItem onClick={() => openWalletModal('deposit')} className="cursor-pointer hover:bg-[#213743] focus:bg-[#213743] focus:text-white text-[#b1bad3]">
-                       <Wallet className="mr-2 h-4 w-4" />
-                       <span>Wallet</span>
-                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-[#2f4553] mb-2" />
                     
-                    <Link to="/vip-club">
-                      <DropdownMenuItem className="cursor-pointer hover:bg-[#213743] focus:bg-[#213743] focus:text-white text-[#b1bad3]">
-                         <Crown className="mr-2 h-4 w-4" />
-                         <span>VIP Club</span>
-                      </DropdownMenuItem>
-                    </Link>
+                    <div className="space-y-1">
+                      {MENU_ITEMS.map((item, index) => {
+                        const ItemContent = (
+                          <>
+                            <item.icon className="mr-3 h-4 w-4 text-[#b1bad3] group-hover:text-white transition-colors" />
+                            <span className="font-medium text-sm text-[#b1bad3] group-hover:text-white transition-colors">{item.label}</span>
+                          </>
+                        );
 
-                    <Link to="/affiliate">
-                      <DropdownMenuItem className="cursor-pointer hover:bg-[#213743] focus:bg-[#213743] focus:text-white text-[#b1bad3]">
-                         <Users className="mr-2 h-4 w-4" />
-                         <span>Affiliate</span>
-                      </DropdownMenuItem>
-                    </Link>
+                        const className = "flex items-center w-full cursor-pointer hover:bg-[#213743] focus:bg-[#213743] p-2 rounded-md group transition-colors";
 
-                    <Link to="/profile">
-                      <DropdownMenuItem className="cursor-pointer hover:bg-[#213743] focus:bg-[#213743] focus:text-white text-[#b1bad3]">
-                         <Settings className="mr-2 h-4 w-4" />
-                         <span>Settings</span>
-                      </DropdownMenuItem>
-                    </Link>
+                        if (item.action) {
+                          return (
+                            <DropdownMenuItem key={index} onClick={item.action} className={className}>
+                              {ItemContent}
+                            </DropdownMenuItem>
+                          );
+                        }
+                        
+                        return (
+                          <Link key={index} to={item.link || '#'} className="block">
+                            <DropdownMenuItem className={className}>
+                              {ItemContent}
+                            </DropdownMenuItem>
+                          </Link>
+                        );
+                      })}
 
-                    <DropdownMenuSeparator className="bg-[#2f4553]" />
-                    
-                    <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer hover:bg-red-500/10 focus:bg-red-500/10 text-red-500 focus:text-red-500">
-                       <LogOut className="mr-2 h-4 w-4" />
-                       <span>Log out</span>
-                    </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleSignOut} className="flex items-center w-full cursor-pointer hover:bg-[#213743] focus:bg-[#213743] p-2 rounded-md group transition-colors mt-2">
+                         <LogOut className="mr-3 h-4 w-4 text-[#b1bad3] group-hover:text-white transition-colors" />
+                         <span className="font-medium text-sm text-[#b1bad3] group-hover:text-white transition-colors">Logout</span>
+                      </DropdownMenuItem>
+                    </div>
+
                  </DropdownMenuContent>
                </DropdownMenu>
 
@@ -205,11 +219,10 @@ const Navbar = () => {
                  <PopoverTrigger asChild>
                    <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743] h-10 w-10 rounded-[4px] relative">
                      <Bell className="h-5 w-5" />
-                     {/* Notification Dot */}
                      <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#1a2c38]" />
                    </Button>
                  </PopoverTrigger>
-                 <PopoverContent className="w-80 p-0 bg-[#1a2c38] border-[#2f4553] text-white" align="end">
+                 <PopoverContent className="w-80 p-0 bg-[#1a2c38] border-[#2f4553] text-white mt-2" align="end">
                    <div className="p-3 border-b border-[#2f4553] flex justify-between items-center">
                      <h4 className="font-bold text-sm">Notifications</h4>
                      <span className="text-xs text-[#1475e1] cursor-pointer hover:underline">Mark all read</span>
@@ -230,8 +243,16 @@ const Navbar = () => {
                  </PopoverContent>
                </Popover>
 
-               {/* Chat / Messages */}
-               <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743] h-10 w-10 rounded-[4px] hidden md:inline-flex">
+               {/* Chat Toggle */}
+               <Button 
+                 variant="ghost" 
+                 size="icon" 
+                 onClick={toggleChat}
+                 className={cn(
+                   "text-[#b1bad3] hover:text-white hover:bg-[#213743] h-10 w-10 rounded-[4px] hidden md:inline-flex",
+                   isChatOpen && "bg-[#213743] text-white"
+                 )}
+               >
                  <MessageSquare className="h-5 w-5" />
                </Button>
             </div>

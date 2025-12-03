@@ -84,7 +84,7 @@ const Hero = () => {
             <Card className="bg-[#1a2c38] border-0 overflow-hidden group cursor-pointer hover:-translate-y-1 transition-transform duration-300 h-full">
               <div className="relative h-[200px] overflow-hidden">
                  <img 
-                   src="https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x400/1a2c38/FFF?text=Casino+Live+Dealers" 
+                   src="https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x400/1a2c38/FFF?text=Casino+Live+Dealers" 
                    alt="Casino"
                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                  />
@@ -108,7 +108,7 @@ const Hero = () => {
             <Card className="bg-[#1a2c38] border-0 overflow-hidden group cursor-pointer hover:-translate-y-1 transition-transform duration-300 h-full">
               <div className="relative h-[200px] overflow-hidden">
                  <img 
-                   src="https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x400/1a2c38/FFF?text=UFC+Fighters" 
+                   src="https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x400/1a2c38/FFF?text=UFC+Fighters" 
                    alt="Sports"
                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                  />
