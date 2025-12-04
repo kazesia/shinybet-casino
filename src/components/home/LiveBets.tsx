@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dices, Bomb, Coins, TrendingUp, Gamepad2, Spade, Zap, Ghost, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useViewport } from '@/hooks/useViewport';
 
 const CRYPTO_CURRENCIES = [
   { code: 'BTC', icon: '₿', color: 'bg-orange-500' },
@@ -54,6 +55,7 @@ export default function RecentBets() {
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [limit, setLimit] = useState(20);
   const tableRef = useRef<HTMLDivElement>(null);
+  const { isMobile } = useViewport();
 
   // --- 1. Fetch Real History Initial Load ---
   const fetchInitialBets = async () => {
@@ -229,8 +231,58 @@ export default function RecentBets() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="w-full overflow-hidden" ref={tableRef}>
+      {/* Mobile View (Cards) */}
+      {isMobile && (
+        <div className="flex flex-col gap-2 p-4 md:hidden">
+          {filteredBets.length === 0 ? (
+            <div className="text-center py-8 text-[#b1bad3]">
+              <div className="flex flex-col items-center gap-2">
+                <Gamepad2 className="w-8 h-8 opacity-20" />
+                <span>{activeTab === 'my' ? 'No bets yet.' : 'Connecting...'}</span>
+              </div>
+            </div>
+          ) : (
+            filteredBets.map((bet) => {
+              const multiplier = bet.payout_credits > 0 ? (bet.payout_credits / bet.stake_credits) : 0;
+              const isWin = bet.result === 'win';
+              const currency = bet.currency || CRYPTO_CURRENCIES[3];
+
+              return (
+                <div key={bet.id} className="bg-[#0f212e] border border-[#2f4553] rounded-lg p-3 flex items-center justify-between shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[#213743] flex items-center justify-center text-[#b1bad3]">
+                      <GameIcon type={bet.game_type} />
+                    </div>
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm font-bold text-white capitalize">{bet.game_type}</span>
+                        <span className="text-xs text-[#b1bad3]">• {bet.profiles?.username || 'Hidden'}</span>
+                      </div>
+                      <span className="text-xs text-[#b1bad3]">{formatTime(bet.created_at)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end">
+                    <div className={cn(
+                      "font-bold font-mono text-sm flex items-center gap-1",
+                      isWin ? "text-[#00e701]" : "text-[#b1bad3]"
+                    )}>
+                      {isWin ? '+' : '-'}${isWin ? bet.payout_credits.toFixed(2) : bet.stake_credits.toFixed(2)}
+                      <CryptoIcon currency={currency} />
+                    </div>
+                    <div className="text-xs text-[#b1bad3] font-mono">
+                      {multiplier > 0 ? `${multiplier.toFixed(2)}x` : '0.00x'}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {/* Table (Desktop) */}
+      <div className="w-full overflow-hidden hidden md:block" ref={tableRef}>
         <Table>
           <TableHeader className="bg-[#0f212e]">
             <TableRow className="border-[#2f4553] hover:bg-transparent">
