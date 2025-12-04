@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Bet } from '@/types';
 import { useViewport } from '@/hooks/useViewport';
 import { BetCard } from '@/components/games/BetCard';
+import { logger } from '@/lib/logger';
 
 interface GameHistoryProps {
     gameType: string;
@@ -65,7 +66,7 @@ export function GameHistory({ gameType }: GameHistoryProps) {
                 throw error;
             }
 
-            console.log(`Fetched ${gameType} history:`, data);
+            logger.log(`Fetched ${gameType} history:`, data);
             setHistory((data as unknown as Bet[]) || []);
         } catch (error) {
             console.error('Error fetching history:', error);
@@ -91,7 +92,7 @@ export function GameHistory({ gameType }: GameHistoryProps) {
                 table: 'bets',
                 filter: `game_type=eq.${gameType}`
             }, (payload) => {
-                console.log('New bet received:', payload);
+                logger.log('New bet received:', payload);
                 fetchHistory();
             })
             .subscribe();

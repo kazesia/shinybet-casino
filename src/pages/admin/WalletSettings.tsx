@@ -1,3 +1,4 @@
+```javascript
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
@@ -30,8 +31,8 @@ export default function WalletSettings() {
                 .select('*')
                 .order('created_at', { ascending: false });
 
-            console.log('Admin Wallet Settings - Data:', data);
-            console.log('Admin Wallet Settings - Error:', error);
+            logger.log('Admin Wallet Settings - Data:', data);
+            logger.error('Admin Wallet Settings - Error:', error);
 
             if (error) throw error;
             return data;

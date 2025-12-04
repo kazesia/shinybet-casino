@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Dices, Zap, Flame, TrendingUp, Spade, User as UserIcon } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface Bet {
     id: string;
@@ -67,7 +68,7 @@ export function RecentBets() {
                 throw error;
             }
 
-            console.log('Fetched bets:', data);
+            logger.log('Fetched bets:', data);
             setBets(data || []);
         } catch (error) {
             console.error('Error fetching bets:', error);
@@ -84,7 +85,7 @@ export function RecentBets() {
         const channel = supabase
             .channel('public:bets')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets' }, (payload) => {
-                console.log('New bet received:', payload);
+                logger.log('New bet received:', payload);
                 fetchBets(); // Re-fetch to get profile data
             })
             .subscribe();
