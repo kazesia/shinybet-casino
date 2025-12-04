@@ -129,9 +129,9 @@ const FAQ_ITEMS = [
 
 export default function VIPClub() {
   const { user } = useAuth();
-  const { data: dashboardData } = useDashboardData();
+  const { stats } = useDashboardData();
 
-  const totalWagered = dashboardData?.totalWagered || 0;
+  const totalWagered = stats?.total_wagered || 0;
 
   // Find current tier
   const currentTierIndex = TIERS.findIndex((tier, index) => {

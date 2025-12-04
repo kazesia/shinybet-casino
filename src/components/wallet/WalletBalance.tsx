@@ -39,7 +39,7 @@ export function WalletBalance({
     const [isAnimating, setIsAnimating] = useState(false);
     const [showTooltip, setShowTooltip] = useState(false);
     const prevBalanceRef = useRef(balance);
-    const animationFrameRef = useRef<number>();
+    const animationFrameRef = useRef<number | undefined>(undefined);
 
     // Animate balance changes
     useEffect(() => {

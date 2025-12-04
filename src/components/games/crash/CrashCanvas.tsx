@@ -8,7 +8,7 @@ interface CrashCanvasProps {
 
 export default function CrashCanvas({ gameState, multiplier, timeElapsed }: CrashCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -20,7 +20,7 @@ export default function CrashCanvas({ gameState, multiplier, timeElapsed }: Cras
     // Handle High DPI Displays
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    
+
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
     ctx.scale(dpr, dpr);
@@ -36,25 +36,25 @@ export default function CrashCanvas({ gameState, multiplier, timeElapsed }: Cras
       ctx.strokeStyle = '#2f4553';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      
+
       // Horizontal Lines
       for (let i = 1; i <= 5; i++) {
         const y = height - (height / 5) * i;
         ctx.moveTo(0, y);
         ctx.lineTo(width, y);
-        
+
         // Labels
         ctx.fillStyle = '#b1bad3';
         ctx.font = '10px Manrope';
         ctx.fillText(`${(i * 2)}x`, 10, y - 5);
       }
-      
+
       // Vertical Lines
       for (let i = 1; i <= 5; i++) {
         const x = (width / 5) * i;
         ctx.moveTo(x, 0);
         ctx.lineTo(x, height);
-        
+
         // Labels
         ctx.fillText(`${(i * 2)}s`, x + 5, height - 10);
       }
@@ -81,11 +81,11 @@ export default function CrashCanvas({ gameState, multiplier, timeElapsed }: Cras
           const t = (timeElapsed / steps) * i;
           // Growth function: M = E^(k*t)
           // Inverse for Y coord
-          const m = Math.pow(Math.E, 0.00006 * t); 
-          
+          const m = Math.pow(Math.E, 0.00006 * t);
+
           const x = (t / maxTime) * width;
           const y = height - ((m - 1) / (maxMult - 1)) * height;
-          
+
           ctx.lineTo(x, y);
         }
         ctx.stroke();
@@ -98,7 +98,7 @@ export default function CrashCanvas({ gameState, multiplier, timeElapsed }: Cras
         ctx.arc(currentX, currentY, 6, 0, Math.PI * 2);
         ctx.fillStyle = gameState === 'crashed' ? '#ef4444' : '#F7D979';
         ctx.fill();
-        
+
         // Glow effect
         if (gameState === 'running') {
           ctx.shadowColor = '#F7D979';
@@ -127,8 +127,8 @@ export default function CrashCanvas({ gameState, multiplier, timeElapsed }: Cras
   }, [gameState, multiplier, timeElapsed]);
 
   return (
-    <canvas 
-      ref={canvasRef} 
+    <canvas
+      ref={canvasRef}
       className="w-full h-full"
       style={{ width: '100%', height: '100%' }}
     />

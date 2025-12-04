@@ -28,16 +28,16 @@ export default function CrashGame() {
   const [startTime, setStartTime] = useState<number>(0);
   const [crashPoint, setCrashPoint] = useState<number>(0);
   const [timeElapsed, setTimeElapsed] = useState(0);
-  
+
   // Player State
   const [hasBet, setHasBet] = useState(false);
   const [hasCashedOut, setHasCashedOut] = useState(false);
   const [cashedOutAt, setCashedOutAt] = useState(0);
-  
+
   // History
   const [history, setHistory] = useState<{ id: string, crash: number }[]>([]);
 
-  const requestRef = useRef<number>();
+  const requestRef = useRef<number | undefined>(undefined);
 
   // --- Game Loop ---
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function CrashGame() {
 
         // Calculate current multiplier: M = e^(k*t)
         const nextMult = Math.pow(Math.E, GROWTH_RATE * elapsed);
-        
+
         setMultiplier(nextMult);
 
         // Check Auto Cashout
@@ -102,7 +102,7 @@ export default function CrashGame() {
     // In production, this comes from a hash chain
     const isInstantCrash = Math.random() < HOUSE_EDGE;
     let calculatedCrash = 1.00;
-    
+
     if (!isInstantCrash) {
       // Generate random crash point based on inverse distribution
       // M = 0.99 / (1 - random)
@@ -123,10 +123,10 @@ export default function CrashGame() {
 
     setHasCashedOut(true);
     setCashedOutAt(currentMult);
-    
+
     const payout = betAmount * currentMult;
     optimisticUpdate(payout);
-    
+
     toast.success(`Cashed out at ${currentMult.toFixed(2)}x`, {
       description: `Won ${payout.toFixed(4)}`,
       className: "bg-green-500/10 border-green-500 text-green-500 font-bold"
@@ -139,7 +139,7 @@ export default function CrashGame() {
   const handleCrash = (finalCrash: number) => {
     setGameState('crashed');
     setMultiplier(finalCrash);
-    
+
     // Add to history
     setHistory(prev => [{ id: Date.now().toString(), crash: finalCrash }, ...prev].slice(0, 10));
 
@@ -148,7 +148,7 @@ export default function CrashGame() {
       // Sync Loss
       syncToDb(betAmount, 0, 0, 'loss');
     }
-    
+
     setHasBet(false);
   };
 
@@ -156,7 +156,7 @@ export default function CrashGame() {
     try {
       const netChange = result === 'win' ? (payout - stake) : -stake;
       await supabase.rpc('increment_balance', { p_user_id: user?.id, p_amount: netChange });
-      
+
       await supabase.from('bets').insert({
         user_id: user?.id,
         game_type: 'Crash',
@@ -173,13 +173,13 @@ export default function CrashGame() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-[#0f212e] p-4 md:p-8 font-sans text-[#b1bad3]">
       <div className="max-w-[1200px] mx-auto space-y-6">
-        
+
         {/* Main Game Container */}
         <div className="flex flex-col lg:flex-row bg-[#1a2c38] rounded-lg overflow-hidden shadow-xl border border-[#213743]">
-          
+
           {/* LEFT: Control Panel */}
           <div className="w-full lg:w-[320px] bg-[#213743] p-4 flex flex-col gap-4 border-r border-[#1a2c38]">
-            
+
             {/* Mode Tabs */}
             <div className="bg-[#0f212e] p-1 rounded-full flex">
               <button className="flex-1 py-2 text-sm font-bold rounded-full bg-[#2f4553] text-white shadow-md transition-all">
@@ -197,12 +197,12 @@ export default function CrashGame() {
                 <span>{betAmount.toFixed(8)} LTC</span>
               </div>
               <div className="relative flex items-center">
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   value={betAmount}
                   onChange={handleBetAmountChange}
                   disabled={hasBet && gameState !== 'crashed' && gameState !== 'idle'}
-                  className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553] disabled:opacity-50" 
+                  className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553] disabled:opacity-50"
                 />
                 <div className="absolute right-1 flex gap-1">
                   <button onClick={() => adjustBet(0.5)} disabled={hasBet} className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors disabled:opacity-50">½</button>
@@ -215,9 +215,9 @@ export default function CrashGame() {
             <div className="space-y-1">
               <Label className="text-xs font-bold text-[#b1bad3]">Auto Cashout</Label>
               <div className="relative">
-                <Input 
-                  type="number" 
-                  value={autoCashout} 
+                <Input
+                  type="number"
+                  value={autoCashout}
                   onChange={(e) => setAutoCashout(parseFloat(e.target.value))}
                   disabled={hasBet}
                   className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-10 focus:border-[#2f4553] focus:ring-0 disabled:opacity-50"
@@ -228,14 +228,14 @@ export default function CrashGame() {
 
             {/* Action Button */}
             {gameState === 'running' && hasBet && !hasCashedOut ? (
-              <Button 
+              <Button
                 onClick={() => handleCashout()}
                 className="w-full h-12 mt-2 bg-[#F7D979] hover:bg-[#e5c565] text-black font-black text-base shadow-[0_4px_0_#b17827] active:shadow-none active:translate-y-[4px] transition-all"
               >
                 CASHOUT ({(betAmount * multiplier).toFixed(2)})
               </Button>
             ) : (
-              <Button 
+              <Button
                 onClick={startGame}
                 disabled={gameState === 'starting' || (gameState === 'running' && !hasBet)}
                 className={cn(
@@ -259,18 +259,18 @@ export default function CrashGame() {
 
           {/* RIGHT: Game Area */}
           <div className="flex-1 bg-[#0f212e] relative flex flex-col min-h-[500px]">
-            
+
             {/* Graph Container */}
             <div className="flex-1 relative overflow-hidden p-4">
-              
+
               {/* Multiplier Overlay */}
               <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                 <div className="text-center">
                   <div className={cn(
                     "text-6xl md:text-8xl font-black tracking-tighter tabular-nums transition-colors duration-100",
-                    gameState === 'crashed' ? "text-[#ef4444]" : 
-                    gameState === 'running' ? "text-white" : 
-                    "text-[#b1bad3]"
+                    gameState === 'crashed' ? "text-[#ef4444]" :
+                      gameState === 'running' ? "text-white" :
+                        "text-[#b1bad3]"
                   )}>
                     {multiplier.toFixed(2)}x
                   </div>
@@ -291,31 +291,31 @@ export default function CrashGame() {
 
             {/* Footer Controls */}
             <div className="h-12 bg-[#0f212e] border-t border-[#213743] flex items-center justify-between px-4 z-20">
-               <div className="flex items-center gap-2">
-                 <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
-                    <Settings2 className="w-4 h-4" />
-                 </Button>
-                 <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
-                    <Volume2 className="w-4 h-4" />
-                 </Button>
-               </div>
-               
-               <div className="absolute left-1/2 -translate-x-1/2 font-bold text-white tracking-tight text-lg flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-[#ef4444]" /> Crash
-               </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
+                  <Settings2 className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
+                  <Volume2 className="w-4 h-4" />
+                </Button>
+              </div>
 
-               <div className="flex items-center gap-4">
-                  <div 
-                    className="flex items-center gap-2 bg-[#213743] px-3 py-1 rounded-full cursor-pointer hover:bg-[#2f4553] transition-colors"
-                    onClick={openFairnessModal}
-                  >
-                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                     <span className="text-xs font-bold text-white">Fairness</span>
-                  </div>
-                  <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
-                    <BarChart2 className="w-4 h-4" />
-                 </Button>
-               </div>
+              <div className="absolute left-1/2 -translate-x-1/2 font-bold text-white tracking-tight text-lg flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-[#ef4444]" /> Crash
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div
+                  className="flex items-center gap-2 bg-[#213743] px-3 py-1 rounded-full cursor-pointer hover:bg-[#2f4553] transition-colors"
+                  onClick={openFairnessModal}
+                >
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-xs font-bold text-white">Fairness</span>
+                </div>
+                <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
+                  <BarChart2 className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
 
           </div>
@@ -324,25 +324,25 @@ export default function CrashGame() {
 
         {/* History Bar */}
         <div className="bg-[#1a2c38] rounded-lg border border-[#213743] p-4 flex items-center gap-4 overflow-x-auto">
-           <div className="flex items-center gap-2 text-[#b1bad3] font-bold text-sm shrink-0">
-              <History className="w-4 h-4" /> Recent
-           </div>
-           <div className="flex gap-2">
-              {history.map((item) => (
-                 <div 
-                   key={item.id}
-                   className={cn(
-                     "px-3 py-1 rounded-full text-xs font-bold font-mono",
-                     item.crash >= 10 ? "bg-[#F7D979] text-black" :
-                     item.crash >= 2 ? "bg-[#00e701] text-black" :
-                     "bg-[#2f4553] text-[#b1bad3]"
-                   )}
-                 >
-                    {item.crash.toFixed(2)}x
-                 </div>
-              ))}
-              {history.length === 0 && <span className="text-xs text-[#b1bad3]/50">No history yet</span>}
-           </div>
+          <div className="flex items-center gap-2 text-[#b1bad3] font-bold text-sm shrink-0">
+            <History className="w-4 h-4" /> Recent
+          </div>
+          <div className="flex gap-2">
+            {history.map((item) => (
+              <div
+                key={item.id}
+                className={cn(
+                  "px-3 py-1 rounded-full text-xs font-bold font-mono",
+                  item.crash >= 10 ? "bg-[#F7D979] text-black" :
+                    item.crash >= 2 ? "bg-[#00e701] text-black" :
+                      "bg-[#2f4553] text-[#b1bad3]"
+                )}
+              >
+                {item.crash.toFixed(2)}x
+              </div>
+            ))}
+            {history.length === 0 && <span className="text-xs text-[#b1bad3]/50">No history yet</span>}
+          </div>
         </div>
 
       </div>

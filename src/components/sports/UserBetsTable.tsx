@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { SportsBet } from '@/types/sports';
+// import { SportsBet } from '@/types/sports';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -19,9 +19,9 @@ export const UserBetsTable = () => {
         .select('*, sports_events(home_team, away_team, sport_key)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
-      return data as SportsBet[];
+      return data;
     },
     enabled: !!user,
   });
@@ -64,8 +64,8 @@ export const UserBetsTable = () => {
                 <TableCell className="text-right">
                   <Badge variant="outline" className={
                     bet.status === 'won' ? 'border-[#00e701] text-[#00e701]' :
-                    bet.status === 'lost' ? 'border-red-500 text-red-500' :
-                    'border-[#b1bad3] text-[#b1bad3]'
+                      bet.status === 'lost' ? 'border-red-500 text-red-500' :
+                        'border-[#b1bad3] text-[#b1bad3]'
                   }>
                     {bet.status}
                   </Badge>

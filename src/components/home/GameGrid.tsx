@@ -55,7 +55,7 @@ const GameGrid = () => {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
         {TRENDING_GAMES.map((game) => (
           <Link
-            to={game.link || '#'}
+            to={'#'}
             key={game.id}
             className="group relative aspect-[3/4] rounded-lg overflow-hidden bg-[#1a2c38] hover:-translate-y-1 transition-transform duration-300 cursor-pointer shadow-lg"
           >

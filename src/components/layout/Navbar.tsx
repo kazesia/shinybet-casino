@@ -136,7 +136,7 @@ const Navbar = () => {
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
           <WalletDropdown />
           <Button
-            onClick={() => openWalletModal('overview')}
+            onClick={() => openWalletModal('deposit')}
             className="bg-[#1475e1] hover:bg-[#1475e1]/90 text-white font-bold h-10 px-6 rounded-[4px] shadow-sm"
           >
             Wallet
