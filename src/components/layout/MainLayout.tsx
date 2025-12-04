@@ -2,6 +2,7 @@ import React from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { AppSidebar } from './AppSidebar';
+import { BottomNav } from './BottomNav';
 import GlobalChat from '@/components/chat/GlobalChat';
 import { useLocation } from 'react-router-dom';
 import { useUI } from '@/context/UIContext';
@@ -15,10 +16,10 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-[#0f212e] text-white font-sans flex flex-col overflow-hidden">
       <Navbar />
-      
+
       <div className="flex flex-1 pt-16 h-[calc(100vh)]">
         {/* Left Sidebar */}
-        <aside 
+        <aside
           className={cn(
             "hidden lg:block fixed inset-y-0 left-0 top-16 z-30 bg-[#0f212e] border-r border-[#1a2c38] shadow-xl transition-all duration-300 ease-in-out",
             isSidebarCollapsed ? "w-[72px]" : "w-[240px]"
@@ -28,7 +29,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
         </aside>
 
         {/* Main Content Area */}
-        <main 
+        <main
           className={cn(
             "flex-1 flex flex-col overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out h-full",
             isSidebarCollapsed ? "lg:ml-[72px]" : "lg:ml-[240px]",
@@ -51,6 +52,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
           <GlobalChat />
         </aside>
       </div>
+      <BottomNav />
     </div>
   );
 };

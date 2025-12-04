@@ -267,6 +267,10 @@ const Navbar = () => {
       </div>
     </nav>
   );
+  {/* Mobile Navigation Drawer */ }
+  <MobileNav isOpen={isMobileNavOpen} onClose={() => setIsMobileNavOpen(false)} />
+    </nav >
+  );
 };
 
 export default Navbar;
