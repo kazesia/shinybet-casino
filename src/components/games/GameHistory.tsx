@@ -153,91 +153,88 @@ export function GameHistory({ gameType }: GameHistoryProps) {
                     </Button>
                 </div>
             </div>
-        </div>
-            
-            {/* Mobile View (Cards) */ }
-    {
-        isMobile && (
-            <div className="flex flex-col gap-2 p-4 md:hidden">
-                {loading ? (
-                    <div className="text-center py-4">
-                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-[#b1bad3]" />
-                    </div>
-                ) : history.length === 0 ? (
-                    <div className="text-center py-4 text-[#b1bad3]">No bets yet.</div>
-                ) : (
-                    history.map((bet) => (
-                        <BetCard key={bet.id} bet={bet} />
-                    ))
-                )}
-            </div>
-        )
-    }
 
-    {/* Desktop View (Table) */ }
-    <div className="hidden md:block overflow-x-auto">
-        <table className="w-full text-sm text-left">
-            <thead className="text-xs text-[#b1bad3] bg-[#0f212e] uppercase">
-                <tr>
-                    <th className="px-6 py-3">Game</th>
-                    <th className="px-6 py-3">User</th>
-                    <th className="px-6 py-3">Time</th>
-                    <th className="px-6 py-3 text-right">Bet Amount</th>
-                    <th className="px-6 py-3 text-right">Multiplier</th>
-                    <th className="px-6 py-3 text-right">Payout</th>
-                </tr>
-            </thead>
-            <tbody>
-                {loading ? (
-                    <tr>
-                        <td colSpan={6} className="px-6 py-8 text-center">
+            {/* Mobile View (Cards) */}
+            {isMobile && (
+                <div className="flex flex-col gap-2 p-4 md:hidden">
+                    {loading ? (
+                        <div className="text-center py-4">
                             <Loader2 className="h-6 w-6 animate-spin mx-auto text-[#b1bad3]" />
-                        </td>
-                    </tr>
-                ) : history.length === 0 ? (
-                    <tr>
-                        <td colSpan={6} className="px-6 py-8 text-center text-[#b1bad3]">
-                            No bets yet.
-                        </td>
-                    </tr>
-                ) : (
-                    history.map((bet) => {
-                        const multiplier = bet.stake_credits > 0 ? bet.payout_credits / bet.stake_credits : 0;
-                        const isWin = bet.payout_credits > bet.stake_credits;
+                        </div>
+                    ) : history.length === 0 ? (
+                        <div className="text-center py-4 text-[#b1bad3]">No bets yet.</div>
+                    ) : (
+                        history.map((bet) => (
+                            <BetCard key={bet.id} bet={bet} />
+                        ))
+                    )}
+                </div>
+            )}
 
-                        return (
-                            <tr key={bet.id} className="bg-[#1a2c38] border-b border-[#213743] hover:bg-[#213743] transition-colors">
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-2 font-medium text-white">
-                                        {getGameIcon(bet.game_type)}
-                                        <span className="capitalize">{bet.game_type}</span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-[#b1bad3]">
-                                    {bet.profiles?.username || user?.email?.split('@')[0] || 'Hidden'}
-                                </td>
-                                <td className="px-6 py-4 text-[#b1bad3] text-xs">
-                                    {new Date(bet.created_at).toLocaleTimeString()}
-                                </td>
-                                <td className="px-6 py-4 text-right text-white font-mono">
-                                    ${bet.stake_credits.toFixed(2)}
-                                </td>
-                                <td className="px-6 py-4 text-right text-[#b1bad3] font-mono">
-                                    {multiplier.toFixed(2)}x
-                                </td>
-                                <td className={cn(
-                                    "px-6 py-4 text-right font-bold font-mono",
-                                    isWin ? "text-[#00e701]" : "text-[#b1bad3]"
-                                )}>
-                                    {isWin ? `+$${bet.payout_credits.toFixed(2)}` : '$0.00'}
+            {/* Desktop View (Table) */}
+            <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                    <thead className="text-xs text-[#b1bad3] bg-[#0f212e] uppercase">
+                        <tr>
+                            <th className="px-6 py-3">Game</th>
+                            <th className="px-6 py-3">User</th>
+                            <th className="px-6 py-3">Time</th>
+                            <th className="px-6 py-3 text-right">Bet Amount</th>
+                            <th className="px-6 py-3 text-right">Multiplier</th>
+                            <th className="px-6 py-3 text-right">Payout</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {loading ? (
+                            <tr>
+                                <td colSpan={6} className="px-6 py-8 text-center">
+                                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-[#b1bad3]" />
                                 </td>
                             </tr>
-                        );
-                    })
-                )}
-            </tbody>
-        </table>
-    </div>
+                        ) : history.length === 0 ? (
+                            <tr>
+                                <td colSpan={6} className="px-6 py-8 text-center text-[#b1bad3]">
+                                    No bets yet.
+                                </td>
+                            </tr>
+                        ) : (
+                            history.map((bet) => {
+                                const multiplier = bet.stake_credits > 0 ? bet.payout_credits / bet.stake_credits : 0;
+                                const isWin = bet.payout_credits > bet.stake_credits;
+
+                                return (
+                                    <tr key={bet.id} className="bg-[#1a2c38] border-b border-[#213743] hover:bg-[#213743] transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2 font-medium text-white">
+                                                {getGameIcon(bet.game_type)}
+                                                <span className="capitalize">{bet.game_type}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-[#b1bad3]">
+                                            {bet.profiles?.username || user?.email?.split('@')[0] || 'Hidden'}
+                                        </td>
+                                        <td className="px-6 py-4 text-[#b1bad3] text-xs">
+                                            {new Date(bet.created_at).toLocaleTimeString()}
+                                        </td>
+                                        <td className="px-6 py-4 text-right text-white font-mono">
+                                            ${bet.stake_credits.toFixed(2)}
+                                        </td>
+                                        <td className="px-6 py-4 text-right text-[#b1bad3] font-mono">
+                                            {multiplier.toFixed(2)}x
+                                        </td>
+                                        <td className={cn(
+                                            "px-6 py-4 text-right font-bold font-mono",
+                                            isWin ? "text-[#00e701]" : "text-[#b1bad3]"
+                                        )}>
+                                            {isWin ? `+$${bet.payout_credits.toFixed(2)}` : '$0.00'}
+                                        </td>
+                                    </tr>
+                                );
+                            })
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </Card >
     );
 }
