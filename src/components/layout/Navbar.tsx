@@ -73,7 +73,7 @@ const Navbar = () => {
 
   // Dropdown Menu Items Configuration
   const MENU_ITEMS = [
-    { label: 'Wallet', icon: Wallet, action: () => openWalletModal('deposit') },
+    { label: 'Wallet', icon: Wallet, action: () => openWalletModal('overview') },
     { label: 'Vault', icon: Lock, action: () => openVaultModal() },
     { label: 'VIP', icon: Trophy, link: '/vip-club' },
     { label: 'Affiliate', icon: Users, link: '/affiliate' },
