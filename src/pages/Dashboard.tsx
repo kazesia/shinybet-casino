@@ -5,8 +5,10 @@ import { cn } from '@/lib/utils';
 import RecentBets from '@/components/home/LiveBets';
 import PromoBanner from '@/components/home/PromoBanner';
 import VIPProgressCard from '@/components/dashboard/VIPProgressCard';
+import { VIPProgressCard as MobileVIPCard } from '@/components/VIPProgressCard';
 import { Button } from '@/components/ui/button';
 import { useRef } from 'react';
+import { useViewport } from '@/hooks/useViewport';
 
 // --- Game Data ---
 const SHINY_ORIGINALS = [
@@ -102,7 +104,7 @@ const GameCard = ({ game, isOriginal = false }: { game: any, isOriginal?: boolea
          <Link
             to={game.status === 'active' ? game.link : '#'}
             className={cn(
-               "group relative flex-shrink-0 w-[180px] h-[240px] rounded-2xl overflow-hidden transition-all duration-300",
+               "group relative flex-shrink-0 w-[140px] md:w-[180px] h-[180px] md:h-[240px] rounded-xl md:rounded-2xl overflow-hidden transition-all duration-300",
                game.status === 'active' ? "hover:-translate-y-2 hover:shadow-2xl cursor-pointer" : "cursor-not-allowed opacity-80"
             )}
          >
@@ -135,7 +137,7 @@ const GameCard = ({ game, isOriginal = false }: { game: any, isOriginal?: boolea
 
                {/* Middle Section: Large Icon */}
                <div className="absolute inset-0 flex items-center justify-center z-0">
-                  <span className="text-[120px] filter drop-shadow-2xl transform group-hover:scale-110 transition-transform duration-300 opacity-90">
+                  <span className="text-[80px] md:text-[120px] filter drop-shadow-2xl transform group-hover:scale-110 transition-transform duration-300 opacity-90">
                      {game.icon}
                   </span>
                </div>
@@ -260,12 +262,20 @@ const ScrollSection = ({ title, icon: Icon, games, isOriginal = false }: { title
 };
 
 export default function Dashboard() {
+   const { isMobile } = useViewport();
 
    return (
-      <div className="container py-4 md:py-8 space-y-6 md:space-y-10 max-w-[1400px] mx-auto px-4 md:px-8">
+      <div className="container py-4 md:py-8 space-y-4 md:space-y-10 max-w-[1400px] mx-auto px-4 md:px-8">
 
-         {/* Top Section: VIP & Promos */}
-         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[200px]">
+         {/* Mobile VIP Progress Card */}
+         {isMobile && (
+            <div className="lg:hidden">
+               <MobileVIPCard />
+            </div>
+         )}
+
+         {/* Desktop: Top Section - VIP & Promos */}
+         <div className="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[200px]">
             {/* VIP Card (1 Col) */}
             <div className="lg:col-span-1 h-full">
                <VIPProgressCard />
@@ -280,7 +290,7 @@ export default function Dashboard() {
          {/* Search Bar */}
          <div className="relative w-full">
             <div className="flex items-center w-full h-12 md:h-14 bg-[#0f212e] border border-[#2f4553] rounded-lg overflow-hidden hover:border-[#b1bad3]/50 transition-colors shadow-sm group focus-within:border-[#00e701]/50 focus-within:shadow-[0_0_10px_rgba(0,231,1,0.1)]">
-               <div className="flex items-center h-full px-4 border-r border-[#2f4553] bg-[#1a2c38] text-white font-medium text-sm gap-2 cursor-pointer hover:bg-[#213743] transition-colors">
+               <div className="hidden md:flex items-center h-full px-4 border-r border-[#2f4553] bg-[#1a2c38] text-white font-medium text-sm gap-2 cursor-pointer hover:bg-[#213743] transition-colors">
                   <span>Casino</span>
                   <ChevronRight className="w-4 h-4 rotate-90 text-[#b1bad3]" />
                </div>
@@ -288,8 +298,9 @@ export default function Dashboard() {
                   <Search className="h-5 w-5 text-[#b1bad3] group-focus-within:text-white transition-colors" />
                </div>
                <Input
-                  className="flex-1 h-full border-0 bg-transparent text-white placeholder:text-[#b1bad3] focus-visible:ring-0 text-sm font-medium pl-3"
-                  placeholder="Search your game"
+                  type="text"
+                  placeholder="Search your game or event"
+                  className="flex-1 bg-transparent border-0 h-full text-white placeholder:text-[#b1bad3] focus-visible:ring-0 focus-visible:ring-offset-0 px-3 text-sm md:text-base"
                />
             </div>
          </div>
