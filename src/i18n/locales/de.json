@@ -1,0 +1,110 @@
+{
+    "nav": {
+        "home": "Startseite",
+        "games": "Spiele",
+        "sports": "Sport",
+        "vipClub": "VIP Club",
+        "promotions": "Aktionen",
+        "wallet": "Geldbörse",
+        "admin": "Admin-Panel"
+    },
+    "auth": {
+        "signIn": "Anmelden",
+        "signUp": "Registrieren",
+        "email": "E-Mail",
+        "password": "Passwort",
+        "confirmPassword": "Passwort Bestätigen",
+        "forgotPassword": "Passwort vergessen?",
+        "noAccount": "Noch kein Konto?",
+        "hasAccount": "Bereits ein Konto?",
+        "signInButton": "Anmelden",
+        "signUpButton": "Konto Erstellen",
+        "logout": "Abmelden"
+    },
+    "games": {
+        "dice": "Würfel",
+        "mines": "Minen",
+        "coinflip": "Münzwurf",
+        "plinko": "Plinko",
+        "crash": "Crash",
+        "blackjack": "Blackjack",
+        "roulette": "Roulette",
+        "limbo": "Limbo",
+        "playNow": "Jetzt Spielen",
+        "playing": "spielen",
+        "bet": "Wetten",
+        "cashout": "Auszahlen",
+        "autoBet": "Auto-Wette"
+    },
+    "wallet": {
+        "balance": "Guthaben",
+        "deposit": "Einzahlen",
+        "withdraw": "Abheben",
+        "transactions": "Transaktionen",
+        "amount": "Betrag",
+        "currency": "Währung"
+    },
+    "vip": {
+        "title": "VIP Club",
+        "progress": "VIP-Fortschritt",
+        "currentTier": "Aktuelles Level",
+        "nextTier": "Nächstes Level",
+        "benefits": "Vorteile",
+        "wagered": "Gesamt Gewettet",
+        "toGo": "noch zu gehen",
+        "tiers": {
+            "bronze": "Bronze",
+            "silver": "Silber",
+            "gold": "Gold",
+            "platinum": "Platin",
+            "diamond": "Diamant"
+        }
+    },
+    "dashboard": {
+        "welcome": "Willkommen zurück",
+        "stats": "Statistiken",
+        "totalWagered": "Gesamt Gewettet",
+        "totalWins": "Gesamtgewinne",
+        "totalBets": "Gesamtwetten",
+        "winRate": "Gewinnrate",
+        "recentBets": "Letzte Wetten",
+        "liveBets": "Live-Wetten"
+    },
+    "admin": {
+        "dashboard": "Admin-Dashboard",
+        "users": "Benutzer",
+        "games": "Spiele",
+        "transactions": "Transaktionen",
+        "analytics": "Analysen",
+        "settings": "Einstellungen",
+        "withdrawals": "Abhebungen",
+        "deposits": "Einzahlungen"
+    },
+    "common": {
+        "loading": "Laden...",
+        "error": "Fehler",
+        "success": "Erfolg",
+        "cancel": "Abbrechen",
+        "confirm": "Bestätigen",
+        "save": "Speichern",
+        "delete": "Löschen",
+        "edit": "Bearbeiten",
+        "search": "Suchen",
+        "filter": "Filtern",
+        "sort": "Sortieren",
+        "language": "Sprache"
+    },
+    "categories": {
+        "lobby": "Lobby",
+        "newReleases": "Neuerscheinungen",
+        "originals": "Shiny Originale",
+        "slots": "Spielautomaten",
+        "liveCasino": "Live Casino",
+        "exclusive": "Nur bei Shiny"
+    },
+    "promos": {
+        "title": "Aktionen",
+        "learnMore": "Mehr Erfahren",
+        "playNow": "Jetzt Spielen"
+    }
+}

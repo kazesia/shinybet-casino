@@ -12,19 +12,19 @@ import { useWallet } from '@/context/WalletContext';
 import { useUI } from '@/context/UIContext';
 import { toast } from 'sonner';
 import { PLINKO_CONFIG, getMultipliers, getBucketColor } from '@/components/games/plinko/config';
+import { GameHistory } from '@/components/games/GameHistory';
 
 export default function PlinkoGame() {
   const { user } = useAuth();
   const { balance, optimisticUpdate } = useWallet();
   const { openFairnessModal } = useUI();
-  
+
   // Game State
   const [betAmount, setBetAmount] = useState<number>(0);
   const [rows, setRows] = useState<number>(16);
   const [risk, setRisk] = useState<'low' | 'medium' | 'high'>('medium');
   const [mode, setMode] = useState<'manual' | 'auto'>('manual');
-  const [history, setHistory] = useState<any[]>([]);
-  
+
   // Physics Refs
   const sceneRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<Matter.Engine | null>(null);
@@ -37,10 +37,10 @@ export default function PlinkoGame() {
 
     // Setup Matter JS
     const Engine = Matter.Engine,
-          Render = Matter.Render,
-          Runner = Matter.Runner,
-          World = Matter.World,
-          Bodies = Matter.Bodies;
+      Render = Matter.Render,
+      Runner = Matter.Runner,
+      World = Matter.World,
+      Bodies = Matter.Bodies;
 
     const engine = Engine.create();
     engine.world.gravity.y = 1.2; // Adjust gravity for feel
@@ -69,12 +69,12 @@ export default function PlinkoGame() {
       event.pairs.forEach((pair) => {
         const bodyA = pair.bodyA;
         const bodyB = pair.bodyB;
-        
+
         // Check if ball hits bucket (sensor)
         if (bodyA.label === 'ball' && bodyB.label.startsWith('bucket-')) {
-           handleBallLanded(bodyA, bodyB);
+          handleBallLanded(bodyA, bodyB);
         } else if (bodyB.label === 'ball' && bodyA.label.startsWith('bucket-')) {
-           handleBallLanded(bodyB, bodyA);
+          handleBallLanded(bodyB, bodyA);
         }
       });
     });
@@ -101,7 +101,7 @@ export default function PlinkoGame() {
 
   const createBoard = (world: Matter.World, rowCount: number) => {
     Matter.World.clear(world, false); // Clear existing bodies (except balls if any, but we clear all for simplicity)
-    
+
     const Bodies = Matter.Bodies;
     const width = 800;
     const startY = 50;
@@ -134,15 +134,15 @@ export default function PlinkoGame() {
       // Actually buckets are under the gaps of the last row of pegs
       // The last row of pegs has `rowCount + 2` pegs.
       // So there are `rowCount + 1` gaps? No, standard Plinko has multipliers = rows + 1
-      
+
       // Let's align based on standard plinko pyramid
       const x = width / 2 - ((multipliers.length - 1) * gap) / 2 + i * gap;
-      
+
       const bucket = Bodies.rectangle(x, bucketY, gap * 0.8, 20, {
         isStatic: true,
         isSensor: true, // Ball passes through but triggers collision
         label: `bucket-${mult}-${i}`,
-        render: { 
+        render: {
           fillStyle: getBucketColor(mult),
           opacity: 0.5
         }
@@ -155,14 +155,14 @@ export default function PlinkoGame() {
 
   const handleBallLanded = (ball: Matter.Body, bucket: Matter.Body) => {
     if (!engineRef.current) return;
-    
+
     // Remove ball
     Matter.World.remove(engineRef.current.world, ball);
-    
+
     // Extract Multiplier
     const parts = bucket.label.split('-');
     const multiplier = parseFloat(parts[1]);
-    
+
     // Calculate Payout
     // We need to track which bet this ball belongs to. 
     // For simplicity in this demo, we assume the current betAmount is constant or we attach data to ball.
@@ -173,10 +173,10 @@ export default function PlinkoGame() {
 
     // Update UI
     optimisticUpdate(payout);
-    
+
     if (isWin && multiplier > 1) {
-      toast.success(`${multiplier}x`, { 
-        className: "bg-green-500/10 border-green-500 text-green-500 font-bold py-2" 
+      toast.success(`${multiplier}x`, {
+        className: "bg-green-500/10 border-green-500 text-green-500 font-bold py-2"
       });
     }
 
@@ -188,7 +188,7 @@ export default function PlinkoGame() {
     try {
       const netChange = payout - stake;
       await supabase.rpc('increment_balance', { p_user_id: user?.id, p_amount: netChange });
-      
+
       const { data: bet } = await supabase.from('bets').insert({
         user_id: user?.id,
         game_type: 'Plinko',
@@ -197,8 +197,6 @@ export default function PlinkoGame() {
         result: isWin ? 'win' : 'loss',
         raw_data: { rows, risk, multiplier }
       }).select().single();
-
-      if (bet) setHistory(prev => [bet, ...prev].slice(0, 5));
     } catch (e) {
       console.error(e);
     }
@@ -213,8 +211,8 @@ export default function PlinkoGame() {
     optimisticUpdate(-betAmount);
 
     // Randomize drop position slightly to create variance
-    const randomX = (Math.random() - 0.5) * 10; 
-    
+    const randomX = (Math.random() - 0.5) * 10;
+
     const ball = Matter.Bodies.circle(400 + randomX, 20, PLINKO_CONFIG.ballSize, {
       restitution: 0.5, // Bounciness
       friction: 0.001,
@@ -243,16 +241,16 @@ export default function PlinkoGame() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-[#0f212e] p-4 md:p-8 font-sans text-[#b1bad3]">
       <div className="max-w-[1200px] mx-auto space-y-6">
-        
+
         {/* Main Game Container */}
         <div className="flex flex-col lg:flex-row bg-[#1a2c38] rounded-lg overflow-hidden shadow-xl border border-[#213743]">
-          
+
           {/* LEFT: Control Panel */}
           <div className="w-full lg:w-[320px] bg-[#213743] p-4 flex flex-col gap-4 border-r border-[#1a2c38]">
-            
+
             {/* Mode Tabs */}
             <div className="bg-[#0f212e] p-1 rounded-full flex">
-              <button 
+              <button
                 onClick={() => setMode('manual')}
                 className={cn(
                   "flex-1 py-2 text-sm font-bold rounded-full transition-all",
@@ -261,7 +259,7 @@ export default function PlinkoGame() {
               >
                 Manual
               </button>
-              <button 
+              <button
                 onClick={() => setMode('auto')}
                 className={cn(
                   "flex-1 py-2 text-sm font-bold rounded-full transition-all",
@@ -279,11 +277,11 @@ export default function PlinkoGame() {
                 <span>{betAmount.toFixed(8)} LTC</span>
               </div>
               <div className="relative flex items-center">
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   value={betAmount}
                   onChange={handleBetAmountChange}
-                  className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553]" 
+                  className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553]"
                 />
                 <div className="absolute right-1 flex gap-1">
                   <button onClick={() => adjustBet(0.5)} className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors">½</button>
@@ -323,7 +321,7 @@ export default function PlinkoGame() {
             </div>
 
             {/* Play Button */}
-            <Button 
+            <Button
               onClick={dropBall}
               className="w-full h-12 mt-2 bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-black text-base shadow-[0_4px_0_#B8860B] active:shadow-none active:translate-y-[4px] transition-all"
             >
@@ -334,12 +332,12 @@ export default function PlinkoGame() {
 
           {/* RIGHT: Game Area */}
           <div className="flex-1 bg-[#0f212e] relative flex flex-col items-center justify-center overflow-hidden min-h-[600px]">
-            
+
             {/* Multiplier Legend (Top Overlay) */}
             <div className="absolute top-4 left-4 z-10">
-               <div className="bg-[#213743]/80 backdrop-blur px-3 py-1 rounded text-xs font-bold text-white border border-white/5">
-                  Max Payout: <span className="text-[#00e701]">{currentMultipliers[0]}x</span>
-               </div>
+              <div className="bg-[#213743]/80 backdrop-blur px-3 py-1 rounded text-xs font-bold text-white border border-white/5">
+                Max Payout: <span className="text-[#00e701]">{currentMultipliers[0]}x</span>
+              </div>
             </div>
 
             {/* Canvas Container */}
@@ -347,49 +345,49 @@ export default function PlinkoGame() {
 
             {/* Multiplier Visuals (HTML Overlay for better text rendering than Canvas) */}
             <div className="absolute bottom-[60px] flex gap-1 items-end justify-center w-full pointer-events-none">
-               {currentMultipliers.map((mult, i) => (
-                  <div 
-                    key={i}
-                    className="flex items-center justify-center rounded shadow-lg text-[10px] font-bold text-black"
-                    style={{ 
-                       backgroundColor: getBucketColor(mult),
-                       width: `${800 / (currentMultipliers.length + 2)}px`, // Approximate width matching physics
-                       height: '24px',
-                       transform: 'translateY(0px)'
-                    }}
-                  >
-                     {mult}x
-                  </div>
-               ))}
+              {currentMultipliers.map((mult, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-center rounded shadow-lg text-[10px] font-bold text-black"
+                  style={{
+                    backgroundColor: getBucketColor(mult),
+                    width: `${800 / (currentMultipliers.length + 2)}px`, // Approximate width matching physics
+                    height: '24px',
+                    transform: 'translateY(0px)'
+                  }}
+                >
+                  {mult}x
+                </div>
+              ))}
             </div>
 
             {/* Footer Controls */}
             <div className="absolute bottom-0 left-0 right-0 h-12 bg-[#0f212e] border-t border-[#213743] flex items-center justify-between px-4 z-20">
-               <div className="flex items-center gap-2">
-                 <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
-                    <Settings2 className="w-4 h-4" />
-                 </Button>
-                 <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
-                    <Volume2 className="w-4 h-4" />
-                 </Button>
-               </div>
-               
-               <div className="absolute left-1/2 -translate-x-1/2 font-bold text-white tracking-tight text-lg flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-[#ec4899]" /> Plinko
-               </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
+                  <Settings2 className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
+                  <Volume2 className="w-4 h-4" />
+                </Button>
+              </div>
 
-               <div className="flex items-center gap-4">
-                  <div 
-                    className="flex items-center gap-2 bg-[#213743] px-3 py-1 rounded-full cursor-pointer hover:bg-[#2f4553] transition-colors"
-                    onClick={openFairnessModal}
-                  >
-                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                     <span className="text-xs font-bold text-white">Fairness</span>
-                  </div>
-                  <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
-                    <BarChart2 className="w-4 h-4" />
-                 </Button>
-               </div>
+              <div className="absolute left-1/2 -translate-x-1/2 font-bold text-white tracking-tight text-lg flex items-center gap-2">
+                <Zap className="w-4 h-4 text-[#ec4899]" /> Plinko
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div
+                  className="flex items-center gap-2 bg-[#213743] px-3 py-1 rounded-full cursor-pointer hover:bg-[#2f4553] transition-colors"
+                  onClick={openFairnessModal}
+                >
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-xs font-bold text-white">Fairness</span>
+                </div>
+                <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
+                  <BarChart2 className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
 
           </div>
@@ -397,42 +395,7 @@ export default function PlinkoGame() {
         </div>
 
         {/* History */}
-        <div className="bg-[#1a2c38] rounded-lg border border-[#213743] overflow-hidden">
-           <div className="flex items-center justify-between p-4 border-b border-[#213743]">
-              <h3 className="text-white font-bold">Recent Plinko Drops</h3>
-           </div>
-           <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                 <thead className="text-xs text-[#b1bad3] bg-[#0f212e] uppercase">
-                    <tr>
-                       <th className="px-6 py-3">User</th>
-                       <th className="px-6 py-3">Time</th>
-                       <th className="px-6 py-3 text-right">Bet</th>
-                       <th className="px-6 py-3 text-right">Multiplier</th>
-                       <th className="px-6 py-3 text-right">Payout</th>
-                    </tr>
-                 </thead>
-                 <tbody>
-                    {history.map((bet) => (
-                       <tr key={bet.id} className="bg-[#1a2c38] border-b border-[#213743] hover:bg-[#213743]">
-                          <td className="px-6 py-4 text-[#b1bad3]">{user?.email?.split('@')[0] || 'Hidden'}</td>
-                          <td className="px-6 py-4 text-[#b1bad3]">{new Date(bet.created_at).toLocaleTimeString()}</td>
-                          <td className="px-6 py-4 text-right text-white font-mono">{bet.stake_credits.toFixed(8)}</td>
-                          <td className="px-6 py-4 text-right text-[#b1bad3]">{bet.raw_data?.multiplier}x</td>
-                          <td className={cn("px-6 py-4 text-right font-bold", bet.result === 'win' ? "text-[#00e701]" : "text-[#b1bad3]")}>
-                             {bet.payout_credits.toFixed(8)}
-                          </td>
-                       </tr>
-                    ))}
-                    {history.length === 0 && (
-                       <tr>
-                          <td colSpan={5} className="px-6 py-8 text-center text-[#b1bad3]">No drops yet.</td>
-                       </tr>
-                    )}
-                 </tbody>
-              </table>
-           </div>
-        </div>
+        <GameHistory gameType="Plinko" />
 
       </div>
     </div>

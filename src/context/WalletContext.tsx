@@ -21,8 +21,8 @@ interface WalletContextType {
 const WalletContext = createContext<WalletContextType>({
   balance: 0,
   loading: true,
-  refreshBalance: async () => {},
-  optimisticUpdate: () => {},
+  refreshBalance: async () => { },
+  optimisticUpdate: () => { },
 });
 
 export const useWallet = () => useContext(WalletContext);
@@ -44,7 +44,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
 
       if (error) throw error;
-      
+
       if (data) {
         // We don't trigger visual feedback on initial fetch
         // Ensure we default to 0 if credits is null/undefined to prevent NaN issues downstream
@@ -65,7 +65,8 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     if (isNaN(amount)) return;
 
     setBalance(prev => {
-      const newBal = parseFloat((prev + amount).toFixed(2));
+      let newBal = parseFloat((prev + amount).toFixed(2));
+      if (newBal < 0) newBal = 0; // Prevent negative balance
       prevBalanceRef.current = newBal; // Update ref to prevent double-toast on sync
       return newBal;
     });
@@ -75,18 +76,18 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     // Only update if there's a significant difference to avoid jitter from optimistic updates
     // or if the update comes from an external source (deposit/withdrawal)
     const diff = newBalance - prevBalanceRef.current;
-    
+
     if (Math.abs(diff) > 0.01) {
       // If the difference is positive and we haven't just optimistically added it
       // (This logic can be complex, for now we trust the DB as source of truth eventually)
-       setBalance(newBalance);
-       prevBalanceRef.current = newBalance;
-       
-       // Optional: Toast for external deposits
-       if (diff > 0 && !isFirstLoad.current) {
-         // We might want to suppress this if it was a game win we already handled
-         // For now, we'll leave it to the game component to handle win toasts
-       }
+      setBalance(newBalance);
+      prevBalanceRef.current = newBalance;
+
+      // Optional: Toast for external deposits
+      if (diff > 0 && !isFirstLoad.current) {
+        // We might want to suppress this if it was a game win we already handled
+        // For now, we'll leave it to the game component to handle win toasts
+      }
     }
   };
 

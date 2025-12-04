@@ -239,13 +239,14 @@ const BlackjackGame = () => {
         const isRed = card.suit === 'hearts' || card.suit === 'diamonds';
 
         // Determine border color based on outcome
+        // Determine border color based on outcome
         let borderColor = 'border-gray-200';
         if (handOutcome === 'win') {
-            borderColor = 'border-green-500';
+            borderColor = 'border-[#00e701] shadow-[0_0_10px_#00e701]'; // Neon Green + Glow
         } else if (handOutcome === 'loss') {
-            borderColor = 'border-red-500';
+            borderColor = 'border-[#ff4d4d] shadow-[0_0_10px_#ff4d4d]'; // Red + Glow
         } else if (handOutcome === 'push') {
-            borderColor = 'border-yellow-500';
+            borderColor = 'border-[#FFD700] shadow-[0_0_10px_#FFD700]'; // Gold + Glow
         }
 
         return (

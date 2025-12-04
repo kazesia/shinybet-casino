@@ -1,7 +1,7 @@
-import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import Hero from '@/components/home/Hero';
 import GameGrid from '@/components/home/GameGrid';
+import Dashboard from '@/pages/Dashboard';
 import { Loader2 } from 'lucide-react';
 
 export default function Home() {
@@ -15,9 +15,9 @@ export default function Home() {
     );
   }
 
-  // If user is logged in, redirect to Dashboard
+  // If user is logged in, show Dashboard (Home view for users)
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Dashboard />;
   }
 
   // Otherwise show Landing Page

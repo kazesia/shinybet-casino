@@ -1,21 +1,9 @@
 import { useAdminStats, useAdminWithdrawals, useAdminDeposits } from '@/hooks/useAdmin';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Wallet, TrendingUp, DollarSign, Percent, ArrowUpRight } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-// Mock data for the chart since we don't have a time-series RPC yet
-const chartData = [
-  { name: 'Mon', revenue: 4000 },
-  { name: 'Tue', revenue: 3000 },
-  { name: 'Wed', revenue: 2000 },
-  { name: 'Thu', revenue: 2780 },
-  { name: 'Fri', revenue: 1890 },
-  { name: 'Sat', revenue: 2390 },
-  { name: 'Sun', revenue: 3490 },
-];
 
 export default function AdminDashboard() {
   const { data: stats, isLoading: statsLoading } = useAdminStats();
@@ -38,11 +26,11 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-white">Overview</h1>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-           <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-           System Operational
+          <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+          System Operational
         </div>
       </div>
-      
+
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-zinc-900/50 border-white/5 hover:border-[#F7D979]/30 transition-colors">
@@ -91,36 +79,6 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Revenue Chart */}
-      <Card className="bg-zinc-900/50 border-white/5">
-        <CardHeader>
-          <CardTitle>Revenue Overview</CardTitle>
-          <CardDescription>Weekly revenue performance (Simulated Data)</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#F7D979" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#F7D979" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                <XAxis dataKey="name" stroke="#666" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#666" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0D1016', borderColor: '#333', color: '#fff' }}
-                  itemStyle={{ color: '#F7D979' }}
-                />
-                <Area type="monotone" dataKey="revenue" stroke="#F7D979" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Deposits */}
@@ -182,8 +140,8 @@ export default function AdminDashboard() {
                       <TableCell className="text-right">
                         <Badge variant="outline" className={
                           w.status === 'pending' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500' :
-                          w.status === 'paid' ? 'bg-green-500/10 text-green-500 border-green-500' :
-                          'text-red-500 border-red-500'
+                            w.status === 'paid' ? 'bg-green-500/10 text-green-500 border-green-500' :
+                              'text-red-500 border-red-500'
                         }>
                           {w.status}
                         </Badge>

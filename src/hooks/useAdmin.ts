@@ -20,22 +20,40 @@ export const useAdminUsers = (page = 0, pageSize = 20, search = '') => {
   return useQuery({
     queryKey: ['admin', 'users', page, pageSize, search],
     queryFn: async () => {
-      let query = supabase
+      // Fetch profiles
+      let profileQuery = supabase
         .from('profiles')
-        .select('*, wallets(credits)', { count: 'exact' })
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(page * pageSize, (page + 1) * pageSize - 1);
 
       if (search) {
-        query = query.or(`username.ilike.%${search}%,id.eq.${search},email.ilike.%${search}%`);
+        profileQuery = profileQuery.or(`username.ilike.%${search}%,id.eq.${search},email.ilike.%${search}%`);
       }
 
-      const { data, count, error } = await query;
-      if (error) throw error;
-      
-      const users = data.map((u: any) => ({
-        ...u,
-        wallet_balance: u.wallets?.[0]?.credits || 0
+      const { data: profiles, count, error: profilesError } = await profileQuery;
+      if (profilesError) throw profilesError;
+
+      if (!profiles || profiles.length === 0) {
+        return { users: [], count: count || 0 };
+      }
+
+      // Fetch wallets for these users
+      const userIds = profiles.map(p => p.id);
+      const { data: wallets, error: walletsError } = await supabase
+        .from('wallets')
+        .select('user_id, credits')
+        .in('user_id', userIds);
+
+      if (walletsError) {
+        console.warn('Failed to fetch wallets:', walletsError);
+      }
+
+      // Merge wallets into profiles
+      const walletsMap = new Map(wallets?.map(w => [w.user_id, w.credits]) || []);
+      const users = profiles.map((p: any) => ({
+        ...p,
+        wallet_balance: walletsMap.get(p.id) || 0
       }));
 
       return { users: users as Profile[], count: count || 0 };
@@ -50,11 +68,11 @@ export const useUserStats = (userId: string | null) => {
     queryKey: ['admin', 'user-stats', userId],
     queryFn: async () => {
       if (!userId) return null;
-      
+
       // 1. Get Stats
       const { data: stats, error: statsError } = await supabase
         .rpc('get_user_stats', { user_id: userId });
-        
+
       if (statsError) throw statsError;
 
       // 2. Get Recent Activity
@@ -82,16 +100,31 @@ export const useAdminWithdrawals = (status: string) => {
     queryFn: async () => {
       let query = supabase
         .from('withdrawals')
-        .select('*, profiles(username)')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (status !== 'all') {
         query = query.eq('status', status);
       }
 
-      const { data, error } = await query;
+      const { data: withdrawalsData, error } = await query;
       if (error) throw error;
-      return data as Withdrawal[];
+
+      if (!withdrawalsData || withdrawalsData.length === 0) return [];
+
+      // Fetch profiles
+      const userIds = [...new Set(withdrawalsData.map((w: any) => w.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, username')
+        .in('id', userIds);
+
+      const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      return withdrawalsData.map((w: any) => ({
+        ...w,
+        profiles: profilesMap.get(w.user_id)
+      })) as Withdrawal[];
     },
   });
 };
@@ -209,11 +242,29 @@ export const useAdminMutations = () => {
     onError: (err: any) => toast.error(err.message),
   });
 
+  const adjustBalance = useMutation({
+    mutationFn: async ({ userId, amount, reason }: { userId: string; amount: number; reason: string }) => {
+      const { error } = await supabase.rpc('admin_adjust_balance', {
+        p_user_id: userId,
+        p_amount: amount,
+        p_reason: reason
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'user-stats'] });
+      toast.success('Balance adjusted successfully');
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   return {
     toggleBan,
     changeRole,
     approveWithdrawal,
     rejectWithdrawal,
-    updateSettings
+    updateSettings,
+    adjustBalance
   };
 };

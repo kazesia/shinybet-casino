@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS public.bets (
   stake_credits NUMERIC NOT NULL,
   payout_credits NUMERIC DEFAULT 0,
   result TEXT, -- 'win', 'loss', 'pending'
+  raw_data JSONB DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -99,24 +100,41 @@ ALTER TABLE public.deposits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.withdrawals ENABLE ROW LEVEL SECURITY;
 
 -- Policies
+-- Policies
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
 CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can view own wallet" ON public.wallets;
 CREATE POLICY "Users can view own wallet" ON public.wallets FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can view own bets" ON public.bets;
 CREATE POLICY "Users can view own bets" ON public.bets FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own bets" ON public.bets;
 CREATE POLICY "Users can insert own bets" ON public.bets FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can view own transactions" ON public.transactions;
 CREATE POLICY "Users can view own transactions" ON public.transactions FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can view own addresses" ON public.deposit_addresses;
 CREATE POLICY "Users can view own addresses" ON public.deposit_addresses FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can view own deposits" ON public.deposits;
 CREATE POLICY "Users can view own deposits" ON public.deposits FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can view own withdrawals" ON public.withdrawals;
 CREATE POLICY "Users can view own withdrawals" ON public.withdrawals FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert withdrawals" ON public.withdrawals;
 CREATE POLICY "Users can insert withdrawals" ON public.withdrawals FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Trigger for Profile Creation
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS public.handle_new_user();
+
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -130,12 +148,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
 -- RPC: Get User Stats
+DROP FUNCTION IF EXISTS get_user_stats(UUID);
 CREATE OR REPLACE FUNCTION get_user_stats(user_id UUID)
 RETURNS JSON AS $$
 DECLARE
@@ -162,6 +180,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- RPC: Request Withdrawal
+DROP FUNCTION IF EXISTS request_withdrawal(UUID, NUMERIC, TEXT, TEXT);
 CREATE OR REPLACE FUNCTION request_withdrawal(p_user_id UUID, p_amount NUMERIC, p_currency TEXT, p_address TEXT)
 RETURNS VOID AS $$
 DECLARE

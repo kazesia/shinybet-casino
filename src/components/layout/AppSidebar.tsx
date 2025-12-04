@@ -4,26 +4,32 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUI } from '@/context/UIContext';
 import { useAuth } from '@/context/AuthContext';
-import { 
-  Gift, 
-  Users, 
-  Crown, 
-  Newspaper, 
-  MessageSquare, 
-  Shield, 
-  Headphones, 
-  Globe, 
-  Dices,
-  Bomb,
-  Coins,
+import UserProfileCard from '@/components/sidebar/UserProfileCard';
+import {
+  Gift,
+  Newspaper,
+  MessageSquare,
+  Shield,
+  Headphones,
+  Globe,
+  Users,
+  ShieldCheck,
+  Gem,
+  Flame,
+  Zap,
+  TrendingUp,
+  Spade,
+  User,
+  Trophy,
   Gamepad2,
-  ShieldCheck
+  Dices,
+  Wallet
 } from 'lucide-react';
-import { 
-  Accordion, 
-  AccordionContent, 
-  AccordionItem, 
-  AccordionTrigger 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
 } from '@/components/ui/accordion';
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -34,7 +40,7 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
   const location = useLocation();
   const { isSidebarCollapsed } = useUI();
   const { profile } = useAuth();
-  
+
   const isSports = location.pathname.includes('/sports');
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
@@ -42,22 +48,56 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
 
   return (
     <div className={cn("flex flex-col h-full bg-[#0f212e] text-[#b1bad3] pt-4", className)}>
-      
+
+      {/* Casino / Sports Toggle */}
+      <div className={cn("mb-4", isSidebarCollapsed ? "px-2" : "px-4")}>
+        <div className={cn(
+          "flex items-center bg-[#1a2c38] rounded-full p-1",
+          isSidebarCollapsed && "flex-col gap-1 rounded-lg"
+        )}>
+          <Link to="/" onClick={onLinkClick} className="flex-1 w-full">
+            <div className={cn(
+              "rounded-full flex items-center justify-center font-bold text-sm transition-all cursor-pointer",
+              isSidebarCollapsed ? "h-8 w-full rounded-md" : "h-9",
+              !isSports
+                ? "bg-[#2f4553] text-white shadow-sm"
+                : "bg-transparent text-[#b1bad3] hover:text-white"
+            )}>
+              {isSidebarCollapsed ? <Gem className="h-4 w-4" /> : "Casino"}
+            </div>
+          </Link>
+          <Link to="/sports" onClick={onLinkClick} className="flex-1 w-full">
+            <div className={cn(
+              "rounded-full flex items-center justify-center font-bold text-sm transition-all cursor-pointer",
+              isSidebarCollapsed ? "h-8 w-full rounded-md" : "h-9",
+              isSports
+                ? "bg-[#2f4553] text-white shadow-sm"
+                : "bg-transparent text-[#b1bad3] hover:text-white"
+            )}>
+              {isSidebarCollapsed ? <Trophy className="h-4 w-4" /> : "Sports"}
+            </div>
+          </Link>
+        </div>
+      </div>
+
       <ScrollArea className="flex-1 px-4 pb-4">
+        {/* User Profile Card (Optional, keeping it as it's useful) */}
+        {!isSidebarCollapsed && <UserProfileCard />}
+
         {/* Main Navigation Card */}
         <div className={cn(
-          "bg-[#1a2c38] rounded-xl overflow-hidden transition-all duration-300",
-          isSidebarCollapsed ? "bg-transparent" : "p-2"
+          "rounded-xl overflow-hidden transition-all duration-300 mt-2",
+          isSidebarCollapsed ? "bg-transparent" : ""
         )}>
-          
+
           {/* Admin Section */}
           {isAdmin && (
-            <div className="mb-2">
+            <div className="mb-1 space-y-1">
               <Link to="/admin" onClick={onLinkClick}>
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full justify-start gap-3 font-semibold text-[#F7D979] hover:text-[#F7D979] hover:bg-[#F7D979]/10",
+                    "w-full justify-start gap-3 h-10 font-semibold text-[#F7D979] hover:text-[#F7D979] hover:bg-[#F7D979]/10 border border-[#F7D979]/20",
                     isSidebarCollapsed && "justify-center px-0"
                   )}
                 >
@@ -65,43 +105,53 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
                   {!isSidebarCollapsed && "Admin Panel"}
                 </Button>
               </Link>
+              <Link to="/admin/wallet" onClick={onLinkClick}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-3 h-10 font-semibold text-[#F7D979] hover:text-[#F7D979] hover:bg-[#F7D979]/10 border border-[#F7D979]/20",
+                    isSidebarCollapsed && "justify-center px-0"
+                  )}
+                >
+                  <Wallet className="h-4 w-4" />
+                  {!isSidebarCollapsed && "Wallet Settings"}
+                </Button>
+              </Link>
             </div>
           )}
 
-          {/* Games Section */}
-          <div className="mb-2">
-             <Accordion type="single" collapsible defaultValue={!isSports ? "games" : undefined} className="w-full">
+          {/* Main Menu Items */}
+          <div className="space-y-1">
+
+            {/* Games Accordion (New) */}
+            <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="games" className="border-none">
                 {!isSidebarCollapsed ? (
                   <AccordionTrigger className="px-3 py-2 text-sm font-semibold text-[#b1bad3] hover:text-white hover:bg-[#213743] rounded-lg hover:no-underline">
                     <div className="flex items-center gap-3">
                       <Gamepad2 className="h-4 w-4" />
-                      <span>Casino Games</span>
+                      <span>Games</span>
                     </div>
                   </AccordionTrigger>
                 ) : (
-                   <div className="flex justify-center py-2">
-                      <Gamepad2 className="h-4 w-4" />
-                   </div>
+                  <div className="flex justify-center py-2">
+                    <Gamepad2 className="h-4 w-4" />
+                  </div>
                 )}
                 <AccordionContent className="pt-1 pb-0">
-                  <div className="space-y-1 pl-0">
+                  <div className="pl-4 space-y-1">
                     {[
-                      { to: '/game/dice', icon: Dices, label: 'Dice' },
-                      { to: '/game/mines', icon: Bomb, label: 'Mines' },
-                      { to: '/game/coinflip', icon: Coins, label: 'CoinFlip' },
+                      { label: 'Dice', icon: Dices, link: '/game/dice' },
+                      { label: 'Crash', icon: TrendingUp, link: '/game/crash' },
+                      { label: 'Plinko', icon: Zap, link: '/game/plinko' },
+                      { label: 'Mines', icon: Flame, link: '/game/mines' },
+                      { label: 'Blackjack', icon: Spade, link: '/game/blackjack' },
+                      { label: 'Coin Flip', icon: User, link: '/game/coinflip' },
                     ].map((item) => (
-                      <Link key={item.to} to={item.to} onClick={onLinkClick} className="block">
-                        <Button
-                          variant="ghost"
-                          className={cn(
-                            "w-full justify-start gap-3 h-9 font-medium",
-                            isActive(item.to) ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
-                            isSidebarCollapsed && "justify-center px-0"
-                          )}
-                        >
-                          <item.icon className="h-4 w-4 shrink-0" />
-                          {!isSidebarCollapsed && item.label}
+                      <Link key={item.label} to={item.link} onClick={onLinkClick}>
+                        <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white gap-2">
+                          <item.icon className="h-3 w-3" />
+                          {item.label}
                         </Button>
                       </Link>
                     ))}
@@ -109,11 +159,7 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-          </div>
 
-          {/* Main Menu Items */}
-          <div className="space-y-1">
-            
             {/* Promotions */}
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="promotions" className="border-none">
@@ -125,9 +171,9 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
                     </div>
                   </AccordionTrigger>
                 ) : (
-                   <Link to="/promotions" onClick={onLinkClick} className="flex justify-center py-2">
-                      <Gift className="h-4 w-4" />
-                   </Link>
+                  <Link to="/promotions" onClick={onLinkClick} className="flex justify-center py-2">
+                    <Gift className="h-4 w-4" />
+                  </Link>
                 )}
                 <AccordionContent className="pt-1 pb-0">
                   <div className="pl-4 space-y-1">
@@ -165,7 +211,7 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
                   isSidebarCollapsed && "justify-center px-0"
                 )}
               >
-                <Crown className="h-4 w-4 shrink-0" />
+                <Trophy className="h-4 w-4 shrink-0" />
                 {!isSidebarCollapsed && "VIP Club"}
               </Button>
             </Link>
@@ -201,7 +247,7 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
             </Link>
 
             {/* Divider */}
-            {!isSidebarCollapsed && <div className="h-px bg-[#2f4553] my-2 mx-3" />}
+            {!isSidebarCollapsed && <div className="h-px bg-[#2f4553] my-4 mx-3" />}
 
             {/* Sponsorships */}
             <Accordion type="single" collapsible className="w-full">
@@ -214,9 +260,9 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
                     </div>
                   </AccordionTrigger>
                 ) : (
-                   <div className="flex justify-center py-2">
-                      <Shield className="h-4 w-4" />
-                   </div>
+                  <div className="flex justify-center py-2">
+                    <Shield className="h-4 w-4" />
+                  </div>
                 )}
                 <AccordionContent className="pt-1 pb-0">
                   <div className="pl-4 space-y-1">
@@ -238,7 +284,7 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
                   isSidebarCollapsed && "justify-center px-0"
                 )}
               >
-                <Shield className="h-4 w-4 shrink-0" />
+                <ShieldCheck className="h-4 w-4 shrink-0" />
                 {!isSidebarCollapsed && "Responsible Gambling"}
               </Button>
             </Link>
@@ -269,9 +315,9 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
                     </div>
                   </AccordionTrigger>
                 ) : (
-                   <div className="flex justify-center py-2">
-                      <Globe className="h-4 w-4" />
-                   </div>
+                  <div className="flex justify-center py-2">
+                    <Globe className="h-4 w-4" />
+                  </div>
                 )}
                 <AccordionContent className="pt-1 pb-0">
                   <div className="pl-4 space-y-1">

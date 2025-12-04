@@ -3,6 +3,7 @@ import { Search, Bell, Menu, User, MessageSquare, ChevronDown, Settings, LogOut,
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useWallet } from '@/context/WalletContext';
+import LanguageSelector from '@/components/LanguageSelector';
 import { useUI } from '@/context/UIContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { AppSidebar } from './AppSidebar';
@@ -19,23 +20,46 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { WalletDropdown } from '@/components/wallet/WalletDropdown';
+import { useDashboardData } from '@/hooks/useDashboardData';
 
 const LOGO_URL = "https://cdn.discordapp.com/attachments/1442155264613814302/1445539875116810392/Collabeco_2_-removebg-preview.png?ex=6930b76b&is=692f65eb&hm=9be06a69591c9fba9edca705a2295c341ddde42e5112db67b58dbc0d77f00ed5";
 
-const MOCK_NOTIFICATIONS = [
-  { id: 1, title: "Welcome Bonus", message: "Claim your 100% deposit bonus!", time: "2m ago", read: false },
-  { id: 2, title: "Security Alert", message: "New login detected from Chrome.", time: "1h ago", read: true },
+// VIP Tiers for progress calculation
+const VIP_TIERS = [
+  { name: 'Bronze', minWager: 0 },
+  { name: 'Silver', minWager: 10000 },
+  { name: 'Gold', minWager: 50000 },
+  { name: 'Platinum', minWager: 100000 },
+  { name: 'Diamond', minWager: 500000 },
 ];
 
 const Navbar = () => {
   const { user, profile, signOut } = useAuth();
   const { balance } = useWallet();
   const { openAuthModal, openWalletModal, toggleSidebar, openStatsModal, toggleChat, isChatOpen, openVaultModal } = useUI();
+  const { stats } = useDashboardData();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
   const isSports = location.pathname.includes('/sports');
+
+  // Calculate VIP Progress
+  const wagered = stats?.total_wagered || 0;
+  const currentTierIndex = VIP_TIERS.slice().reverse().findIndex(t => wagered >= t.minWager);
+  const actualIndex = currentTierIndex === -1 ? 0 : VIP_TIERS.length - 1 - currentTierIndex;
+  const currentTier = VIP_TIERS[actualIndex];
+  const nextTier = VIP_TIERS[actualIndex + 1];
+
+  let vipProgressPercent = 0;
+  if (nextTier) {
+    const totalNeeded = nextTier.minWager - currentTier.minWager;
+    const currentProgress = wagered - currentTier.minWager;
+    vipProgressPercent = Math.min(100, Math.max(0, (currentProgress / totalNeeded) * 100));
+  } else {
+    vipProgressPercent = 100;
+  }
 
   const handleSignOut = async () => {
     try {
@@ -55,7 +79,7 @@ const Navbar = () => {
     { label: 'Affiliate', icon: Users, link: '/affiliate' },
     { label: 'Statistics', icon: BarChart2, action: () => openStatsModal() },
     { label: 'Transactions', icon: FileText, link: '/transactions' },
-    { label: 'My Bets', icon: ClipboardCheck, link: '/profile' },
+    { label: 'My Bets', icon: ClipboardCheck, link: '/my-bets' },
     { label: 'Settings', icon: Settings, link: '/settings' },
     { label: 'Play Smart', icon: Shield, link: '/responsible-gambling' },
     { label: 'Live Support', icon: Headset, link: '/help' },
@@ -89,33 +113,18 @@ const Navbar = () => {
           <Menu className="h-5 w-5" />
         </Button>
 
-        {/* 2. Casino / Sports Toggles (Pill Buttons) */}
-        <div className="hidden md:flex items-center bg-[#0f212e] rounded-full p-1 border border-[#2f4553]">
-          <Link to="/">
-            <div className={cn(
-              "h-8 px-5 rounded-full flex items-center justify-center font-bold text-xs transition-all cursor-pointer",
-              !isSports
-                ? "bg-[#2f4553] text-white shadow-sm"
-                : "bg-transparent text-[#b1bad3] hover:text-white"
-            )}>
-              Casino
-            </div>
-          </Link>
-          <Link to="/sports">
-            <div className={cn(
-              "h-8 px-5 rounded-full flex items-center justify-center font-bold text-xs transition-all cursor-pointer",
-              isSports
-                ? "bg-[#2f4553] text-white shadow-sm"
-                : "bg-transparent text-[#b1bad3] hover:text-white"
-            )}>
-              Sports
-            </div>
-          </Link>
-        </div>
 
-        {/* 3. Logo */}
-        <Link to="/" className="flex items-center ml-2">
-          <img src={LOGO_URL} alt="Shiny Logo" className="h-6 md:h-7 w-auto" />
+
+        {/* 2. Logo */}
+        <Link to="/" className="flex items-center gap-2 shrink-0">
+          <img
+            src="https://media.discordapp.net/attachments/1442506658155855925/1446069962493005844/Collabeco_2_-removebg-preview.png?ex=6932a519&is=69315399&hm=cab9148f2cdcafb486a7ff6e92852c787bcb0e5b193af549d467c257f8913b73&=&format=webp&quality=lossless&width=750&height=750"
+            alt="Shiny.bet Logo"
+            className="h-8 w-8 object-contain"
+          />
+          <span className="hidden sm:block text-xl font-bold text-white">
+            Shiny<span className="text-[#ffd700]">.bet</span>
+          </span>
         </Link>
       </div>
 
@@ -125,15 +134,9 @@ const Navbar = () => {
       {/* --- CENTER: Balance & Wallet (Absolute Positioned) --- */}
       {user && (
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-          <div className="flex items-center bg-[#0f212e] rounded-[4px] h-10 px-3 gap-2 cursor-pointer hover:bg-[#213743] transition-colors">
-            <span className="text-sm font-bold text-white">${balance.toFixed(2)}</span>
-            <div className="w-5 h-5 rounded-full bg-[#345d9d] flex items-center justify-center text-white text-[10px] font-bold">
-              Ł
-            </div>
-            <ChevronDown className="h-3 w-3 text-[#b1bad3]" />
-          </div>
+          <WalletDropdown />
           <Button
-            onClick={() => openWalletModal('deposit')}
+            onClick={() => openWalletModal('overview')}
             className="bg-[#1475e1] hover:bg-[#1475e1]/90 text-white font-bold h-10 px-6 rounded-[4px] shadow-sm"
           >
             Wallet
@@ -167,11 +170,11 @@ const Navbar = () => {
                       <p className="text-xs leading-none text-[#b1bad3] opacity-70">{user.email}</p>
                     </div>
                     <div className="mt-3 h-1.5 w-full bg-[#0f212e] rounded-full overflow-hidden">
-                      <div className="h-full bg-[#F7D979] w-[20%]" />
+                      <div className="h-full bg-[#F7D979] transition-all duration-500" style={{ width: `${vipProgressPercent}%` }} />
                     </div>
                     <div className="flex justify-between mt-1 text-[10px] text-[#b1bad3]">
                       <span>VIP Progress</span>
-                      <span>20%</span>
+                      <span>{vipProgressPercent.toFixed(0)}%</span>
                     </div>
                   </DropdownMenuLabel>
 
@@ -228,16 +231,10 @@ const Navbar = () => {
                     <span className="text-xs text-[#1475e1] cursor-pointer hover:underline">Mark all read</span>
                   </div>
                   <ScrollArea className="h-[300px]">
-                    <div className="flex flex-col">
-                      {MOCK_NOTIFICATIONS.map((notif) => (
-                        <div key={notif.id} className={`p-3 border-b border-[#2f4553] hover:bg-[#213743] cursor-pointer transition-colors ${!notif.read ? 'bg-[#213743]/50' : ''}`}>
-                          <div className="flex justify-between items-start mb-1">
-                            <span className={`text-sm font-semibold ${!notif.read ? 'text-white' : 'text-[#b1bad3]'}`}>{notif.title}</span>
-                            <span className="text-[10px] text-[#b1bad3]">{notif.time}</span>
-                          </div>
-                          <p className="text-xs text-[#b1bad3] line-clamp-2">{notif.message}</p>
-                        </div>
-                      ))}
+                    <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                      <Bell className="h-12 w-12 text-[#2f4553] mb-3" />
+                      <p className="text-sm text-[#b1bad3]">No notifications yet</p>
+                      <p className="text-xs text-[#2f4553] mt-1">We'll notify you when something important happens</p>
                     </div>
                   </ScrollArea>
                 </PopoverContent>

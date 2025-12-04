@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { supabase } from '@/lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,6 +31,7 @@ const registerSchema = z.object({
 
 export default function AuthPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [isResetOpen, setIsResetOpen] = useState(false);
 
@@ -53,9 +54,10 @@ export default function AuthPage() {
       });
 
       if (error) throw error;
-      
+
       toast.success("Welcome back!");
-      navigate('/dashboard');
+      const from = location.state?.from?.pathname || '/';
+      navigate(from, { replace: true });
     } catch (error: any) {
       toast.error(error.message || "Failed to sign in");
     } finally {
@@ -89,7 +91,7 @@ export default function AuthPage() {
   const onResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const email = (e.currentTarget.elements.namedItem('reset-email') as HTMLInputElement).value;
-    
+
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
@@ -106,16 +108,20 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 rounded-[100%] blur-[100px] -z-10 pointer-events-none" />
-      
+
       <Card className="w-full max-w-md border-[#FFD700]/30 bg-zinc-950/90 backdrop-blur-xl shadow-[0_0_30px_rgba(255,215,0,0.1)]">
         <CardHeader className="text-center pb-2">
-          <div className="mx-auto mb-4 h-12 w-12 rounded-xl bg-gradient-to-br from-[#F7D979] to-[#D9A94F] flex items-center justify-center shadow-lg">
-            <Gamepad2 className="h-7 w-7 text-black" />
+          <div className="mx-auto mb-4 h-16 w-16 flex items-center justify-center">
+            <img
+              src="https://media.discordapp.net/attachments/1442506658155855925/1446069962493005844/Collabeco_2_-removebg-preview.png?ex=6932a519&is=69315399&hm=cab9148f2cdcafb486a7ff6e92852c787bcb0e5b193af549d467c257f8913b73&=&format=webp&quality=lossless&width=750&height=750"
+              alt="Shiny.bet Logo"
+              className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]"
+            />
           </div>
           <CardTitle className="text-2xl font-bold text-white">Welcome to Shiny.bet</CardTitle>
           <CardDescription>The premier crypto casino experience</CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6 bg-zinc-900/50">
@@ -184,7 +190,7 @@ export default function AuthPage() {
                   {registerForm.formState.errors.confirmPassword && <p className="text-xs text-red-500">{registerForm.formState.errors.confirmPassword.message}</p>}
                 </div>
                 <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-[#F7D979] to-[#D9A94F] text-black font-bold hover:opacity-90">
-                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Account
                 </Button>
               </form>

@@ -1,17 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 import { Bet } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dices, Bomb, Coins, TrendingUp, Gamepad2, Spade, Zap, Ghost, Bitcoin } from 'lucide-react';
+import { Dices, Bomb, Coins, TrendingUp, Gamepad2, Spade, Zap, Ghost, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-// --- Configuration for Fake Data ---
-// Normal names as requested
-const NORMAL_NAMES = [
-  'Alex', 'Sarah', 'Mike', 'David', 'Emma', 'Chris', 'James', 'Lisa', 'Tom', 'Anna',
-  'Ryan', 'Kevin', 'Jessica', 'Daniel', 'Paul', 'Mark', 'Emily', 'Laura', 'Steve', 'Julie',
-  'Brian', 'Amy', 'Jason', 'Scott', 'Eric', 'Justin', 'Melissa', 'Nicole', 'Matt', 'Amanda'
-];
+import { Button } from '@/components/ui/button';
 
 const CRYPTO_CURRENCIES = [
   { code: 'BTC', icon: '₿', color: 'bg-orange-500' },
@@ -22,14 +16,14 @@ const CRYPTO_CURRENCIES = [
 ];
 
 const GAMES = [
-  { type: 'Dice', icon: Dices, color: 'text-blue-400' },
-  { type: 'Mines', icon: Bomb, color: 'text-red-400' },
-  { type: 'CoinFlip', icon: Coins, color: 'text-yellow-400' },
-  { type: 'Crash', icon: TrendingUp, color: 'text-green-400' },
-  { type: 'Plinko', icon: Zap, color: 'text-pink-400' },
-  { type: 'Blackjack', icon: Spade, color: 'text-purple-400' },
-  { type: 'Limbo', icon: TrendingUp, color: 'text-cyan-400' },
-  { type: 'Roulette', icon: Gamepad2, color: 'text-orange-400' },
+  { type: 'Dice', icon: Dices, color: 'text-blue-400', emoji: '🎲' },
+  { type: 'Mines', icon: Bomb, color: 'text-red-400', emoji: '💣' },
+  { type: 'CoinFlip', icon: Coins, color: 'text-yellow-400', emoji: '🪙' },
+  { type: 'Crash', icon: TrendingUp, color: 'text-green-400', emoji: '📈' },
+  { type: 'Plinko', icon: Zap, color: 'text-pink-400', emoji: '⚡' },
+  { type: 'Blackjack', icon: Spade, color: 'text-purple-400', emoji: '♠️' },
+  { type: 'Limbo', icon: TrendingUp, color: 'text-cyan-400', emoji: '🚀' },
+  { type: 'Roulette', icon: Gamepad2, color: 'text-orange-400', emoji: '🎮' },
 ];
 
 // --- Helper Components ---
@@ -42,8 +36,7 @@ const CryptoIcon = ({ currency }: { currency: typeof CRYPTO_CURRENCIES[0] }) => 
 
 const GameIcon = ({ type }: { type: string }) => {
   const game = GAMES.find(g => g.type.toLowerCase() === type.toLowerCase()) || GAMES[0];
-  const Icon = game.icon;
-  return <Icon className={cn("w-4 h-4", game.color)} />;
+  return <span className="text-lg">{game.emoji}</span>;
 };
 
 // Extended Bet type for UI display
@@ -53,188 +46,260 @@ interface DisplayBet extends Bet {
   isHidden?: boolean;
 }
 
+type TabType = 'all' | 'my' | 'high' | 'race';
+
 export default function RecentBets() {
+  const { user } = useAuth();
   const [bets, setBets] = useState<DisplayBet[]>([]);
-  const [isLive, setIsLive] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabType>('all');
+  const [limit, setLimit] = useState(20);
   const tableRef = useRef<HTMLDivElement>(null);
 
   // --- 1. Fetch Real History Initial Load ---
   const fetchInitialBets = async () => {
-    const { data } = await supabase
-      .from('bets')
-      .select('*, profiles(username)')
-      .order('created_at', { ascending: false })
-      .limit(15);
-    
-    if (data) {
-      const realBets = data.map(b => ({
-        ...b,
-        isReal: true,
-        currency: CRYPTO_CURRENCIES[3], // Default to LTC for real bets if not specified
-        isHidden: false
-      })) as unknown as DisplayBet[];
-      setBets(realBets);
+    try {
+      let query = supabase
+        .from('bets')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      // Filter based on active tab
+      if (activeTab === 'my' && user) {
+        query = query.eq('user_id', user.id);
+      } else if (activeTab === 'high') {
+        query = query.or('stake_credits.gte.100,payout_credits.gte.500');
+      }
+
+      const { data: betsData, error } = await query;
+
+      if (error) throw error;
+
+      if (betsData && betsData.length > 0) {
+        // Fetch profiles for these bets
+        const userIds = [...new Set(betsData.map(b => b.user_id))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, username')
+          .in('id', userIds);
+
+        const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+        const realBets = betsData.map(b => ({
+          ...b,
+          profiles: profilesMap.get(b.user_id),
+          isReal: true,
+          currency: CRYPTO_CURRENCIES[3], // Default to LTC for real bets if not specified
+          isHidden: false
+        })) as unknown as DisplayBet[];
+
+        setBets(realBets);
+      } else {
+        setBets([]);
+      }
+    } catch (err) {
+      console.error('Error fetching recent bets:', err);
     }
   };
 
-  // --- 2. Fake Bet Generator ---
+  // --- 2. Realtime Subscription ---
   useEffect(() => {
     fetchInitialBets();
 
-    // Realtime Subscription for REAL bets
-    const subscription = supabase
-      .channel('public:bets')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets' }, async (payload) => {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('id', payload.new.user_id)
-          .single();
+    // Only subscribe to all bets if on "all" or "high" tab
+    if (activeTab === 'all' || activeTab === 'high') {
+      const subscription = supabase
+        .channel('public:bets')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets' }, async (payload) => {
+          // Fetch profile for the new bet
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('id', payload.new.user_id)
+            .single();
 
-        const newBet = { 
-          ...payload.new, 
-          profiles: profile || { username: 'Hidden' },
-          isReal: true,
-          currency: CRYPTO_CURRENCIES[3], // Default real bets to LTC for now
-          isHidden: false
-        } as unknown as DisplayBet;
+          const newBet = {
+            ...payload.new,
+            profiles: profile || { username: 'Hidden' },
+            isReal: true,
+            currency: CRYPTO_CURRENCIES[3],
+            isHidden: false
+          } as unknown as DisplayBet;
 
-        addBet(newBet);
-      })
-      .subscribe();
+          // Filter for high rollers if on that tab
+          if (activeTab === 'high') {
+            if (newBet.stake_credits >= 100 || newBet.payout_credits >= 500) {
+              addBet(newBet);
+            }
+          } else {
+            addBet(newBet);
+          }
+        })
+        .subscribe();
 
-    // Fake Bet Interval
-    const interval = setInterval(() => {
-      if (!isLive) return;
-
-      // Randomize Bet Data
-      const game = GAMES[Math.floor(Math.random() * GAMES.length)];
-      const currency = CRYPTO_CURRENCIES[Math.floor(Math.random() * CRYPTO_CURRENCIES.length)];
-      
-      // 95% Hidden Users
-      const isHidden = Math.random() < 0.95;
-      const username = isHidden ? 'Hidden' : NORMAL_NAMES[Math.floor(Math.random() * NORMAL_NAMES.length)];
-      
-      const isWin = Math.random() > 0.55; // 45% win rate
-      const stake = parseFloat((Math.random() * (Math.random() > 0.95 ? 500 : 50)).toFixed(2)); 
-      
-      let multiplier = 0;
-      if (isWin) {
-        const rand = Math.random();
-        if (rand > 0.98) multiplier = parseFloat((Math.random() * 100).toFixed(2));
-        else if (rand > 0.9) multiplier = parseFloat((Math.random() * 10).toFixed(2));
-        else multiplier = parseFloat((1 + Math.random() * 2).toFixed(2));
-      }
-
-      const payout = isWin ? stake * multiplier : 0;
-
-      const fakeBet: DisplayBet = {
-        id: `fake-${Date.now()}-${Math.random()}`,
-        user_id: 'fake',
-        game_type: game.type,
-        profiles: { username },
-        stake_credits: stake,
-        payout_credits: payout,
-        result: isWin ? 'win' : 'loss',
-        created_at: new Date().toISOString(),
-        isReal: false,
-        currency: currency,
-        isHidden: isHidden
+      return () => {
+        subscription.unsubscribe();
       };
-
-      addBet(fakeBet);
-
-    }, 800); // New bet every 800ms
-
-    return () => {
-      subscription.unsubscribe();
-      clearInterval(interval);
-    };
-  }, [isLive]);
+    }
+  }, [activeTab, limit, user]);
 
   const addBet = (newBet: DisplayBet) => {
     setBets(prev => {
       const updated = [newBet, ...prev];
-      if (updated.length > 15) updated.pop(); // Keep list size constant
+      if (updated.length > limit) updated.pop();
       return updated;
     });
   };
 
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  };
+
+  const filteredBets = bets;
+
   return (
     <div className="w-full bg-[#1a2c38] rounded-xl border border-[#2f4553] overflow-hidden shadow-xl flex flex-col">
-      <div className="p-4 border-b border-[#2f4553] flex items-center justify-between bg-[#0f212e]">
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <div className="h-2 w-2 rounded-full bg-[#00e701] animate-pulse shadow-[0_0_8px_#00e701]" />
-            <div className="absolute inset-0 rounded-full bg-[#00e701] animate-ping opacity-75" />
+      {/* Header with Tabs */}
+      <div className="p-4 border-b border-[#2f4553] bg-[#0f212e]">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          {/* Tabs */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setActiveTab('my')}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                activeTab === 'my'
+                  ? "bg-[#2f4553] text-white"
+                  : "text-[#b1bad3] hover:text-white hover:bg-[#1a2c38]"
+              )}
+            >
+              My Bets
+            </button>
+            <button
+              onClick={() => setActiveTab('all')}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                activeTab === 'all'
+                  ? "bg-[#2f4553] text-white"
+                  : "text-[#b1bad3] hover:text-white hover:bg-[#1a2c38]"
+              )}
+            >
+              All Bets
+            </button>
+            <button
+              onClick={() => setActiveTab('high')}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                activeTab === 'high'
+                  ? "bg-[#2f4553] text-white"
+                  : "text-[#b1bad3] hover:text-white hover:bg-[#1a2c38]"
+              )}
+            >
+              High Rollers
+            </button>
+            <button
+              onClick={() => setActiveTab('race')}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                activeTab === 'race'
+                  ? "bg-[#2f4553] text-white"
+                  : "text-[#b1bad3] hover:text-white hover:bg-[#1a2c38]"
+              )}
+            >
+              Race Leaderboard
+            </button>
           </div>
-          <h3 className="font-bold text-white text-sm uppercase tracking-wide">Live Bets</h3>
-        </div>
-        <div className="flex items-center gap-2 text-xs font-medium text-[#b1bad3] bg-[#1a2c38] px-3 py-1 rounded-full border border-[#2f4553]">
-           <Ghost className="w-3 h-3" />
-           <span>{Math.floor(Math.random() * 500) + 1500} Online</span>
+
+          {/* Settings & Limit Selector */}
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-[#b1bad3] hover:text-white hover:bg-[#2f4553]">
+              <Settings className="w-4 h-4" />
+            </Button>
+            <select
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
+              className="bg-[#1a2c38] border border-[#2f4553] text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#b1bad3]"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
         </div>
       </div>
-      
+
+      {/* Table */}
       <div className="w-full overflow-hidden" ref={tableRef}>
         <Table>
           <TableHeader className="bg-[#0f212e]">
             <TableRow className="border-[#2f4553] hover:bg-transparent">
-              <TableHead className="text-[#b1bad3] font-medium w-[200px]">Game</TableHead>
-              <TableHead className="text-[#b1bad3] font-medium text-center hidden sm:table-cell">User</TableHead>
-              <TableHead className="text-[#b1bad3] font-medium text-right">Bet Amount</TableHead>
-              <TableHead className="text-[#b1bad3] font-medium text-right hidden sm:table-cell">Multiplier</TableHead>
-              <TableHead className="text-[#b1bad3] font-medium text-right">Payout</TableHead>
+              <TableHead className="text-[#b1bad3] font-medium text-xs uppercase">Game</TableHead>
+              <TableHead className="text-[#b1bad3] font-medium text-xs uppercase hidden md:table-cell">User</TableHead>
+              <TableHead className="text-[#b1bad3] font-medium text-xs uppercase hidden sm:table-cell">Time</TableHead>
+              <TableHead className="text-[#b1bad3] font-medium text-xs uppercase text-right">Bet Amount</TableHead>
+              <TableHead className="text-[#b1bad3] font-medium text-xs uppercase text-right hidden lg:table-cell">Multiplier</TableHead>
+              <TableHead className="text-[#b1bad3] font-medium text-xs uppercase text-right">Payout</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="bg-[#1a2c38]">
-            {bets.length === 0 ? (
+            {activeTab === 'race' ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-12 text-[#b1bad3]">
+                <TableCell colSpan={6} className="text-center py-12 text-[#b1bad3]">
                   <div className="flex flex-col items-center gap-2">
                     <Gamepad2 className="w-8 h-8 opacity-20" />
-                    <span>Connecting to live feed...</span>
+                    <span>Race Leaderboard coming soon!</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : filteredBets.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-12 text-[#b1bad3]">
+                  <div className="flex flex-col items-center gap-2">
+                    <Gamepad2 className="w-8 h-8 opacity-20" />
+                    <span>{activeTab === 'my' ? 'No bets yet. Start playing!' : 'Connecting to live feed...'}</span>
                   </div>
                 </TableCell>
               </TableRow>
             ) : (
-              bets.map((bet) => {
+              filteredBets.map((bet) => {
                 const multiplier = bet.payout_credits > 0 ? (bet.payout_credits / bet.stake_credits) : 0;
                 const isWin = bet.result === 'win';
-                // High roller highlight
-                const isHighRoller = bet.payout_credits > 1000 || bet.stake_credits > 500;
+                const isLoss = bet.result === 'loss';
                 const currency = bet.currency || CRYPTO_CURRENCIES[3];
 
                 return (
-                  <TableRow 
-                    key={bet.id} 
-                    className={cn(
-                      "border-[#2f4553] transition-colors duration-300",
-                      isHighRoller ? "bg-[#F7D979]/5 hover:bg-[#F7D979]/10" : "hover:bg-[#213743]"
-                    )}
+                  <TableRow
+                    key={bet.id}
+                    className="border-[#2f4553] hover:bg-[#213743] transition-colors"
                   >
                     {/* Game Column */}
                     <TableCell className="font-medium text-white py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="p-1.5 rounded bg-[#0f212e] border border-[#2f4553] group-hover:border-[#b1bad3]/30 transition-colors">
-                           <GameIcon type={bet.game_type} />
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center w-6 h-6">
+                          <GameIcon type={bet.game_type} />
                         </div>
-                        <span className="capitalize text-sm font-bold hidden sm:inline-block">{bet.game_type}</span>
+                        <span className="capitalize text-sm font-medium hidden xl:inline-block text-[#b1bad3]">{bet.game_type}</span>
                       </div>
                     </TableCell>
 
                     {/* User Column */}
-                    <TableCell className="text-center text-[#b1bad3] text-xs font-medium hidden sm:table-cell">
+                    <TableCell className="text-[#b1bad3] text-sm font-medium hidden md:table-cell">
                       {bet.isHidden ? (
-                        <span className="italic opacity-50">Hidden</span>
+                        <span className="italic opacity-50">🙈 Hidden</span>
                       ) : (
                         bet.profiles?.username || 'Hidden'
                       )}
                     </TableCell>
 
+                    {/* Time Column */}
+                    <TableCell className="text-[#b1bad3] text-sm hidden sm:table-cell">
+                      {formatTime(bet.created_at)}
+                    </TableCell>
+
                     {/* Bet Amount Column */}
                     <TableCell className="text-right py-3">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
                         <span className="text-white font-medium text-sm">
                           ${bet.stake_credits.toFixed(2)}
                         </span>
@@ -243,25 +308,22 @@ export default function RecentBets() {
                     </TableCell>
 
                     {/* Multiplier Column */}
-                    <TableCell className="text-right hidden sm:table-cell py-3">
-                      <span className={cn(
-                        "font-bold text-sm",
-                        isWin ? "text-[#b1bad3]" : "text-[#b1bad3]/50"
-                      )}>
-                        {multiplier > 0 ? `${multiplier.toFixed(2)}×` : '-'}
+                    <TableCell className="text-right hidden lg:table-cell py-3">
+                      <span className="text-[#b1bad3] font-medium text-sm">
+                        {multiplier > 0 ? `${multiplier.toFixed(2)}×` : '0.00×'}
                       </span>
                     </TableCell>
 
                     {/* Payout Column */}
                     <TableCell className="text-right py-3">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
                         <span className={cn(
                           "font-bold text-sm",
-                          isWin ? "text-[#00e701] drop-shadow-[0_0_5px_rgba(0,231,1,0.2)]" : "text-[#b1bad3]/50"
+                          isWin ? "text-[#00e701]" : isLoss ? "text-red-500" : "text-[#b1bad3]"
                         )}>
-                          {isWin ? `+$${bet.payout_credits.toFixed(2)}` : '$0.00'}
+                          {isWin ? `+$${bet.payout_credits.toFixed(2)}` : isLoss ? `-$${bet.stake_credits.toFixed(2)}` : '$0.00'}
                         </span>
-                        {isWin && <CryptoIcon currency={currency} />}
+                        <CryptoIcon currency={currency} />
                       </div>
                     </TableCell>
                   </TableRow>

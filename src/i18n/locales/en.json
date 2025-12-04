@@ -1,0 +1,110 @@
+{
+    "nav": {
+        "home": "Home",
+        "games": "Games",
+        "sports": "Sports",
+        "vipClub": "VIP Club",
+        "promotions": "Promotions",
+        "wallet": "Wallet",
+        "admin": "Admin Panel"
+    },
+    "auth": {
+        "signIn": "Sign In",
+        "signUp": "Sign Up",
+        "email": "Email",
+        "password": "Password",
+        "confirmPassword": "Confirm Password",
+        "forgotPassword": "Forgot Password?",
+        "noAccount": "Don't have an account?",
+        "hasAccount": "Already have an account?",
+        "signInButton": "Sign In",
+        "signUpButton": "Create Account",
+        "logout": "Logout"
+    },
+    "games": {
+        "dice": "Dice",
+        "mines": "Mines",
+        "coinflip": "CoinFlip",
+        "plinko": "Plinko",
+        "crash": "Crash",
+        "blackjack": "Blackjack",
+        "roulette": "Roulette",
+        "limbo": "Limbo",
+        "playNow": "Play Now",
+        "playing": "playing",
+        "bet": "Bet",
+        "cashout": "Cashout",
+        "autoBet": "Auto Bet"
+    },
+    "wallet": {
+        "balance": "Balance",
+        "deposit": "Deposit",
+        "withdraw": "Withdraw",
+        "transactions": "Transactions",
+        "amount": "Amount",
+        "currency": "Currency"
+    },
+    "vip": {
+        "title": "VIP Club",
+        "progress": "VIP Progress",
+        "currentTier": "Current Tier",
+        "nextTier": "Next Tier",
+        "benefits": "Benefits",
+        "wagered": "Total Wagered",
+        "toGo": "to go",
+        "tiers": {
+            "bronze": "Bronze",
+            "silver": "Silver",
+            "gold": "Gold",
+            "platinum": "Platinum",
+            "diamond": "Diamond"
+        }
+    },
+    "dashboard": {
+        "welcome": "Welcome back",
+        "stats": "Statistics",
+        "totalWagered": "Total Wagered",
+        "totalWins": "Total Wins",
+        "totalBets": "Total Bets",
+        "winRate": "Win Rate",
+        "recentBets": "Recent Bets",
+        "liveBets": "Live Bets"
+    },
+    "admin": {
+        "dashboard": "Admin Dashboard",
+        "users": "Users",
+        "games": "Games",
+        "transactions": "Transactions",
+        "analytics": "Analytics",
+        "settings": "Settings",
+        "withdrawals": "Withdrawals",
+        "deposits": "Deposits"
+    },
+    "common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "success": "Success",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "save": "Save",
+        "delete": "Delete",
+        "edit": "Edit",
+        "search": "Search",
+        "filter": "Filter",
+        "sort": "Sort",
+        "language": "Language"
+    },
+    "categories": {
+        "lobby": "Lobby",
+        "newReleases": "New Releases",
+        "originals": "Shiny Originals",
+        "slots": "Slots",
+        "liveCasino": "Live Casino",
+        "exclusive": "Only on Shiny"
+    },
+    "promos": {
+        "title": "Promotions",
+        "learnMore": "Learn More",
+        "playNow": "Play Now"
+    }
+}

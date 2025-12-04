@@ -1,48 +1,43 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { useAdminWithdrawals, useAdminMutations } from '@/hooks/useAdmin';
 import { Withdrawal } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CheckCircle2, XCircle, Loader2, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Schemas
-const approveSchema = z.object({
-  txHash: z.string().min(5, "Transaction hash is required"),
-});
+// Form types
+type ApproveFormData = {
+  txHash: string;
+};
 
-const rejectSchema = z.object({
-  reason: z.string().min(3, "Reason is required"),
-  refund: z.boolean().default(true),
-});
+type RejectFormData = {
+  reason: string;
+  refund: boolean;
+};
 
 export default function WithdrawalsCenter() {
   const [activeTab, setActiveTab] = useState('pending');
   const { data: withdrawals, isLoading } = useAdminWithdrawals(activeTab);
   const { approveWithdrawal, rejectWithdrawal } = useAdminMutations();
-  
+
   const [selectedWd, setSelectedWd] = useState<Withdrawal | null>(null);
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isRejectOpen, setIsRejectOpen] = useState(false);
 
-  const approveForm = useForm<z.infer<typeof approveSchema>>({
-    resolver: zodResolver(approveSchema),
+  const approveForm = useForm<ApproveFormData>({
     defaultValues: { txHash: '' }
   });
 
-  const rejectForm = useForm<z.infer<typeof rejectSchema>>({
-    resolver: zodResolver(rejectSchema),
+  const rejectForm = useForm<RejectFormData>({
     defaultValues: { reason: '', refund: true }
   });
 
@@ -51,8 +46,12 @@ export default function WithdrawalsCenter() {
     toast.success("Address copied");
   };
 
-  const onApproveSubmit = (data: z.infer<typeof approveSchema>) => {
+  const onApproveSubmit = (data: ApproveFormData) => {
     if (!selectedWd) return;
+    if (!data.txHash || data.txHash.length < 5) {
+      toast.error('Transaction hash is required');
+      return;
+    }
     approveWithdrawal.mutate({ id: selectedWd.id, txHash: data.txHash }, {
       onSuccess: () => {
         setIsApproveOpen(false);
@@ -61,8 +60,12 @@ export default function WithdrawalsCenter() {
     });
   };
 
-  const onRejectSubmit = (data: z.infer<typeof rejectSchema>) => {
+  const onRejectSubmit = (data: RejectFormData) => {
     if (!selectedWd) return;
+    if (!data.reason || data.reason.length < 3) {
+      toast.error('Reason is required');
+      return;
+    }
     // Note: The backend RPC handles refund logic, currently we just pass reason. 
     // If refund logic needs to be explicit, the RPC would need updating.
     // Assuming standard rejection refunds the user.
@@ -77,7 +80,7 @@ export default function WithdrawalsCenter() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-white">Withdrawals Center</h1>
-      
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-admin-surface border border-admin-border">
           <TabsTrigger value="pending">Pending</TabsTrigger>
@@ -85,7 +88,7 @@ export default function WithdrawalsCenter() {
           <TabsTrigger value="rejected">Rejected</TabsTrigger>
           <TabsTrigger value="all">All History</TabsTrigger>
         </TabsList>
-        
+
         <div className="mt-6 rounded-md border border-admin-border bg-admin-surface">
           <Table>
             <TableHeader>
@@ -99,9 +102,9 @@ export default function WithdrawalsCenter() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                 <TableRow><TableCell colSpan={5} className="text-center h-24">Loading...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center h-24">Loading...</TableCell></TableRow>
               ) : withdrawals?.length === 0 ? (
-                 <TableRow><TableCell colSpan={5} className="text-center h-24 text-muted-foreground">No records found.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center h-24 text-muted-foreground">No records found.</TableCell></TableRow>
               ) : (
                 withdrawals?.map((w) => (
                   <TableRow key={w.id} className="border-admin-border hover:bg-white/5">
@@ -155,38 +158,32 @@ export default function WithdrawalsCenter() {
               Enter transaction hash to confirm {selectedWd?.amount_credits} {selectedWd?.currency} sent.
             </DialogDescription>
           </DialogHeader>
-          
-          <Form {...approveForm}>
-            <form onSubmit={approveForm.handleSubmit(onApproveSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Target Address</Label>
-                <div className="p-2 bg-black/30 rounded border border-admin-border font-mono text-xs break-all text-muted-foreground">
-                  {selectedWd?.target_address}
-                </div>
-              </div>
-              
-              <FormField
-                control={approveForm.control}
-                name="txHash"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Transaction Hash</FormLabel>
-                    <FormControl>
-                      <Input placeholder="0x..." {...field} className="bg-black/30 border-admin-border font-mono" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              <DialogFooter>
-                <Button type="button" variant="ghost" onClick={() => setIsApproveOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={approveWithdrawal.isPending} className="bg-green-600 hover:bg-green-700 text-white">
-                  {approveWithdrawal.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Confirm
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
+          <form onSubmit={approveForm.handleSubmit(onApproveSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Target Address</Label>
+              <div className="p-2 bg-black/30 rounded border border-admin-border font-mono text-xs break-all text-muted-foreground">
+                {selectedWd?.target_address}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="txHash">Transaction Hash</Label>
+              <Input
+                id="txHash"
+                placeholder="0x..."
+                {...approveForm.register('txHash')}
+                className="bg-black/30 border-admin-border font-mono"
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setIsApproveOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={approveWithdrawal.isPending} className="bg-green-600 hover:bg-green-700 text-white">
+                {approveWithdrawal.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Confirm
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -199,58 +196,35 @@ export default function WithdrawalsCenter() {
               Funds will be returned to the user's balance.
             </DialogDescription>
           </DialogHeader>
-          
-          <Form {...rejectForm}>
-            <form onSubmit={rejectForm.handleSubmit(onRejectSubmit)} className="space-y-4">
-              <FormField
-                control={rejectForm.control}
-                name="reason"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Reason for Rejection</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="e.g., Suspicious activity, Invalid address..." 
-                        {...field} 
-                        className="bg-black/30 border-admin-border"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              <FormField
-                control={rejectForm.control}
-                name="refund"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-admin-border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        Refund Credits
-                      </FormLabel>
-                      <p className="text-sm text-muted-foreground">
-                        Automatically return the credits to user's wallet.
-                      </p>
-                    </div>
-                  </FormItem>
-                )}
+          <form onSubmit={rejectForm.handleSubmit(onRejectSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="reason">Rejection Reason</Label>
+              <Textarea
+                id="reason"
+                placeholder="Explain why this withdrawal is being rejected..."
+                {...rejectForm.register('reason')}
+                className="bg-black/30 border-admin-border min-h-[100px]"
               />
+            </div>
 
-              <DialogFooter>
-                <Button type="button" variant="ghost" onClick={() => setIsRejectOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={rejectWithdrawal.isPending} variant="destructive">
-                  {rejectWithdrawal.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Reject Request
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="refund"
+                {...rejectForm.register('refund')}
+              />
+              <Label htmlFor="refund" className="text-sm font-normal">
+                Refund credits to user
+              </Label>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setIsRejectOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={rejectWithdrawal.isPending} className="bg-red-600 hover:bg-red-700 text-white">
+                {rejectWithdrawal.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Reject
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

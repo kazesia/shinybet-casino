@@ -1,0 +1,110 @@
+{
+    "nav": {
+        "home": "Accueil",
+        "games": "Jeux",
+        "sports": "Sports",
+        "vipClub": "Club VIP",
+        "promotions": "Promotions",
+        "wallet": "Portefeuille",
+        "admin": "Panneau d'Administration"
+    },
+    "auth": {
+        "signIn": "Se Connecter",
+        "signUp": "S'Inscrire",
+        "email": "Email",
+        "password": "Mot de Passe",
+        "confirmPassword": "Confirmer le Mot de Passe",
+        "forgotPassword": "Mot de passe oublié?",
+        "noAccount": "Vous n'avez pas de compte?",
+        "hasAccount": "Vous avez déjà un compte?",
+        "signInButton": "Se Connecter",
+        "signUpButton": "Créer un Compte",
+        "logout": "Déconnexion"
+    },
+    "games": {
+        "dice": "Dés",
+        "mines": "Mines",
+        "coinflip": "Pile ou Face",
+        "plinko": "Plinko",
+        "crash": "Crash",
+        "blackjack": "Blackjack",
+        "roulette": "Roulette",
+        "limbo": "Limbo",
+        "playNow": "Jouer Maintenant",
+        "playing": "jouant",
+        "bet": "Parier",
+        "cashout": "Retirer",
+        "autoBet": "Pari Automatique"
+    },
+    "wallet": {
+        "balance": "Solde",
+        "deposit": "Dépôt",
+        "withdraw": "Retrait",
+        "transactions": "Transactions",
+        "amount": "Montant",
+        "currency": "Devise"
+    },
+    "vip": {
+        "title": "Club VIP",
+        "progress": "Progrès VIP",
+        "currentTier": "Niveau Actuel",
+        "nextTier": "Prochain Niveau",
+        "benefits": "Avantages",
+        "wagered": "Total Misé",
+        "toGo": "pour atteindre",
+        "tiers": {
+            "bronze": "Bronze",
+            "silver": "Argent",
+            "gold": "Or",
+            "platinum": "Platine",
+            "diamond": "Diamant"
+        }
+    },
+    "dashboard": {
+        "welcome": "Bon retour",
+        "stats": "Statistiques",
+        "totalWagered": "Total Misé",
+        "totalWins": "Gains Totaux",
+        "totalBets": "Paris Totaux",
+        "winRate": "Taux de Victoire",
+        "recentBets": "Paris Récents",
+        "liveBets": "Paris en Direct"
+    },
+    "admin": {
+        "dashboard": "Tableau de Bord Admin",
+        "users": "Utilisateurs",
+        "games": "Jeux",
+        "transactions": "Transactions",
+        "analytics": "Analyses",
+        "settings": "Paramètres",
+        "withdrawals": "Retraits",
+        "deposits": "Dépôts"
+    },
+    "common": {
+        "loading": "Chargement...",
+        "error": "Erreur",
+        "success": "Succès",
+        "cancel": "Annuler",
+        "confirm": "Confirmer",
+        "save": "Sauvegarder",
+        "delete": "Supprimer",
+        "edit": "Modifier",
+        "search": "Rechercher",
+        "filter": "Filtrer",
+        "sort": "Trier",
+        "language": "Langue"
+    },
+    "categories": {
+        "lobby": "Lobby",
+        "newReleases": "Nouvelles Sorties",
+        "originals": "Shiny Originaux",
+        "slots": "Machines à Sous",
+        "liveCasino": "Casino en Direct",
+        "exclusive": "Exclusif à Shiny"
+    },
+    "promos": {
+        "title": "Promotions",
+        "learnMore": "En Savoir Plus",
+        "playNow": "Jouer Maintenant"
+    }
+}

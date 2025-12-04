@@ -16,8 +16,8 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   loading: true,
-  signOut: async () => {},
-  refreshProfile: async () => {},
+  signOut: async () => { },
+  refreshProfile: async () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -57,14 +57,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (!error && data) {
+      if (error) {
+        console.error('Profile fetch error:', error);
+        // Set loading to false even on error to prevent infinite loading
+        setLoading(false);
+        return;
+      }
+
+      if (data) {
+        console.log('Profile loaded:', data);
         setProfile(data);
+      } else {
+        console.warn('No profile data returned');
       }
     } catch (error) {
       console.error('Error fetching profile:', error);

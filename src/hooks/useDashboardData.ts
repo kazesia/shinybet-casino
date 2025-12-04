@@ -54,6 +54,39 @@ export const useDashboardData = () => {
     };
 
     fetchData();
+
+    // Realtime subscription for stats updates
+    const subscription = supabase
+      .channel('dashboard_stats')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'bets',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          fetchData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'sports_bets',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [user]);
 
   return { wallet: { credits: balance }, stats, recentBets, transactions, loading };

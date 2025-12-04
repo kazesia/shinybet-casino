@@ -5,15 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
-import { 
-  LayoutDashboard, 
-  Users, 
-  ArrowDownLeft, 
+import {
+  LayoutDashboard,
+  Users,
+  ArrowDownLeft,
   ArrowUpRight,
-  History, 
-  Settings, 
-  LogOut, 
-  Menu, 
+  History,
+  Settings,
+  LogOut,
+  Menu,
   Shield,
   Home,
   Dices
@@ -23,11 +23,13 @@ import { cn } from '@/lib/utils';
 const LOGO_URL = "https://cdn.discordapp.com/attachments/1442155264613814302/1445539875116810392/Collabeco_2_-removebg-preview.png?ex=6930b76b&is=692f65eb&hm=9be06a69591c9fba9edca705a2295c341ddde42e5112db67b58dbc0d77f00ed5";
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
+  { label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
   { label: 'Users', icon: Users, path: '/admin/users' },
   { label: 'Withdrawals', icon: ArrowDownLeft, path: '/admin/withdrawals' },
   { label: 'Deposits', icon: ArrowUpRight, path: '/admin/deposits' },
-  { label: 'Bets', icon: Dices, path: '/admin/bets' },
+  { label: 'Casino Bets', icon: Dices, path: '/admin/bets/casino' },
+  { label: 'Sports Bets', icon: Dices, path: '/admin/bets/sports' },
+  { label: 'Transactions', icon: History, path: '/admin/transactions' },
   { label: 'Settings', icon: Settings, path: '/admin/settings' },
 ];
 
@@ -65,8 +67,8 @@ export default function AdminLayout() {
                 variant="ghost"
                 className={cn(
                   "w-full justify-start gap-3 mb-1 transition-all duration-200",
-                  isActive 
-                    ? "bg-admin-accent/10 text-admin-accent hover:bg-admin-accent/20 hover:text-admin-accent border-r-2 border-admin-accent rounded-r-none" 
+                  isActive
+                    ? "bg-admin-accent/10 text-admin-accent hover:bg-admin-accent/20 hover:text-admin-accent border-r-2 border-admin-accent rounded-r-none"
                     : "text-muted-foreground hover:text-white hover:bg-white/5"
                 )}
               >
@@ -76,9 +78,9 @@ export default function AdminLayout() {
             </Link>
           );
         })}
-        
+
         <div className="my-4 border-t border-admin-border mx-3" />
-        
+
         <Link to="/" onClick={() => setOpen(false)}>
           <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground hover:text-white hover:bg-white/5">
             <Home className="h-4 w-4" />

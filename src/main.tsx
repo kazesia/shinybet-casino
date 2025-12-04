@@ -4,6 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/react-query';
 import App from './App.tsx';
 import './index.css';
+import './i18n/config'; // Initialize i18n
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

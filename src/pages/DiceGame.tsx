@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Settings2, BarChart2, RefreshCw, Volume2 } from 'lucide-react';
+import { Settings2, BarChart2, RefreshCw, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
@@ -11,6 +11,7 @@ import { useWallet } from '@/context/WalletContext';
 import { useUI } from '@/context/UIContext';
 import { toast } from 'sonner';
 import { Bet } from '@/types';
+import { BetInput } from '@/components/game/BetInput';
 
 const DiceGame = () => {
   const { user } = useAuth();
@@ -18,7 +19,7 @@ const DiceGame = () => {
   const { openFairnessModal } = useUI();
 
   // Game State
-  const [betAmount, setBetAmount] = useState<number>(0);
+  const [betAmount, setBetAmount] = useState<number | string>(0);
   const [winChance, setWinChance] = useState<number>(49.5);
   const [rollOver, setRollOver] = useState<number>(50.5);
   const [multiplier, setMultiplier] = useState<number>(2.0000);
@@ -26,9 +27,17 @@ const DiceGame = () => {
   const [lastResult, setLastResult] = useState<number | null>(null);
   const [history, setHistory] = useState<Bet[]>([]);
   const [mode, setMode] = useState<'manual' | 'auto'>('manual');
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+
+  // Audio Refs
+  const winSound = useRef(new Audio('/sounds/win.mp3'));
+  const loseSound = useRef(new Audio('/sounds/lose.mp3'));
+  const clickSound = useRef(new Audio('/sounds/click.mp3'));
+  const sliderSound = useRef(new Audio('/sounds/slider.mp3'));
 
   // Calculate Profit
-  const profitOnWin = isNaN(betAmount) ? 0 : betAmount * multiplier - betAmount;
+  const numericBetAmount = typeof betAmount === 'string' ? parseFloat(betAmount) || 0 : betAmount;
+  const profitOnWin = numericBetAmount * multiplier - numericBetAmount;
 
   useEffect(() => {
     if (user) {
@@ -46,6 +55,28 @@ const DiceGame = () => {
       .limit(10);
 
     if (data) setHistory(data as unknown as Bet[]);
+  };
+
+  const playSound = (type: 'win' | 'lose' | 'click' | 'slider') => {
+    if (!soundEnabled) return;
+    try {
+      if (type === 'win') {
+        winSound.current.currentTime = 0;
+        winSound.current.play();
+      } else if (type === 'lose') {
+        loseSound.current.currentTime = 0;
+        loseSound.current.play();
+      } else if (type === 'click') {
+        clickSound.current.currentTime = 0;
+        clickSound.current.play();
+      } else if (type === 'slider') {
+        sliderSound.current.currentTime = 0;
+        sliderSound.current.volume = 0.3; // Lower volume for slider
+        sliderSound.current.play();
+      }
+    } catch (e) {
+      console.error("Audio play failed", e);
+    }
   };
 
   // --- Math Logic for Inputs ---
@@ -75,65 +106,89 @@ const DiceGame = () => {
 
   // --- Handlers ---
 
-  const handleBetAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseFloat(e.target.value);
-    setBetAmount(isNaN(val) ? 0 : val);
+  const handleBetAmountChange = (val: number | string) => {
+    setBetAmount(val);
   };
 
   const adjustBet = (factor: number) => {
-    setBetAmount(prev => parseFloat((prev * factor).toFixed(8)));
+    setBetAmount(prev => {
+      const val = typeof prev === 'string' ? parseFloat(prev) : prev;
+      if (isNaN(val)) return 0;
+      return parseFloat((val * factor).toFixed(8));
+    });
   };
 
   const handleRoll = async () => {
     if (!user) return toast.error("Please log in to play");
-    if (betAmount <= 0) return toast.error("Invalid bet amount");
-    if (betAmount > balance) return toast.error("Insufficient balance");
+    if (numericBetAmount <= 0) return toast.error("Invalid bet amount");
+    if (numericBetAmount > balance) return toast.error("Insufficient balance");
     if (isRolling) return;
 
+    playSound('click');
     setIsRolling(true);
-    optimisticUpdate(-betAmount);
+    optimisticUpdate(-numericBetAmount);
 
-    // Simulate Roll
-    await new Promise(resolve => setTimeout(resolve, 400));
-    const result = parseFloat((Math.random() * 100).toFixed(2));
-    setLastResult(result);
-
-    const isWin = result >= rollOver; // Standard "Roll Over" logic
-    const payout = isWin ? betAmount * multiplier : 0;
-
-    if (isWin) {
-      optimisticUpdate(payout);
-    }
-
-    // DB Sync (Optimistic UI doesn't wait for this)
-    syncToDb(result, isWin, payout);
-
-    setIsRolling(false);
-  };
-
-  const syncToDb = async (result: number, isWin: boolean, payout: number) => {
     try {
-      const netChange = isWin ? (payout - betAmount) : -betAmount;
+      // Call Secure RPC
+      const { data, error } = await supabase.rpc('place_bet', {
+        p_game_type: 'Dice',
+        p_bet_amount: numericBetAmount,
+        p_client_seed: user.id, // TODO: Implement proper client seed
+        p_game_params: {
+          target: rollOver,
+          condition: 'over'
+        }
+      });
 
-      // Update Wallet RPC
-      await supabase.rpc('increment_balance', { p_user_id: user?.id, p_amount: netChange });
+      if (error) throw error;
 
-      // Insert Bet
-      const { data: bet } = await supabase.from('bets').insert({
-        user_id: user?.id,
-        game_type: 'Dice',
-        stake_credits: betAmount,
-        payout_credits: payout,
-        result: isWin ? 'win' : 'loss',
-        raw_data: { roll: result, target: rollOver, condition: 'over' }
-      }).select().single();
+      // Parse Result
+      const result = data.roll;
+      const isWin = data.won;
+      const payout = data.payout;
+      const riskFlags = data.risk_flags;
 
-      if (bet) setHistory(prev => [bet as unknown as Bet, ...prev].slice(0, 10));
+      // Update UI
+      setLastResult(result);
 
-    } catch (e) {
+      if (isWin) {
+        optimisticUpdate(payout);
+        playSound('win');
+        // Toast removed as per request
+      } else {
+        playSound('lose');
+      }
+
+      // Handle Responsible Gaming Flags
+      if (riskFlags?.flagged_for_win_review) {
+        // Silent flag, or maybe notify user?
+        // toast.info("Big Win! Your account is under review for a bonus.");
+      }
+
+      // Refresh History
+      fetchHistory();
+
+    } catch (e: any) {
       console.error(e);
+      // Revert optimistic update on error
+      optimisticUpdate(numericBetAmount);
+
+      // Handle specific errors
+      if (e.message?.includes('Daily loss limit reached')) {
+        toast.error("Daily Loss Limit Reached", {
+          description: "You have hit your daily loss limit. Please come back tomorrow.",
+          duration: 8000,
+        });
+      } else {
+        toast.error(e.message || "Failed to place bet");
+      }
+    } finally {
+      setIsRolling(false);
     }
   };
+
+  // syncToDb is no longer needed as RPC handles it
+  // const syncToDb = ... (removed)
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-[#0f212e] p-4 md:p-8 font-sans text-[#b1bad3]">
@@ -170,26 +225,14 @@ const DiceGame = () => {
               </div>
             </div>
 
-            {/* Bet Amount Input */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
-                <span>Bet Amount</span>
-                <span>{betAmount.toFixed(8)} LTC</span>
-              </div>
-              <div className="relative flex items-center">
-                <div className="absolute left-3 text-[#b1bad3] pointer-events-none select-none">$</div>
-                <Input
-                  type="number"
-                  value={betAmount}
-                  onChange={handleBetAmountChange}
-                  className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-6 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553]"
-                />
-                <div className="absolute right-1 flex gap-1">
-                  <button onClick={() => adjustBet(0.5)} className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors">½</button>
-                  <button onClick={() => adjustBet(2)} className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors">2×</button>
-                </div>
-              </div>
-            </div>
+            {/* Bet Amount Input (Reusable Component) */}
+            <BetInput
+              value={betAmount}
+              onChange={handleBetAmountChange}
+              onHalf={() => adjustBet(0.5)}
+              onDouble={() => adjustBet(2)}
+              onMax={() => setBetAmount(balance)}
+            />
 
             {/* Profit on Win (Read Only) */}
             <div className="space-y-1">
@@ -202,13 +245,14 @@ const DiceGame = () => {
                 <Input
                   readOnly
                   value={profitOnWin.toFixed(2)}
-                  className="bg-[#2f4553] border-transparent text-white font-bold pl-6 h-10 cursor-not-allowed opacity-80"
+                  className="bg-[#2f4553] border-transparent text-white font-bold pl-8 h-10 cursor-not-allowed opacity-80"
                 />
               </div>
             </div>
 
             {/* Bet Button */}
             <Button
+              type="button"
               onClick={handleRoll}
               disabled={isRolling}
               className="w-full h-12 mt-2 bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-black text-base shadow-[0_4px_0_#B8860B] active:shadow-none active:translate-y-[4px] transition-all"
@@ -224,22 +268,11 @@ const DiceGame = () => {
             {/* Game Visualization */}
             <div className="flex-1 flex flex-col justify-center items-center min-h-[300px] space-y-12">
 
-              {/* Result Display (Floating) */}
-              {lastResult !== null && (
-                <div
-                  className="absolute top-12 left-1/2 -translate-x-1/2 bg-[#213743] px-6 py-3 rounded-full border-2 border-[#2f4553] shadow-2xl z-20 animate-in fade-in zoom-in duration-300"
-                >
-                  <span className={cn("text-4xl font-black", lastResult >= rollOver ? "text-[#00e701]" : "text-[#b1bad3]")}>
-                    {lastResult.toFixed(2)}
-                  </span>
-                </div>
-              )}
-
               {/* Slider Container */}
               <div className="w-full px-4 relative group">
 
                 {/* Scale Labels */}
-                <div className="flex justify-between text-xs font-bold text-[#b1bad3] mb-4 px-2">
+                <div className="flex justify-between text-xs font-bold text-[#b1bad3] mb-8 px-2">
                   <span>0</span>
                   <span>25</span>
                   <span>50</span>
@@ -248,28 +281,36 @@ const DiceGame = () => {
                 </div>
 
                 {/* Custom Slider Track */}
-                <div className="relative h-3 bg-[#2f4553] rounded-full cursor-pointer select-none">
-                  {/* Dynamic Gradient Background */}
+                <div className="relative h-4 bg-[#2f4553] rounded-full cursor-pointer select-none shadow-inner">
+                  {/* Dynamic Gradient Background (Red to Green) */}
                   <div
-                    className="absolute inset-0 rounded-full opacity-90"
+                    className="absolute inset-0 rounded-full opacity-100"
                     style={{
                       background: `linear-gradient(to right, #ff4d4d 0%, #ff4d4d ${rollOver}%, #00e701 ${rollOver}%, #00e701 100%)`
                     }}
                   />
 
-                  {/* Slider Handle */}
+                  {/* Slider Handle (Cube) */}
                   <div
-                    className="absolute top-1/2 -translate-y-1/2 w-8 h-8 bg-[#1475e1] border-4 border-[#ffffff] rounded-lg shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing z-10 hover:scale-110 transition-transform"
-                    style={{ left: `calc(${rollOver}% - 16px)` }}
+                    className="absolute top-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-xl shadow-2xl flex items-center justify-center cursor-grab active:cursor-grabbing z-20 hover:scale-110 transition-transform border-4 border-[#0f212e]"
+                    style={{ left: `calc(${rollOver}% - 24px)` }}
                     onMouseDown={(e) => {
                       const track = e.currentTarget.parentElement;
                       if (!track) return;
 
+                      let lastSoundTime = 0;
                       const handleMouseMove = (moveEvent: MouseEvent) => {
                         const rect = track.getBoundingClientRect();
                         const x = Math.max(0, Math.min(moveEvent.clientX - rect.left, rect.width));
                         const percentage = (x / rect.width) * 100;
                         updateFromRollOver(percentage);
+
+                        // Play slider sound (throttled to every 100ms)
+                        const now = Date.now();
+                        if (now - lastSoundTime > 100) {
+                          playSound('slider');
+                          lastSoundTime = now;
+                        }
                       };
 
                       const handleMouseUp = () => {
@@ -281,20 +322,33 @@ const DiceGame = () => {
                       document.addEventListener('mouseup', handleMouseUp);
                     }}
                   >
-                    <div className="flex gap-[2px]">
-                      <div className="w-[2px] h-3 bg-white/50 rounded-full" />
-                      <div className="w-[2px] h-3 bg-white/50 rounded-full" />
-                      <div className="w-[2px] h-3 bg-white/50 rounded-full" />
-                    </div>
+                    <span className="text-[#0f212e] font-bold text-xs">{rollOver.toFixed(0)}</span>
                   </div>
 
-                  {/* Result Marker on Track */}
-                  {lastResult !== null && (
-                    <div
-                      className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow border-2 border-[#0f212e] z-0 transition-all duration-500"
-                      style={{ left: `calc(${lastResult}% - 8px)` }}
-                    />
-                  )}
+                  {/* Result Marker (Floating Cube) */}
+                  <AnimatePresence>
+                    {lastResult !== null && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -20, scale: 0.5 }}
+                        animate={{ opacity: 1, y: -45, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        className={cn(
+                          "absolute top-1/2 -translate-y-1/2 w-14 h-14 rounded-xl shadow-2xl flex items-center justify-center z-30 border-4 border-[#0f212e]",
+                          lastResult >= rollOver ? "bg-[#00e701]" : "bg-[#2f4553]"
+                        )}
+                        style={{ left: `calc(${lastResult}% - 28px)` }}
+                      >
+                        <span className={cn("font-black text-sm", lastResult >= rollOver ? "text-[#0f212e]" : "text-white")}>
+                          {lastResult.toFixed(2)}
+                        </span>
+                        {/* Little triangle pointer */}
+                        <div className={cn(
+                          "absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px]",
+                          lastResult >= rollOver ? "border-t-[#00e701]" : "border-t-[#2f4553]"
+                        )} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
               </div>
@@ -351,8 +405,13 @@ const DiceGame = () => {
                 <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
                   <Settings2 className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
-                  <Volume2 className="w-4 h-4" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn("text-[#b1bad3] hover:text-white hover:bg-[#213743]", !soundEnabled && "text-red-500")}
+                  onClick={() => setSoundEnabled(!soundEnabled)}
+                >
+                  {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
                 </Button>
               </div>
 

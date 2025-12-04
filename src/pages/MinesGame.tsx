@@ -12,6 +12,7 @@ import { useWallet } from '@/context/WalletContext';
 import { useUI } from '@/context/UIContext';
 import { toast } from 'sonner';
 import { useSound } from '@/hooks/useSound';
+import { GameHistory } from '@/components/games/GameHistory';
 
 // --- Constants & Math ---
 const GRID_SIZE = 25;
@@ -537,6 +538,10 @@ export default function MinesGame() {
           </div>
 
         </div>
+
+        {/* Recent Bets */}
+        <GameHistory gameType="Mines" />
+
       </div>
     </div>
   );

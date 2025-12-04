@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { useUI } from '@/context/UIContext';
 
-const LOGO_URL = "https://cdn.discordapp.com/attachments/1442155264613814302/1445539875116810392/Collabeco_2_-removebg-preview.png?ex=6930b76b&is=692f65eb&hm=9be06a69591c9fba9edca705a2295c341ddde42e5112db67b58dbc0d77f00ed5";
+const LOGO_URL = "https://media.discordapp.net/attachments/1446113430150054081/1446113527676010557/Collabeco_2_-removebg-preview.png?ex=6932cdac&is=69317c2c&hm=38303892f78abdbe443b156f1d743bf3b5e6e24eed548173ae79df6013bc646c&=&format=webp&quality=lossless&width=750&height=750";
 
 // Validation Schemas
 const loginSchema = z.object({
@@ -59,7 +59,7 @@ export function AuthModal() {
       });
 
       if (error) throw error;
-      
+
       toast.success("Welcome back!");
       closeAuthModal();
     } catch (error: any) {
@@ -157,7 +157,7 @@ export function AuthModal() {
                 {registerForm.formState.errors.confirmPassword && <p className="text-xs text-red-500">{registerForm.formState.errors.confirmPassword.message}</p>}
               </div>
               <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-[#F7D979] to-[#D9A94F] text-black font-bold hover:opacity-90">
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create Account
               </Button>
             </form>
