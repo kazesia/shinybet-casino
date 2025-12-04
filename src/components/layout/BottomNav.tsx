@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
     { icon: Home, label: 'Home', path: '/' },
-    { icon: Gamepad2, label: 'Games', path: '/dice' },
+    { icon: Gamepad2, label: 'Games', path: '/' },
     { icon: Wallet, label: 'Wallet', path: '/wallet' },
     { icon: Gift, label: 'Promos', path: '/promotions' },
     { icon: User, label: 'Profile', path: '/dashboard' },

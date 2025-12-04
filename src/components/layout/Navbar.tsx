@@ -137,9 +137,10 @@ const Navbar = () => {
           <WalletDropdown />
           <Button
             onClick={() => openWalletModal('overview')}
-            className="bg-[#1475e1] hover:bg-[#1475e1]/90 text-white font-bold h-10 px-6 rounded-[4px] shadow-sm"
+            className="bg-[#1475e1] hover:bg-[#1266c9] text-white font-bold h-10 px-4 md:px-6 rounded-lg shadow-lg transition-all active:scale-95"
           >
-            Wallet
+            <Wallet className="w-4 h-4 md:mr-2" />
+            <span className="hidden md:inline">Wallet</span>
           </Button>
         </div>
       )}

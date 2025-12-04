@@ -14,7 +14,7 @@ const MENU_SECTIONS = [
         title: 'Main',
         items: [
             { icon: Home, label: 'Home', link: '/' },
-            { icon: Gamepad2, label: 'Games', link: '/dice' },
+            { icon: Gamepad2, label: 'Games', link: '/' },
             { icon: Wallet, label: 'Wallet', link: '/wallet' },
         ],
     },
