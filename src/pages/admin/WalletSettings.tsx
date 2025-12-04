@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Loader2, Plus, Trash2, Copy, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export default function WalletSettings() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
