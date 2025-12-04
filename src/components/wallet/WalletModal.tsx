@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useUI } from '@/context/UIContext';
+import { useViewport } from '@/hooks/useViewport';
 import { supabase } from '@/lib/supabase';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -55,6 +56,7 @@ const FIAT_CURRENCIES = [
 export function WalletModal() {
   const { user } = useAuth();
   const { isWalletModalOpen, closeWalletModal, walletTab } = useUI();
+  const { isMobile } = useViewport();
   const [activeTab, setActiveTab] = useState<'overview' | 'buy' | 'swap' | 'settings'>('overview');
   const [view, setView] = useState<'main' | 'deposit' | 'withdraw'>('main');
   const [balance, setBalance] = useState(0);
@@ -552,7 +554,10 @@ export function WalletModal() {
 
   return (
     <Dialog open={isWalletModalOpen} onOpenChange={(open) => !open && closeWalletModal()}>
-      <DialogContent hideClose className="sm:max-w-[480px] bg-[#1a2c38] border-[#2f4553] text-white p-0 gap-0 overflow-hidden shadow-2xl">
+      <DialogContent hideClose className={cn(
+        "bg-[#1a2c38] border-[#2f4553] text-white p-0 gap-0 overflow-hidden shadow-2xl duration-200",
+        isMobile ? "w-full h-full max-w-none rounded-none border-0" : "sm:max-w-[480px]"
+      )}>
 
         {/* Header Bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#2f4553]">
