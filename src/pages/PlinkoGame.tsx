@@ -408,31 +408,33 @@ export default function PlinkoGame() {
               onBet={dropBall}
               isBetting={false} // Plinko allows rapid fire
               balance={balance}
+              mainButtonLabel="Drop Ball"
             >
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-[#b1bad3]">Risk</Label>
+              {/* Risk and Rows Selectors */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-[#b1bad3]">Risk</Label>
                   <Select value={risk} onValueChange={(v: any) => setRisk(v)}>
-                    <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-8 text-xs">
+                    <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-medium h-10 text-sm rounded-lg hover:border-[#00e701] transition-colors">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#213743] border-[#2f4553] text-white">
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
+                    <SelectContent className="bg-[#1a2c38] border-[#2f4553] text-white">
+                      <SelectItem value="low" className="hover:bg-[#213743]">Low</SelectItem>
+                      <SelectItem value="medium" className="hover:bg-[#213743]">Medium</SelectItem>
+                      <SelectItem value="high" className="hover:bg-[#213743]">High</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-[#b1bad3]">Rows</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-[#b1bad3]">Rows</Label>
                   <Select value={rows.toString()} onValueChange={(v) => setRows(parseInt(v))}>
-                    <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-8 text-xs">
+                    <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-medium h-10 text-sm rounded-lg hover:border-[#00e701] transition-colors">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#213743] border-[#2f4553] text-white">
-                      <SelectItem value="8">8</SelectItem>
-                      <SelectItem value="12">12</SelectItem>
-                      <SelectItem value="16">16</SelectItem>
+                    <SelectContent className="bg-[#1a2c38] border-[#2f4553] text-white">
+                      <SelectItem value="8" className="hover:bg-[#213743]">8</SelectItem>
+                      <SelectItem value="12" className="hover:bg-[#213743]">12</SelectItem>
+                      <SelectItem value="16" className="hover:bg-[#213743]">16</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

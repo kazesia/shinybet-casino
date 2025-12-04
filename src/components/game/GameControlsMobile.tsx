@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
-import { Settings2 } from 'lucide-react';
+import { Settings2, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
@@ -56,29 +56,43 @@ export function GameControlsMobile({
     };
 
     return (
-        <div className="flex flex-col gap-4 p-4 bg-[#1a2c38] rounded-t-2xl border-t border-[#2f4553] shadow-[0_-4px_20px_rgba(0,0,0,0.3)] safe-area-pb">
+        <div className="flex flex-col gap-3 p-4 bg-[#1a2c38] rounded-t-2xl border-t border-[#2f4553] shadow-[0_-4px_20px_rgba(0,0,0,0.3)] safe-area-pb">
 
-            {/* Bet Amount Input Group */}
+            {/* Main Bet Button - Moved to top for prominence */}
+            <Button
+                onClick={onBet}
+                disabled={isBetting || isMainButtonDisabled}
+                className={cn(
+                    "w-full h-14 text-lg font-bold shadow-lg transition-all active:scale-95 rounded-lg",
+                    (isBetting || isMainButtonDisabled)
+                        ? "bg-[#2f4553] cursor-not-allowed text-[#b1bad3]"
+                        : "bg-[#00e701] hover:bg-[#00d801] text-black shadow-[0_0_20px_rgba(0,231,1,0.3)]"
+                )}
+            >
+                {isBetting ? "Processing..." : mainButtonLabel}
+            </Button>
+
+            {/* Bet Amount Section */}
             <div className="space-y-2">
-                <div className="flex justify-between text-xs text-[#b1bad3]">
-                    <span className="font-bold">Bet Amount</span>
-                    <span>${balance.toFixed(2)}</span>
+                <div className="flex justify-between items-center text-xs">
+                    <span className="text-[#b1bad3] font-medium">Bet Amount</span>
+                    <span className="text-white font-mono">{parseFloat(betAmount || '0').toFixed(8)} SOL</span>
                 </div>
                 <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#b1bad3] font-bold">$</div>
                     <Input
                         type="number"
                         value={betAmount}
                         onChange={(e) => setBetAmount(e.target.value)}
-                        className="bg-[#0f212e] border-[#2f4553] h-12 pl-7 pr-24 font-bold text-white text-lg focus-visible:ring-[#1475e1]"
+                        className="bg-[#0f212e] border-[#2f4553] h-12 pr-32 font-mono text-white text-base focus-visible:ring-[#00e701] focus-visible:border-[#00e701] rounded-lg"
                         placeholder="0.00"
+                        step="0.01"
                     />
-                    <div className="absolute right-1 top-1 bottom-1 flex gap-1">
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={handleHalf}
-                            className="h-full px-2 text-[#b1bad3] hover:text-white hover:bg-[#213743] font-bold text-xs"
+                            className="h-8 px-3 text-[#b1bad3] hover:text-white hover:bg-[#213743] font-bold text-xs rounded-md"
                         >
                             ½
                         </Button>
@@ -86,66 +100,20 @@ export function GameControlsMobile({
                             variant="ghost"
                             size="sm"
                             onClick={handleDouble}
-                            className="h-full px-2 text-[#b1bad3] hover:text-white hover:bg-[#213743] font-bold text-xs"
+                            className="h-8 px-3 text-[#b1bad3] hover:text-white hover:bg-[#213743] font-bold text-xs rounded-md"
                         >
-                            2x
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleMax}
-                            className="h-full px-2 text-[#b1bad3] hover:text-white hover:bg-[#213743] font-bold text-xs"
-                        >
-                            Max
+                            2×
                         </Button>
                     </div>
                 </div>
             </div>
 
-            {/* Game Specific Controls (e.g. Multiplier/Chance sliders) */}
+            {/* Game Specific Controls (e.g. Mines/Gems, Risk/Rows) */}
             {children}
 
-            {/* Action Button */}
-            <div className="flex gap-3">
-                <Popover open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant="outline"
-                            className="h-14 w-14 shrink-0 bg-[#0f212e] border-[#2f4553] hover:bg-[#213743] p-0"
-                        >
-                            <Settings2 className="w-6 h-6 text-[#b1bad3]" />
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-60 bg-[#1a2c38] border-[#2f4553] text-white p-4">
-                        <div className="space-y-4">
-                            <h4 className="font-bold text-sm">Game Settings</h4>
-                            <div className="space-y-2">
-                                <label className="text-xs text-[#b1bad3]">Max Bet</label>
-                                <Input className="h-8 bg-[#0f212e] border-[#2f4553]" placeholder="0.00" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-xs text-[#b1bad3]">Auto Bet</label>
-                                <Button variant="outline" size="sm" className="w-full border-[#2f4553] hover:bg-[#213743]">
-                                    Configure Auto
-                                </Button>
-                            </div>
-                        </div>
-                    </PopoverContent>
-                </Popover>
+            {/* Random Pick Button (if applicable) */}
+            {/* This can be added by individual games via children prop */}
 
-                <Button
-                    onClick={onBet}
-                    disabled={isBetting || isMainButtonDisabled}
-                    className={cn(
-                        "flex-1 h-14 text-lg font-bold shadow-lg transition-all active:scale-95",
-                        (isBetting || isMainButtonDisabled)
-                            ? "bg-[#2f4553] cursor-not-allowed"
-                            : "bg-[#00e701] hover:bg-[#00e701] text-black shadow-green-500/20"
-                    )}
-                >
-                    {isBetting ? "Processing..." : mainButtonLabel}
-                </Button>
-            </div>
         </div>
     );
 }

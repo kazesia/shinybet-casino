@@ -447,43 +447,35 @@ const DiceGame = () => {
           <div className="fixed bottom-[64px] left-0 right-0 z-40">
             <GameControlsMobile
               betAmount={betAmount.toString()}
-              setBetAmount={handleBetAmountChange}
+              setBetAmount={(val) => setBetAmount(val)}
               onBet={handleRoll}
               isBetting={isRolling}
               balance={balance}
+              mainButtonLabel="Roll Dice"
             >
-              {/* Mobile Specific Game Controls (Sliders) */}
-              <div className="grid grid-cols-3 gap-2">
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-[#b1bad3]">Multiplier</Label>
+              {/* Multiplier and Win Chance */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-[#b1bad3]">Multiplier</Label>
                   <div className="relative">
                     <Input
                       type="number"
-                      value={multiplier}
+                      value={multiplier.toFixed(4)}
                       onChange={(e) => updateFromMultiplier(parseFloat(e.target.value))}
-                      className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-8 text-xs focus:ring-0 px-2"
+                      className="bg-[#0f212e] border-[#2f4553] text-white font-medium h-10 text-sm focus:ring-0 px-3 rounded-lg hover:border-[#00e701] transition-colors"
+                      step="0.0001"
                     />
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-[#b1bad3]">Roll Over</Label>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      value={rollOver.toFixed(2)}
-                      onChange={(e) => updateFromRollOver(parseFloat(e.target.value))}
-                      className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-8 text-xs focus:ring-0 px-2"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-[#b1bad3]">Win Chance</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-[#b1bad3]">Win Chance</Label>
                   <div className="relative">
                     <Input
                       type="number"
                       value={winChance.toFixed(4)}
                       onChange={(e) => updateFromWinChance(parseFloat(e.target.value))}
-                      className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-8 text-xs focus:ring-0 px-2"
+                      className="bg-[#0f212e] border-[#2f4553] text-white font-medium h-10 text-sm focus:ring-0 px-3 rounded-lg hover:border-[#00e701] transition-colors"
+                      step="0.0001"
                     />
                   </div>
                 </div>
@@ -537,8 +529,8 @@ const DiceGame = () => {
           </div>
         </div>
 
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

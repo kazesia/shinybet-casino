@@ -556,29 +556,48 @@ export default function MinesGame() {
               mainButtonLabel={gameState === 'playing' ? "Cashout" : "Bet"}
               isMainButtonDisabled={gameState === 'playing' && revealedCount === 0}
             >
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-[#b1bad3]">Mines</Label>
+              {/* Random Pick Button */}
+              {gameState === 'playing' && (
+                <Button
+                  onClick={() => {
+                    // Find first unrevealed, non-mine tile and click it
+                    const unrevealedTiles = grid.filter(t => !t.isRevealed);
+                    if (unrevealedTiles.length > 0) {
+                      const randomTile = unrevealedTiles[Math.floor(Math.random() * unrevealedTiles.length)];
+                      handleTileClick(randomTile.id);
+                    }
+                  }}
+                  disabled={isProcessing}
+                  className="w-full h-10 bg-[#0f212e] border border-[#2f4553] hover:bg-[#213743] text-[#b1bad3] hover:text-white font-medium text-sm rounded-lg transition-colors"
+                >
+                  Random Pick
+                </Button>
+              )}
+
+              {/* Mines and Gems Selectors */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-[#b1bad3]">Mines</Label>
                   <Select
                     value={mineCount.toString()}
                     onValueChange={(v) => setMineCount(parseInt(v))}
                     disabled={gameState === 'playing'}
                   >
-                    <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-8 text-xs">
+                    <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-medium h-10 text-sm rounded-lg hover:border-[#00e701] transition-colors">
                       <SelectValue placeholder="Mines" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#213743] border-[#2f4553] text-white max-h-[200px]">
+                    <SelectContent className="bg-[#1a2c38] border-[#2f4553] text-white max-h-[200px]">
                       {Array.from({ length: 24 }, (_, i) => i + 1).map((num) => (
-                        <SelectItem key={num} value={num.toString()}>
+                        <SelectItem key={num} value={num.toString()} className="hover:bg-[#213743]">
                           {num}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-[#b1bad3]">Gems</Label>
-                  <div className="bg-[#0f212e] border border-[#2f4553] text-white font-bold h-8 flex items-center px-3 rounded-md text-xs">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-[#b1bad3]">Gems</Label>
+                  <div className="bg-[#0f212e] border border-[#2f4553] text-white font-medium h-10 flex items-center justify-center rounded-lg text-sm">
                     {25 - mineCount}
                   </div>
                 </div>
