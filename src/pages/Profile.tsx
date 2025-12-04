@@ -17,7 +17,7 @@ export default function Profile() {
   const { user, profile, signOut, refreshProfile } = useAuth();
   const { balance } = useWallet();
   const navigate = useNavigate();
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [newUsername, setNewUsername] = useState(profile?.username || '');
   const [isSaving, setIsSaving] = useState(false);
@@ -80,9 +80,9 @@ export default function Profile() {
       <div className="grid gap-6">
         {/* Main Profile Card */}
         <Card className="bg-[#1a2c38] border-[#2f4553] overflow-hidden shadow-xl">
-          <div className="h-32 bg-gradient-to-r from-[#1475e1] to-[#0f212e] relative">
+          <div className="h-24 md:h-32 bg-gradient-to-r from-[#1475e1] to-[#0f212e] relative">
             <div className="absolute -bottom-12 left-8">
-              <Avatar className="h-24 w-24 border-4 border-[#1a2c38] shadow-xl">
+              <Avatar className="h-20 w-20 md:h-24 md:w-24 border-4 border-[#1a2c38] shadow-xl">
                 <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`} />
                 <AvatarFallback className="bg-[#F7D979] text-black text-xl font-bold">
                   {profile?.username?.substring(0, 2).toUpperCase()}
@@ -90,7 +90,7 @@ export default function Profile() {
               </Avatar>
             </div>
           </div>
-          <CardHeader className="pt-16 pb-4 px-8">
+          <CardHeader className="pt-12 md:pt-16 pb-4 px-4 md:px-8">
             <div className="flex justify-between items-start">
               <div>
                 <div className="flex items-center gap-3">
@@ -100,9 +100,9 @@ export default function Profile() {
                   <Badge variant="secondary" className="bg-[#F7D979] text-black hover:bg-[#F7D979]/90">
                     {profile?.role === 'super_admin' ? 'Super Admin' : profile?.role === 'admin' ? 'Admin' : 'Player'}
                   </Badge>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className="h-6 w-6 text-muted-foreground hover:text-white"
                     onClick={() => { setNewUsername(profile?.username || ''); setIsEditing(true); }}
                   >
@@ -121,7 +121,7 @@ export default function Profile() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="px-8 pb-8">
+          <CardContent className="px-4 md:px-8 pb-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               {/* Balance Section */}
               <div className="bg-[#0f212e] p-4 rounded-xl border border-[#2f4553] flex items-center justify-between shadow-inner">
@@ -171,9 +171,9 @@ export default function Profile() {
                     <User className="w-4 h-4 text-muted-foreground" />
                     {profile?.username}
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={() => { setNewUsername(profile?.username || ''); setIsEditing(true); }}
                   >
@@ -201,8 +201,8 @@ export default function Profile() {
             <p className="text-sm text-muted-foreground">
               Need to take a break? You can sign out of your account here.
             </p>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleLogout}
               className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 font-bold shadow-[0_0_10px_rgba(239,68,68,0.1)]"
             >
@@ -220,11 +220,11 @@ export default function Profile() {
             <DialogTitle>Edit Profile</DialogTitle>
             <DialogDescription>Update your public profile information.</DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">Username</label>
-              <Input 
+              <Input
                 value={newUsername}
                 onChange={(e) => setNewUsername(e.target.value)}
                 className="bg-[#0f212e] border-[#2f4553] text-white focus-visible:ring-[#F7D979]"
@@ -238,8 +238,8 @@ export default function Profile() {
             <Button variant="ghost" onClick={() => setIsEditing(false)} className="text-muted-foreground hover:text-white">
               Cancel
             </Button>
-            <Button 
-              onClick={handleUpdateProfile} 
+            <Button
+              onClick={handleUpdateProfile}
               disabled={isSaving || !newUsername || newUsername === profile?.username}
               className="bg-[#F7D979] text-black font-bold hover:bg-[#F7D979]/90"
             >

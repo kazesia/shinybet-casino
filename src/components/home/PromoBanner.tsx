@@ -14,7 +14,7 @@ export default function PromoBanner() {
                 <div className="relative h-full p-6 flex flex-col justify-between z-10">
                     <div className="flex flex-col gap-2">
                         <span className="text-blue-400 font-bold tracking-wider text-xs uppercase">Casino</span>
-                        <h3 className="text-white font-black text-3xl italic">
+                        <h3 className="text-white font-black text-2xl md:text-3xl italic">
                             WIN BIG <br /> <span className="text-blue-500">TODAY</span>
                         </h3>
                     </div>
@@ -47,7 +47,7 @@ export default function PromoBanner() {
                 <div className="relative h-full p-6 flex flex-col justify-between z-10">
                     <div className="flex flex-col gap-2">
                         <span className="text-green-400 font-bold tracking-wider text-xs uppercase">Sports</span>
-                        <h3 className="text-white font-black text-3xl italic">
+                        <h3 className="text-white font-black text-2xl md:text-3xl italic">
                             UFC 300 <br /> <span className="text-green-500">LIVE NOW</span>
                         </h3>
                     </div>

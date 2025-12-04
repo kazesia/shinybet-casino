@@ -262,7 +262,7 @@ const ScrollSection = ({ title, icon: Icon, games, isOriginal = false }: { title
 export default function Dashboard() {
 
    return (
-      <div className="container py-8 space-y-10 max-w-[1400px] mx-auto px-4 md:px-8">
+      <div className="container py-4 md:py-8 space-y-6 md:space-y-10 max-w-[1400px] mx-auto px-4 md:px-8">
 
          {/* Top Section: VIP & Promos */}
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[200px]">
@@ -279,7 +279,7 @@ export default function Dashboard() {
 
          {/* Search Bar */}
          <div className="relative w-full">
-            <div className="flex items-center w-full h-14 bg-[#0f212e] border border-[#2f4553] rounded-lg overflow-hidden hover:border-[#b1bad3]/50 transition-colors shadow-sm group focus-within:border-[#00e701]/50 focus-within:shadow-[0_0_10px_rgba(0,231,1,0.1)]">
+            <div className="flex items-center w-full h-12 md:h-14 bg-[#0f212e] border border-[#2f4553] rounded-lg overflow-hidden hover:border-[#b1bad3]/50 transition-colors shadow-sm group focus-within:border-[#00e701]/50 focus-within:shadow-[0_0_10px_rgba(0,231,1,0.1)]">
                <div className="flex items-center h-full px-4 border-r border-[#2f4553] bg-[#1a2c38] text-white font-medium text-sm gap-2 cursor-pointer hover:bg-[#213743] transition-colors">
                   <span>Casino</span>
                   <ChevronRight className="w-4 h-4 rotate-90 text-[#b1bad3]" />

@@ -213,7 +213,7 @@ export default function VIPClub() {
         <h2 className="text-2xl font-bold text-center mb-12">Shiny VIP ranking system</h2>
 
         {/* Tier Icons Row */}
-        <div className="flex justify-center items-center gap-16 mb-12">
+        <div className="flex justify-center items-center gap-8 md:gap-16 mb-12">
           <CheckCircle2 className="w-8 h-8 text-green-400" />
           <Star className="w-8 h-8 text-gray-400" />
           <Star className="w-8 h-8 text-orange-400" />
