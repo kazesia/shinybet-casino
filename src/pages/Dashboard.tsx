@@ -19,6 +19,7 @@ const SHINY_ORIGINALS = [
       color: 'text-blue-400',
       bgGradient: 'from-blue-600 to-blue-900',
       icon: '💣',
+      image: '/game-assets/thumbnails/mines.png',
       playing: 2383,
       status: 'active'
    },
@@ -29,6 +30,7 @@ const SHINY_ORIGINALS = [
       color: 'text-purple-400',
       bgGradient: 'from-purple-600 to-purple-900',
       icon: '🎲',
+      image: '/game-assets/thumbnails/dice.jpg',
       playing: 2107,
       status: 'active'
    },
@@ -39,6 +41,7 @@ const SHINY_ORIGINALS = [
       color: 'text-pink-400',
       bgGradient: 'from-pink-600 to-pink-900',
       icon: '⚡',
+      image: '/game-assets/thumbnails/plinko.jpg',
       playing: 1671,
       status: 'active'
    },
@@ -59,6 +62,7 @@ const SHINY_ORIGINALS = [
       color: 'text-red-400',
       bgGradient: 'from-red-600 to-red-900',
       icon: '♠️',
+      image: '/game-assets/thumbnails/blackjack.jpg',
       playing: 1312,
       status: 'active'
    },
@@ -79,6 +83,7 @@ const SHINY_ORIGINALS = [
       color: 'text-orange-400',
       bgGradient: 'from-orange-500 to-red-700',
       icon: '📈',
+      image: '/game-assets/thumbnails/crash.png',
       playing: 3421,
       status: 'active'
    },
@@ -123,23 +128,33 @@ const GameCard = ({ game, isOriginal = false }: { game: any, isOriginal?: boolea
             {/* Content Container */}
             <div className="absolute inset-0 p-5 flex flex-col justify-between">
 
-               {/* Top Section: Name & Badge */}
-               <div className="z-10 space-y-2">
-                  <h3 className="text-white font-black text-2xl tracking-tight uppercase drop-shadow-lg">
-                     {game.name}
-                  </h3>
-                  <div className="inline-block">
-                     <div className="text-[9px] font-bold text-white/70 tracking-wider uppercase bg-black/20 px-2 py-0.5 rounded-full backdrop-blur-sm">
-                        Shiny Originals
+               {/* Top Section: Name & Badge (Only if no image) */}
+               {!game.image && (
+                  <div className="z-10 space-y-2">
+                     <h3 className="text-white font-black text-2xl tracking-tight uppercase drop-shadow-lg">
+                        {game.name}
+                     </h3>
+                     <div className="inline-block">
+                        <div className="text-[9px] font-bold text-white/70 tracking-wider uppercase bg-black/20 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                           Shiny Originals
+                        </div>
                      </div>
                   </div>
-               </div>
+               )}
 
-               {/* Middle Section: Large Icon */}
+               {/* Middle Section: Image or Icon */}
                <div className="absolute inset-0 flex items-center justify-center z-0">
-                  <span className="text-[80px] md:text-[120px] filter drop-shadow-2xl transform group-hover:scale-110 transition-transform duration-300 opacity-90">
-                     {game.icon}
-                  </span>
+                  {game.image ? (
+                     <img
+                        src={game.image}
+                        alt={game.name}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                     />
+                  ) : (
+                     <span className="text-[80px] md:text-[120px] filter drop-shadow-2xl transform group-hover:scale-110 transition-transform duration-300 opacity-90">
+                        {game.icon}
+                     </span>
+                  )}
                </div>
 
                {/* Bottom Section: Player Count or Coming Soon */}
