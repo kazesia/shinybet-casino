@@ -135,15 +135,15 @@ export function GameControlsMobile({
 
                 <Button
                     onClick={onBet}
-                    disabled={isBetting}
+                    disabled={isBetting || isMainButtonDisabled}
                     className={cn(
                         "flex-1 h-14 text-lg font-bold shadow-lg transition-all active:scale-95",
-                        isBetting
+                        (isBetting || isMainButtonDisabled)
                             ? "bg-[#2f4553] cursor-not-allowed"
                             : "bg-[#00e701] hover:bg-[#00e701] text-black shadow-green-500/20"
                     )}
                 >
-                    {isBetting ? "Betting..." : "Bet"}
+                    {isBetting ? "Processing..." : mainButtonLabel}
                 </Button>
             </div>
         </div>
