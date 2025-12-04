@@ -429,9 +429,11 @@ export default function MinesGame() {
                       whileHover={gameState === 'playing' && !tile.isRevealed ? { scale: 1.05, backgroundColor: '#557086' } : {}}
                       whileTap={gameState === 'playing' && !tile.isRevealed ? { scale: 0.95 } : {}}
                       className={cn(
-                        "relative rounded-lg transition-colors duration-200 flex items-center justify-center overflow-hidden shadow-lg",
+                        "relative rounded-xl transition-all duration-200 flex items-center justify-center overflow-hidden shadow-[0_4px_0_#1a2c38] active:shadow-none active:translate-y-[4px]",
                         // Base Style
-                        !tile.isRevealed ? "bg-[#2f4553]" : "bg-[#071824]",
+                        !tile.isRevealed
+                          ? "bg-[#2f4553] hover:bg-[#3d5565] hover:-translate-y-1 hover:shadow-[0_6px_0_#1a2c38]"
+                          : "bg-[#071824] shadow-none translate-y-[4px]",
                         // Cursor
                         gameState === 'playing' && !tile.isRevealed ? "cursor-pointer" : "cursor-default",
                         // Exploded Mine
@@ -449,47 +451,27 @@ export default function MinesGame() {
                             transition={{ type: "spring", stiffness: 260, damping: 20 }}
                           >
                             {tile.isMine ? (
-                              <svg className={cn("w-10 h-10 md:w-12 md:h-12")} viewBox="0 0 32 32" fill="none">
-                                <circle cx="16" cy="16" r="10" fill="#dc2626" opacity={tile.isExploded ? "1" : "0.5"} />
-                                <circle cx="16" cy="16" r="6" fill="#991b1b" opacity={tile.isExploded ? "1" : "0.5"} />
-                                <circle cx="16" cy="16" r="3" fill="#450a0a" opacity={tile.isExploded ? "1" : "0.5"} />
-                                <g stroke={tile.isExploded ? "#ffffff" : "#ffffff80"} strokeWidth="2" strokeLinecap="round">
-                                  <line x1="16" y1="2" x2="16" y2="8" />
-                                  <line x1="16" y1="24" x2="16" y2="30" />
-                                  <line x1="2" y1="16" x2="8" y2="16" />
-                                  <line x1="24" y1="16" x2="30" y2="16" />
-                                  <line x1="6" y1="6" x2="10" y2="10" />
-                                  <line x1="22" y1="22" x2="26" y2="26" />
-                                  <line x1="26" y1="6" x2="22" y2="10" />
-                                  <line x1="10" y1="22" x2="6" y2="26" />
-                                </g>
-                              </svg>
+                              <div className="relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
+                                <img
+                                  src="/game-assets/mines/bomb.png"
+                                  alt="Bomb"
+                                  className={cn(
+                                    "w-full h-full object-contain drop-shadow-2xl",
+                                    tile.isExploded ? "scale-110" : "opacity-90"
+                                  )}
+                                />
+                                {tile.isExploded && (
+                                  <div className="absolute inset-0 bg-red-500/20 blur-xl rounded-full animate-pulse" />
+                                )}
+                              </div>
                             ) : (
-                              <svg className="w-10 h-10 md:w-12 md:h-12" viewBox="0 0 32 32" fill="none">
-                                <defs>
-                                  <linearGradient id="gemGradient" x1="16" y1="4" x2="16" y2="28">
-                                    <stop offset="0%" stopColor="#22c55e" />
-                                    <stop offset="50%" stopColor="#00e701" />
-                                    <stop offset="100%" stopColor="#15803d" />
-                                  </linearGradient>
-                                  <filter id="glow">
-                                    <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-                                    <feMerge>
-                                      <feMergeNode in="coloredBlur" />
-                                      <feMergeNode in="SourceGraphic" />
-                                    </feMerge>
-                                  </filter>
-                                </defs>
-                                <path d="M16 4 L20 10 L28 11 L22 17 L24 25 L16 21 L8 25 L10 17 L4 11 L12 10 Z"
-                                  fill="url(#gemGradient)"
-                                  stroke="#00ff00"
-                                  strokeWidth="1.5"
-                                  strokeLinejoin="round"
-                                  filter="url(#glow)" />
-                                <path d="M16 8 L18 12 L22 13 L19 16 L20 20 L16 18 L12 20 L13 16 L10 13 L14 12 Z"
-                                  fill="#ffffff"
-                                  opacity="0.3" />
-                              </svg>
+                              <div className="relative w-14 h-14 md:w-16 md:h-16 flex items-center justify-center">
+                                <img
+                                  src="/game-assets/mines/diamond.png"
+                                  alt="Diamond"
+                                  className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]"
+                                />
+                              </div>
                             )}
                           </motion.div>
                         )}
