@@ -12,11 +12,14 @@ import { useUI } from '@/context/UIContext';
 import { toast } from 'sonner';
 import { Bet } from '@/types';
 import { BetInput } from '@/components/game/BetInput';
+import { useViewport } from '@/hooks/useViewport';
+import { GameControlsMobile } from '@/components/game/GameControlsMobile';
 
 const DiceGame = () => {
   const { user } = useAuth();
   const { balance, optimisticUpdate } = useWallet();
   const { openFairnessModal } = useUI();
+  const { isMobile } = useViewport();
 
   // Game State
   const [betAmount, setBetAmount] = useState<number | string>(0);
@@ -197,70 +200,72 @@ const DiceGame = () => {
         {/* Main Game Interface */}
         <div className="flex flex-col lg:flex-row bg-[#1a2c38] rounded-lg overflow-hidden shadow-xl border border-[#213743]">
 
-          {/* Left Control Panel */}
-          <div className="w-full lg:w-[320px] bg-[#213743] p-4 flex flex-col gap-4 border-r border-[#1a2c38]">
+          {/* Left Control Panel (Desktop Only) */}
+          {!isMobile && (
+            <div className="w-full lg:w-[320px] bg-[#213743] p-4 flex flex-col gap-4 border-r border-[#1a2c38]">
 
-            {/* Mode Tabs */}
-            <div className="bg-[#0f212e] p-1 rounded-full flex relative">
-              <button
-                onClick={() => setMode('manual')}
-                className={cn(
-                  "flex-1 py-2 text-sm font-bold rounded-full transition-all z-10",
-                  mode === 'manual' ? "bg-[#2f4553] text-white shadow-md" : "text-[#b1bad3] hover:text-white"
-                )}
+              {/* Mode Tabs */}
+              <div className="bg-[#0f212e] p-1 rounded-full flex relative">
+                <button
+                  onClick={() => setMode('manual')}
+                  className={cn(
+                    "flex-1 py-2 text-sm font-bold rounded-full transition-all z-10",
+                    mode === 'manual' ? "bg-[#2f4553] text-white shadow-md" : "text-[#b1bad3] hover:text-white"
+                  )}
+                >
+                  Manual
+                </button>
+                <button
+                  onClick={() => setMode('auto')}
+                  className={cn(
+                    "flex-1 py-2 text-sm font-bold rounded-full transition-all z-10",
+                    mode === 'auto' ? "bg-[#2f4553] text-white shadow-md" : "text-[#b1bad3] hover:text-white"
+                  )}
+                >
+                  Auto
+                </button>
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 text-[#b1bad3]">
+                  <Settings2 className="w-4 h-4" />
+                </div>
+              </div>
+
+              {/* Bet Amount Input (Reusable Component) */}
+              <BetInput
+                value={betAmount}
+                onChange={handleBetAmountChange}
+                onHalf={() => adjustBet(0.5)}
+                onDouble={() => adjustBet(2)}
+                onMax={() => setBetAmount(balance)}
+              />
+
+              {/* Profit on Win (Read Only) */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
+                  <span>Profit on Win</span>
+                  <span>{profitOnWin.toFixed(8)} LTC</span>
+                </div>
+                <div className="relative flex items-center">
+                  <div className="absolute left-3 text-[#b1bad3] pointer-events-none select-none">$</div>
+                  <Input
+                    readOnly
+                    value={profitOnWin.toFixed(2)}
+                    className="bg-[#2f4553] border-transparent text-white font-bold pl-8 h-10 cursor-not-allowed opacity-80"
+                  />
+                </div>
+              </div>
+
+              {/* Bet Button */}
+              <Button
+                type="button"
+                onClick={handleRoll}
+                disabled={isRolling}
+                className="w-full h-12 mt-2 bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-black text-base shadow-[0_4px_0_#B8860B] active:shadow-none active:translate-y-[4px] transition-all"
               >
-                Manual
-              </button>
-              <button
-                onClick={() => setMode('auto')}
-                className={cn(
-                  "flex-1 py-2 text-sm font-bold rounded-full transition-all z-10",
-                  mode === 'auto' ? "bg-[#2f4553] text-white shadow-md" : "text-[#b1bad3] hover:text-white"
-                )}
-              >
-                Auto
-              </button>
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 text-[#b1bad3]">
-                <Settings2 className="w-4 h-4" />
-              </div>
+                {isRolling ? "Rolling..." : "Bet"}
+              </Button>
+
             </div>
-
-            {/* Bet Amount Input (Reusable Component) */}
-            <BetInput
-              value={betAmount}
-              onChange={handleBetAmountChange}
-              onHalf={() => adjustBet(0.5)}
-              onDouble={() => adjustBet(2)}
-              onMax={() => setBetAmount(balance)}
-            />
-
-            {/* Profit on Win (Read Only) */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
-                <span>Profit on Win</span>
-                <span>{profitOnWin.toFixed(8)} LTC</span>
-              </div>
-              <div className="relative flex items-center">
-                <div className="absolute left-3 text-[#b1bad3] pointer-events-none select-none">$</div>
-                <Input
-                  readOnly
-                  value={profitOnWin.toFixed(2)}
-                  className="bg-[#2f4553] border-transparent text-white font-bold pl-8 h-10 cursor-not-allowed opacity-80"
-                />
-              </div>
-            </div>
-
-            {/* Bet Button */}
-            <Button
-              type="button"
-              onClick={handleRoll}
-              disabled={isRolling}
-              className="w-full h-12 mt-2 bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-black text-base shadow-[0_4px_0_#B8860B] active:shadow-none active:translate-y-[4px] transition-all"
-            >
-              {isRolling ? "Rolling..." : "Bet"}
-            </Button>
-
-          </div>
+          )}
 
           {/* Right Game Area */}
           <div className="flex-1 bg-[#0f212e] p-6 md:p-12 flex flex-col relative">
@@ -436,6 +441,56 @@ const DiceGame = () => {
           </div>
 
         </div>
+
+        {/* Mobile Controls */}
+        {isMobile && (
+          <div className="fixed bottom-[64px] left-0 right-0 z-40">
+            <GameControlsMobile
+              betAmount={betAmount.toString()}
+              setBetAmount={handleBetAmountChange}
+              onBet={handleRoll}
+              isBetting={isRolling}
+              balance={balance}
+            >
+              {/* Mobile Specific Game Controls (Sliders) */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-bold text-[#b1bad3]">Multiplier</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={multiplier}
+                      onChange={(e) => updateFromMultiplier(parseFloat(e.target.value))}
+                      className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-8 text-xs focus:ring-0 px-2"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-bold text-[#b1bad3]">Roll Over</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={rollOver.toFixed(2)}
+                      onChange={(e) => updateFromRollOver(parseFloat(e.target.value))}
+                      className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-8 text-xs focus:ring-0 px-2"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-bold text-[#b1bad3]">Win Chance</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={winChance.toFixed(4)}
+                      onChange={(e) => updateFromWinChance(parseFloat(e.target.value))}
+                      className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-8 text-xs focus:ring-0 px-2"
+                    />
+                  </div>
+                </div>
+              </div>
+            </GameControlsMobile>
+          </div>
+        )}
 
         {/* Recent Bets / History (Below Game) */}
         <div className="bg-[#1a2c38] rounded-lg border border-[#213743] overflow-hidden">

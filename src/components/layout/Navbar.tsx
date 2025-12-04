@@ -254,6 +254,148 @@ const Navbar = () => {
               </Button>
             </div>
           </>
+
+
+
+          {/* 2. Logo */}
+        <Link to="/" className="flex items-center gap-2 shrink-0">
+          <img
+            src="https://media.discordapp.net/attachments/1442506658155855925/1446069962493005844/Collabeco_2_-removebg-preview.png?ex=6932a519&is=69315399&hm=cab9148f2cdcafb486a7ff6e92852c787bcb0e5b193af549d467c257f8913b73&=&format=webp&quality=lossless&width=750&height=750"
+            alt="Shiny.bet Logo"
+            className="h-8 w-8 object-contain"
+          />
+          <span className="hidden sm:block text-xl font-bold text-white">
+            Shiny<span className="text-[#ffd700]">.bet</span>
+          </span>
+        </Link>
+      </div>
+
+      {/* --- SPACER --- */}
+      <div className="flex-1" />
+
+      {/* --- CENTER: Balance & Wallet (Absolute Positioned) --- */}
+      {user && (
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+          <WalletDropdown />
+          <Button
+            onClick={() => openWalletModal('overview')}
+            className="bg-[#1475e1] hover:bg-[#1475e1]/90 text-white font-bold h-10 px-6 rounded-[4px] shadow-sm"
+          >
+            Wallet
+          </Button>
+        </div>
+      )}
+
+      {/* --- RIGHT SECTION --- */}
+      <div className="flex items-center gap-2 md:gap-3">
+
+        {user ? (
+          <>
+            {/* Icons Group */}
+            <div className="flex items-center gap-1">
+              {/* Search */}
+              <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743] h-10 w-10 rounded-[4px]">
+                <Search className="h-5 w-5" />
+              </Button>
+
+              {/* User Dropdown Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743] h-10 w-10 rounded-[4px]">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-60 bg-[#1a2c38] border-[#2f4553] text-white p-2 shadow-xl mt-2">
+                  <DropdownMenuLabel className="font-normal mb-2">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-bold leading-none text-white">{profile?.username || 'User'}</p>
+                      <p className="text-xs leading-none text-[#b1bad3] opacity-70">{user.email}</p>
+                    </div>
+                    <div className="mt-3 h-1.5 w-full bg-[#0f212e] rounded-full overflow-hidden">
+                      <div className="h-full bg-[#F7D979] transition-all duration-500" style={{ width: `${vipProgressPercent}%` }} />
+                    </div>
+                    <div className="flex justify-between mt-1 text-[10px] text-[#b1bad3]">
+                      <span>VIP Progress</span>
+                      <span>{vipProgressPercent.toFixed(0)}%</span>
+                    </div>
+                  </DropdownMenuLabel>
+
+                  <DropdownMenuSeparator className="bg-[#2f4553] mb-2" />
+
+                  <div className="space-y-1">
+                    {MENU_ITEMS.map((item, index) => {
+                      const ItemContent = (
+                        <>
+                          <item.icon className="mr-3 h-4 w-4 text-[#b1bad3] group-hover:text-white transition-colors" />
+                          <span className="font-medium text-sm text-[#b1bad3] group-hover:text-white transition-colors">{item.label}</span>
+                        </>
+                      );
+
+                      const className = "flex items-center w-full cursor-pointer hover:bg-[#213743] focus:bg-[#213743] p-2 rounded-md group transition-colors";
+
+                      if (item.action) {
+                        return (
+                          <DropdownMenuItem key={index} onClick={item.action} className={className}>
+                            {ItemContent}
+                          </DropdownMenuItem>
+                        );
+                      }
+
+                      return (
+                        <Link key={index} to={item.link || '#'} className="block">
+                          <DropdownMenuItem className={className}>
+                            {ItemContent}
+                          </DropdownMenuItem>
+                        </Link>
+                      );
+                    })}
+
+                    <DropdownMenuItem onClick={handleSignOut} className="flex items-center w-full cursor-pointer hover:bg-[#213743] focus:bg-[#213743] p-2 rounded-md group transition-colors mt-2">
+                      <LogOut className="mr-3 h-4 w-4 text-[#b1bad3] group-hover:text-white transition-colors" />
+                      <span className="font-medium text-sm text-[#b1bad3] group-hover:text-white transition-colors">Logout</span>
+                    </DropdownMenuItem>
+                  </div>
+
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Notifications */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743] h-10 w-10 rounded-[4px] relative">
+                    <Bell className="h-5 w-5" />
+                    <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#1a2c38]" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0 bg-[#1a2c38] border-[#2f4553] text-white mt-2" align="end">
+                  <div className="p-3 border-b border-[#2f4553] flex justify-between items-center">
+                    <h4 className="font-bold text-sm">Notifications</h4>
+                    <span className="text-xs text-[#1475e1] cursor-pointer hover:underline">Mark all read</span>
+                  </div>
+                  <ScrollArea className="h-[300px]">
+                    <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                      <Bell className="h-12 w-12 text-[#2f4553] mb-3" />
+                      <p className="text-sm text-[#b1bad3]">No notifications yet</p>
+                      <p className="text-xs text-[#2f4553] mt-1">We'll notify you when something important happens</p>
+                    </div>
+                  </ScrollArea>
+                </PopoverContent>
+              </Popover>
+
+              {/* Chat Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleChat}
+                className={cn(
+                  "text-[#b1bad3] hover:text-white hover:bg-[#213743] h-10 w-10 rounded-[4px] hidden md:inline-flex",
+                  isChatOpen && "bg-[#213743] text-white"
+                )}
+              >
+                <MessageSquare className="h-5 w-5" />
+              </Button>
+            </div>
+          </>
         ) : (
           <>
             <Button variant="ghost" onClick={() => openAuthModal('login')} className="text-white font-bold hover:bg-[#213743]">
@@ -266,11 +408,12 @@ const Navbar = () => {
         )}
       </div>
     </nav>
-  );
-  {/* Mobile Navigation Drawer */ }
+
+      {/* Mobile Navigation Drawer */ }
   <MobileNav isOpen={isMobileNavOpen} onClose={() => setIsMobileNavOpen(false)} />
-    </nav >
+    </>
   );
 };
 
 export default Navbar;
+```
