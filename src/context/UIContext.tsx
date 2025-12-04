@@ -5,11 +5,11 @@ interface UIContextType {
   openAuthModal: (view?: 'login' | 'register') => void;
   closeAuthModal: () => void;
   authView: 'login' | 'register';
-  
+
   isWalletModalOpen: boolean;
-  openWalletModal: (tab?: 'deposit' | 'withdraw') => void;
+  openWalletModal: (tab?: 'overview' | 'deposit' | 'withdraw') => void;
   closeWalletModal: () => void;
-  walletTab: 'deposit' | 'withdraw';
+  walletTab: 'overview' | 'deposit' | 'withdraw';
 
   isVaultModalOpen: boolean;
   openVaultModal: () => void;
@@ -34,34 +34,34 @@ interface UIContextType {
 
 const UIContext = createContext<UIContextType>({
   isAuthModalOpen: false,
-  openAuthModal: () => {},
-  closeAuthModal: () => {},
+  openAuthModal: () => { },
+  closeAuthModal: () => { },
   authView: 'login',
-  
+
   isWalletModalOpen: false,
-  openWalletModal: () => {},
-  closeWalletModal: () => {},
-  walletTab: 'deposit',
+  openWalletModal: () => { },
+  closeWalletModal: () => { },
+  walletTab: 'overview',
 
   isVaultModalOpen: false,
-  openVaultModal: () => {},
-  closeVaultModal: () => {},
+  openVaultModal: () => { },
+  closeVaultModal: () => { },
 
   isStatsModalOpen: false,
-  openStatsModal: () => {},
-  closeStatsModal: () => {},
+  openStatsModal: () => { },
+  closeStatsModal: () => { },
 
   isFairnessModalOpen: false,
-  openFairnessModal: () => {},
-  closeFairnessModal: () => {},
+  openFairnessModal: () => { },
+  closeFairnessModal: () => { },
 
   isSidebarCollapsed: false,
-  toggleSidebar: () => {},
-  setSidebarCollapsed: () => {},
+  toggleSidebar: () => { },
+  setSidebarCollapsed: () => { },
 
   isChatOpen: true,
-  toggleChat: () => {},
-  setChatOpen: () => {},
+  toggleChat: () => { },
+  setChatOpen: () => { },
 });
 
 export const useUI = () => useContext(UIContext);
@@ -69,9 +69,9 @@ export const useUI = () => useContext(UIContext);
 export const UIProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
-  
+
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-  const [walletTab, setWalletTab] = useState<'deposit' | 'withdraw'>('deposit');
+  const [walletTab, setWalletTab] = useState<'overview' | 'deposit' | 'withdraw'>('overview');
 
   const [isVaultModalOpen, setIsVaultModalOpen] = useState(false);
 
@@ -112,7 +112,7 @@ export const UIProvider = ({ children }: { children: React.ReactNode }) => {
 
   const closeAuthModal = () => setIsAuthModalOpen(false);
 
-  const openWalletModal = (tab: 'deposit' | 'withdraw' = 'deposit') => {
+  const openWalletModal = (tab: 'overview' | 'deposit' | 'withdraw' = 'overview') => {
     setWalletTab(tab);
     setIsWalletModalOpen(true);
   };
