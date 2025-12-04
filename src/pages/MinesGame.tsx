@@ -13,6 +13,8 @@ import { useUI } from '@/context/UIContext';
 import { toast } from 'sonner';
 import { useSound } from '@/hooks/useSound';
 import { GameHistory } from '@/components/games/GameHistory';
+import { useViewport } from '@/hooks/useViewport';
+import { GameControlsMobile } from '@/components/game/GameControlsMobile';
 
 // --- Constants & Math ---
 const GRID_SIZE = 25;
@@ -50,6 +52,7 @@ export default function MinesGame() {
   const { balance, optimisticUpdate } = useWallet();
   const { openFairnessModal } = useUI();
   const sound = useSound();
+  const { isMobile } = useViewport();
 
   // --- State ---
   const [betAmount, setBetAmount] = useState<number>(0);
@@ -238,148 +241,150 @@ export default function MinesGame() {
         {/* Main Game Container */}
         <div className="flex flex-col lg:flex-row bg-[#1a2c38] rounded-lg overflow-hidden shadow-xl border border-[#213743]">
 
-          {/* LEFT: Control Panel */}
-          <div className="w-full lg:w-[320px] bg-[#213743] p-4 flex flex-col gap-4 border-r border-[#1a2c38]">
+          {/* LEFT: Control Panel (Desktop Only) */}
+          {!isMobile && (
+            <div className="w-full lg:w-[320px] bg-[#213743] p-4 flex flex-col gap-4 border-r border-[#1a2c38]">
 
-            {/* Mode Tabs */}
-            <div className="bg-[#0f212e] p-1 rounded-full flex">
-              <button
-                onClick={() => setMode('manual')}
-                className={cn(
-                  "flex-1 py-2 text-sm font-bold rounded-full transition-all",
-                  mode === 'manual' ? "bg-[#2f4553] text-white shadow-md" : "text-[#b1bad3] hover:text-white"
-                )}
-              >
-                Manual
-              </button>
-              <button
-                onClick={() => setMode('auto')}
-                className={cn(
-                  "flex-1 py-2 text-sm font-bold rounded-full transition-all",
-                  mode === 'auto' ? "bg-[#2f4553] text-white shadow-md" : "text-[#b1bad3] hover:text-white"
-                )}
-              >
-                Auto
-              </button>
-            </div>
-
-            {/* Bet Amount */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
-                <span>Bet Amount</span>
-                <span>{betAmount.toFixed(8)} LTC</span>
-              </div>
-              <div className="relative flex items-center">
-                <Input
-                  type="number"
-                  value={betAmount}
-                  onChange={handleBetAmountChange}
-                  disabled={gameState === 'playing'}
-                  className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553] disabled:opacity-50"
-                />
-                <div className="absolute right-1 flex gap-1">
-                  <button
-                    onClick={() => adjustBet(0.5)}
-                    disabled={gameState === 'playing'}
-                    className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors disabled:opacity-50"
-                  >
-                    ½
-                  </button>
-                  <button
-                    onClick={() => adjustBet(2)}
-                    disabled={gameState === 'playing'}
-                    className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors disabled:opacity-50"
-                  >
-                    2×
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Mines Selection */}
-            <div className="space-y-1">
-              <Label className="text-xs font-bold text-[#b1bad3]">Mines</Label>
-              <Select
-                value={mineCount.toString()}
-                onValueChange={(v) => setMineCount(parseInt(v))}
-                disabled={gameState === 'playing'}
-              >
-                <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-10">
-                  <SelectValue placeholder="Select mines" />
-                </SelectTrigger>
-                <SelectContent className="bg-[#213743] border-[#2f4553] text-white max-h-[300px]">
-                  {Array.from({ length: 24 }, (_, i) => i + 1).map((num) => (
-                    <SelectItem key={num} value={num.toString()} className="focus:bg-[#2f4553] focus:text-white">
-                      {num}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Gems Count (Read Only) */}
-            <div className="space-y-1">
-              <Label className="text-xs font-bold text-[#b1bad3]">Gems</Label>
-              <Input
-                readOnly
-                value={25 - mineCount}
-                className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-10 cursor-default focus-visible:ring-0"
-              />
-            </div>
-
-            {/* Action Button */}
-            {gameState === 'playing' ? (
-              <Button
-                onClick={() => handleCashout()}
-                disabled={revealedCount === 0}
-                className="w-full h-12 mt-2 bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-black text-base shadow-[0_4px_0_#B8860B] active:shadow-none active:translate-y-[4px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div className="flex flex-col items-center leading-none">
-                  <span>Cashout</span>
-                  {revealedCount > 0 && (
-                    <span className="text-xs font-medium opacity-80">
-                      {totalPayout.toFixed(6)} LTC
-                    </span>
+              {/* Mode Tabs */}
+              <div className="bg-[#0f212e] p-1 rounded-full flex">
+                <button
+                  onClick={() => setMode('manual')}
+                  className={cn(
+                    "flex-1 py-2 text-sm font-bold rounded-full transition-all",
+                    mode === 'manual' ? "bg-[#2f4553] text-white shadow-md" : "text-[#b1bad3] hover:text-white"
                   )}
-                </div>
-              </Button>
-            ) : (
-              <Button
-                onClick={startGame}
-                className="w-full h-12 mt-2 bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-black text-base shadow-[0_4px_0_#B8860B] active:shadow-none active:translate-y-[4px] transition-all"
-              >
-                Bet
-              </Button>
-            )}
-
-            {/* Random Pick Button */}
-            <Button
-              onClick={handleRandomPick}
-              disabled={gameState !== 'playing'}
-              className="w-full h-10 bg-[#2f4553] hover:bg-[#3d5565] text-white font-bold border border-transparent hover:border-[#b1bad3]/20"
-            >
-              Random Pick
-            </Button>
-
-            {/* Profit Display */}
-            <div className="space-y-1 mt-2">
-              <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
-                <span>Total Profit ({currentMultiplier.toFixed(2)}x)</span>
-                <span>{gameState === 'playing' ? nextMultiplier.toFixed(2) : '0.00'}x</span>
+                >
+                  Manual
+                </button>
+                <button
+                  onClick={() => setMode('auto')}
+                  className={cn(
+                    "flex-1 py-2 text-sm font-bold rounded-full transition-all",
+                    mode === 'auto' ? "bg-[#2f4553] text-white shadow-md" : "text-[#b1bad3] hover:text-white"
+                  )}
+                >
+                  Auto
+                </button>
               </div>
-              <div className="relative flex items-center">
+
+              {/* Bet Amount */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
+                  <span>Bet Amount</span>
+                  <span>{betAmount.toFixed(8)} LTC</span>
+                </div>
+                <div className="relative flex items-center">
+                  <Input
+                    type="number"
+                    value={betAmount}
+                    onChange={handleBetAmountChange}
+                    disabled={gameState === 'playing'}
+                    className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553] disabled:opacity-50"
+                  />
+                  <div className="absolute right-1 flex gap-1">
+                    <button
+                      onClick={() => adjustBet(0.5)}
+                      disabled={gameState === 'playing'}
+                      className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors disabled:opacity-50"
+                    >
+                      ½
+                    </button>
+                    <button
+                      onClick={() => adjustBet(2)}
+                      disabled={gameState === 'playing'}
+                      className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors disabled:opacity-50"
+                    >
+                      2×
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mines Selection */}
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-[#b1bad3]">Mines</Label>
+                <Select
+                  value={mineCount.toString()}
+                  onValueChange={(v) => setMineCount(parseInt(v))}
+                  disabled={gameState === 'playing'}
+                >
+                  <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-10">
+                    <SelectValue placeholder="Select mines" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#213743] border-[#2f4553] text-white max-h-[300px]">
+                    {Array.from({ length: 24 }, (_, i) => i + 1).map((num) => (
+                      <SelectItem key={num} value={num.toString()} className="focus:bg-[#2f4553] focus:text-white">
+                        {num}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Gems Count (Read Only) */}
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-[#b1bad3]">Gems</Label>
                 <Input
                   readOnly
-                  value={gameState === 'playing' ? (totalPayout - betAmount).toFixed(8) : "0.00000000"}
-                  className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-8 h-10"
+                  value={25 - mineCount}
+                  className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-10 cursor-default focus-visible:ring-0"
                 />
-                <div className="absolute right-3 text-[#00e701]">
-                  <Gem className="w-4 h-4" />
+              </div>
+
+              {/* Action Button */}
+              {gameState === 'playing' ? (
+                <Button
+                  onClick={() => handleCashout()}
+                  disabled={revealedCount === 0}
+                  className="w-full h-12 mt-2 bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-black text-base shadow-[0_4px_0_#B8860B] active:shadow-none active:translate-y-[4px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="flex flex-col items-center leading-none">
+                    <span>Cashout</span>
+                    {revealedCount > 0 && (
+                      <span className="text-xs font-medium opacity-80">
+                        {totalPayout.toFixed(6)} LTC
+                      </span>
+                    )}
+                  </div>
+                </Button>
+              ) : (
+                <Button
+                  onClick={startGame}
+                  className="w-full h-12 mt-2 bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-black text-base shadow-[0_4px_0_#B8860B] active:shadow-none active:translate-y-[4px] transition-all"
+                >
+                  Bet
+                </Button>
+              )}
+
+              {/* Random Pick Button */}
+              <Button
+                onClick={handleRandomPick}
+                disabled={gameState !== 'playing'}
+                className="w-full h-10 bg-[#2f4553] hover:bg-[#3d5565] text-white font-bold border border-transparent hover:border-[#b1bad3]/20"
+              >
+                Random Pick
+              </Button>
+
+              {/* Profit Display */}
+              <div className="space-y-1 mt-2">
+                <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
+                  <span>Total Profit ({currentMultiplier.toFixed(2)}x)</span>
+                  <span>{gameState === 'playing' ? nextMultiplier.toFixed(2) : '0.00'}x</span>
+                </div>
+                <div className="relative flex items-center">
+                  <Input
+                    readOnly
+                    value={gameState === 'playing' ? (totalPayout - betAmount).toFixed(8) : "0.00000000"}
+                    className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-8 h-10"
+                  />
+                  <div className="absolute right-3 text-[#00e701]">
+                    <Gem className="w-4 h-4" />
+                  </div>
                 </div>
               </div>
-            </div>
 
-          </div>
+            </div>
+          )}
 
           {/* RIGHT: Game Grid */}
           <div className="flex-1 bg-[#0f212e] p-6 md:p-12 flex flex-col relative min-h-[500px]">
@@ -538,6 +543,49 @@ export default function MinesGame() {
           </div>
 
         </div>
+
+        {/* Mobile Controls */}
+        {isMobile && (
+          <div className="fixed bottom-[64px] left-0 right-0 z-40">
+            <GameControlsMobile
+              betAmount={betAmount.toString()}
+              setBetAmount={(val) => setBetAmount(parseFloat(val) || 0)}
+              onBet={gameState === 'playing' ? () => handleCashout() : startGame}
+              isBetting={isProcessing}
+              balance={balance}
+              mainButtonLabel={gameState === 'playing' ? "Cashout" : "Bet"}
+              isMainButtonDisabled={gameState === 'playing' && revealedCount === 0}
+            >
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-bold text-[#b1bad3]">Mines</Label>
+                  <Select
+                    value={mineCount.toString()}
+                    onValueChange={(v) => setMineCount(parseInt(v))}
+                    disabled={gameState === 'playing'}
+                  >
+                    <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-8 text-xs">
+                      <SelectValue placeholder="Mines" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#213743] border-[#2f4553] text-white max-h-[200px]">
+                      {Array.from({ length: 24 }, (_, i) => i + 1).map((num) => (
+                        <SelectItem key={num} value={num.toString()}>
+                          {num}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-bold text-[#b1bad3]">Gems</Label>
+                  <div className="bg-[#0f212e] border border-[#2f4553] text-white font-bold h-8 flex items-center px-3 rounded-md text-xs">
+                    {25 - mineCount}
+                  </div>
+                </div>
+              </div>
+            </GameControlsMobile>
+          </div>
+        )}
 
         {/* Recent Bets */}
         <GameHistory gameType="Mines" />

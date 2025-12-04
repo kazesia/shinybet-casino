@@ -13,11 +13,14 @@ import { useUI } from '@/context/UIContext';
 import { toast } from 'sonner';
 import { PLINKO_CONFIG, getMultipliers, getBucketColor } from '@/components/games/plinko/config';
 import { GameHistory } from '@/components/games/GameHistory';
+import { useViewport } from '@/hooks/useViewport';
+import { GameControlsMobile } from '@/components/game/GameControlsMobile';
 
 export default function PlinkoGame() {
   const { user } = useAuth();
   const { balance, optimisticUpdate } = useWallet();
   const { openFairnessModal } = useUI();
+  const { isMobile } = useViewport();
 
   // Game State
   const [betAmount, setBetAmount] = useState<number>(0);
@@ -245,90 +248,92 @@ export default function PlinkoGame() {
         {/* Main Game Container */}
         <div className="flex flex-col lg:flex-row bg-[#1a2c38] rounded-lg overflow-hidden shadow-xl border border-[#213743]">
 
-          {/* LEFT: Control Panel */}
-          <div className="w-full lg:w-[320px] bg-[#213743] p-4 flex flex-col gap-4 border-r border-[#1a2c38]">
+          {/* LEFT: Control Panel (Desktop Only) */}
+          {!isMobile && (
+            <div className="w-full lg:w-[320px] bg-[#213743] p-4 flex flex-col gap-4 border-r border-[#1a2c38]">
 
-            {/* Mode Tabs */}
-            <div className="bg-[#0f212e] p-1 rounded-full flex">
-              <button
-                onClick={() => setMode('manual')}
-                className={cn(
-                  "flex-1 py-2 text-sm font-bold rounded-full transition-all",
-                  mode === 'manual' ? "bg-[#2f4553] text-white shadow-md" : "text-[#b1bad3] hover:text-white"
-                )}
-              >
-                Manual
-              </button>
-              <button
-                onClick={() => setMode('auto')}
-                className={cn(
-                  "flex-1 py-2 text-sm font-bold rounded-full transition-all",
-                  mode === 'auto' ? "bg-[#2f4553] text-white shadow-md" : "text-[#b1bad3] hover:text-white"
-                )}
-              >
-                Auto
-              </button>
-            </div>
-
-            {/* Bet Amount */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
-                <span>Bet Amount</span>
-                <span>{betAmount.toFixed(8)} LTC</span>
+              {/* Mode Tabs */}
+              <div className="bg-[#0f212e] p-1 rounded-full flex">
+                <button
+                  onClick={() => setMode('manual')}
+                  className={cn(
+                    "flex-1 py-2 text-sm font-bold rounded-full transition-all",
+                    mode === 'manual' ? "bg-[#2f4553] text-white shadow-md" : "text-[#b1bad3] hover:text-white"
+                  )}
+                >
+                  Manual
+                </button>
+                <button
+                  onClick={() => setMode('auto')}
+                  className={cn(
+                    "flex-1 py-2 text-sm font-bold rounded-full transition-all",
+                    mode === 'auto' ? "bg-[#2f4553] text-white shadow-md" : "text-[#b1bad3] hover:text-white"
+                  )}
+                >
+                  Auto
+                </button>
               </div>
-              <div className="relative flex items-center">
-                <Input
-                  type="number"
-                  value={betAmount}
-                  onChange={handleBetAmountChange}
-                  className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553]"
-                />
-                <div className="absolute right-1 flex gap-1">
-                  <button onClick={() => adjustBet(0.5)} className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors">½</button>
-                  <button onClick={() => adjustBet(2)} className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors">2×</button>
+
+              {/* Bet Amount */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
+                  <span>Bet Amount</span>
+                  <span>{betAmount.toFixed(8)} LTC</span>
+                </div>
+                <div className="relative flex items-center">
+                  <Input
+                    type="number"
+                    value={betAmount}
+                    onChange={handleBetAmountChange}
+                    className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553]"
+                  />
+                  <div className="absolute right-1 flex gap-1">
+                    <button onClick={() => adjustBet(0.5)} className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors">½</button>
+                    <button onClick={() => adjustBet(2)} className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors">2×</button>
+                  </div>
                 </div>
               </div>
+
+              {/* Risk Level */}
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-[#b1bad3]">Risk</Label>
+                <Select value={risk} onValueChange={(v: any) => setRisk(v)}>
+                  <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#213743] border-[#2f4553] text-white">
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Rows */}
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-[#b1bad3]">Rows</Label>
+                <Select value={rows.toString()} onValueChange={(v) => setRows(parseInt(v))}>
+                  <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#213743] border-[#2f4553] text-white">
+                    <SelectItem value="8">8</SelectItem>
+                    <SelectItem value="12">12</SelectItem>
+                    <SelectItem value="16">16</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Play Button */}
+              <Button
+                onClick={dropBall}
+                className="w-full h-12 mt-2 bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-black text-base shadow-[0_4px_0_#B8860B] active:shadow-none active:translate-y-[4px] transition-all"
+              >
+                Bet
+              </Button>
+
             </div>
-
-            {/* Risk Level */}
-            <div className="space-y-1">
-              <Label className="text-xs font-bold text-[#b1bad3]">Risk</Label>
-              <Select value={risk} onValueChange={(v: any) => setRisk(v)}>
-                <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-10">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#213743] border-[#2f4553] text-white">
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Rows */}
-            <div className="space-y-1">
-              <Label className="text-xs font-bold text-[#b1bad3]">Rows</Label>
-              <Select value={rows.toString()} onValueChange={(v) => setRows(parseInt(v))}>
-                <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-10">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#213743] border-[#2f4553] text-white">
-                  <SelectItem value="8">8</SelectItem>
-                  <SelectItem value="12">12</SelectItem>
-                  <SelectItem value="16">16</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Play Button */}
-            <Button
-              onClick={dropBall}
-              className="w-full h-12 mt-2 bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-black text-base shadow-[0_4px_0_#B8860B] active:shadow-none active:translate-y-[4px] transition-all"
-            >
-              Bet
-            </Button>
-
-          </div>
+          )}
 
           {/* RIGHT: Game Area */}
           <div className="flex-1 bg-[#0f212e] relative flex flex-col items-center justify-center overflow-hidden min-h-[600px]">
@@ -393,6 +398,48 @@ export default function PlinkoGame() {
           </div>
 
         </div>
+
+        {/* Mobile Controls */}
+        {isMobile && (
+          <div className="fixed bottom-[64px] left-0 right-0 z-40">
+            <GameControlsMobile
+              betAmount={betAmount.toString()}
+              setBetAmount={(val) => setBetAmount(parseFloat(val) || 0)}
+              onBet={dropBall}
+              isBetting={false} // Plinko allows rapid fire
+              balance={balance}
+            >
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-bold text-[#b1bad3]">Risk</Label>
+                  <Select value={risk} onValueChange={(v: any) => setRisk(v)}>
+                    <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#213743] border-[#2f4553] text-white">
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-bold text-[#b1bad3]">Rows</Label>
+                  <Select value={rows.toString()} onValueChange={(v) => setRows(parseInt(v))}>
+                    <SelectTrigger className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#213743] border-[#2f4553] text-white">
+                      <SelectItem value="8">8</SelectItem>
+                      <SelectItem value="12">12</SelectItem>
+                      <SelectItem value="16">16</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </GameControlsMobile>
+          </div>
+        )}
 
         {/* History */}
         <GameHistory gameType="Plinko" />

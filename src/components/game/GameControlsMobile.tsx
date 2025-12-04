@@ -17,6 +17,8 @@ interface GameControlsMobileProps {
     winChance?: number;
     setWinChance?: (chance: number) => void;
     children?: React.ReactNode; // For extra game-specific controls
+    mainButtonLabel?: string;
+    isMainButtonDisabled?: boolean;
 }
 
 export function GameControlsMobile({
@@ -29,7 +31,9 @@ export function GameControlsMobile({
     setMultiplier,
     winChance,
     setWinChance,
-    children
+    children,
+    mainButtonLabel = "Bet",
+    isMainButtonDisabled = false
 }: GameControlsMobileProps) {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
