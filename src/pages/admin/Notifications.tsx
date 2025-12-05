@@ -79,14 +79,18 @@ export default function AdminNotifications() {
 
                 toast.success(`Notification sent to ${users.length} users!`);
             } else {
-                // Send to specific user
-                const { data: user, error: userError } = await supabase
-                    .from('profiles')
-                    .select('id')
-                    .eq('email', targetEmail)
-                    .single();
+                // Send to specific user - query auth.users for email
+                const { data: authUser, error: authError } = await supabase.auth.admin.listUsers();
 
-                if (userError || !user) {
+                if (authError) {
+                    console.error('Error fetching users:', authError);
+                    toast.error('Failed to fetch users');
+                    return;
+                }
+
+                const targetUser = authUser.users.find(u => u.email === targetEmail);
+
+                if (!targetUser) {
                     toast.error('User not found');
                     return;
                 }
@@ -94,7 +98,7 @@ export default function AdminNotifications() {
                 const { error } = await supabase
                     .from('notifications')
                     .insert({
-                        user_id: user.id,
+                        user_id: targetUser.id,
                         title,
                         message,
                         type,
@@ -298,9 +302,9 @@ export default function AdminNotifications() {
                                                         </TableCell>
                                                         <TableCell>
                                                             <span className={`px-2 py-1 rounded text-xs font-medium ${notification.type === 'warning' ? 'bg-orange-500/20 text-orange-500' :
-                                                                    notification.type === 'promo' ? 'bg-purple-500/20 text-purple-500' :
-                                                                        notification.type === 'system' ? 'bg-blue-500/20 text-blue-500' :
-                                                                            'bg-[#1475e1]/20 text-[#1475e1]'
+                                                                notification.type === 'promo' ? 'bg-purple-500/20 text-purple-500' :
+                                                                    notification.type === 'system' ? 'bg-blue-500/20 text-blue-500' :
+                                                                        'bg-[#1475e1]/20 text-[#1475e1]'
                                                                 }`}>
                                                                 {notification.type}
                                                             </span>
