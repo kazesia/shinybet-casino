@@ -54,6 +54,7 @@ import CasinoBets from './pages/admin/CasinoBets';
 import SportsBets from './pages/admin/SportsBets';
 import AdminTransactions from '@/pages/admin/Transactions';
 import AdminAffiliates from '@/pages/admin/Affiliates';
+import AdminNotifications from '@/pages/admin/Notifications';
 import GlobalSettings from '@/pages/admin/GlobalSettings';
 import WalletSettings from './pages/admin/WalletSettings';
 
@@ -136,6 +137,7 @@ function App() {
                 <Route path="bets/sports" element={<SportsBets />} />
                 <Route path="transactions" element={<AdminTransactions />} />
                 <Route path="affiliates" element={<AdminAffiliates />} />
+                <Route path="notifications" element={<AdminNotifications />} />
                 <Route path="settings" element={<GlobalSettings />} />
                 <Route path="wallet" element={<WalletSettings />} />
               </Route>

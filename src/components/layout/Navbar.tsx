@@ -24,6 +24,7 @@ import { WalletDropdown } from '@/components/wallet/WalletDropdown';
 import { useDashboardData } from '@/hooks/useDashboardData';
 
 import { SearchModal } from '@/components/search/SearchModal';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 const LOGO_URL = "https://cdn.discordapp.com/attachments/1442155264613814302/1445539875116810392/Collabeco_2_-removebg-preview.png?ex=6930b76b&is=692f65eb&hm=9be06a69591c9fba9edca705a2295c341ddde42e5112db67b58dbc0d77f00ed5";
 
@@ -186,6 +187,9 @@ const Navbar = () => {
               >
                 <Search className="h-5 w-5" />
               </Button>
+
+              {/* Notifications */}
+              <NotificationBell />
 
               {/* User Dropdown Menu */}
               <DropdownMenu>

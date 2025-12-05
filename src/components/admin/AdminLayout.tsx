@@ -16,7 +16,8 @@ import {
   Menu,
   Shield,
   Home,
-  Dices
+  Dices,
+  Bell
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +32,7 @@ const NAV_ITEMS = [
   { label: 'Sports Bets', icon: Dices, path: '/admin/bets/sports' },
   { label: 'Transactions', icon: History, path: '/admin/transactions' },
   { label: 'Affiliates', icon: Users, path: '/admin/affiliates' },
+  { label: 'Notifications', icon: Bell, path: '/admin/notifications' },
   { label: 'Settings', icon: Settings, path: '/admin/settings' },
 ];
 
