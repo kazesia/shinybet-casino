@@ -471,4 +471,3 @@ const BlackjackGame = () => {
 };
 
 export default BlackjackGame;
-```
