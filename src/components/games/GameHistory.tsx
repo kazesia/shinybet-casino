@@ -15,24 +15,40 @@ interface GameHistoryProps {
 }
 
 const getGameIcon = (gameType: string) => {
-    const type = gameType.toLowerCase();
+    const type = gameType.toLowerCase().replace(' ', '');
+    let src = '';
+
     switch (type) {
         case 'dice':
-            return <Dices className="w-4 h-4" />;
+            src = '/game-assets/thumbnails/dice_new.png';
+            break;
         case 'plinko':
-            return <Zap className="w-4 h-4" />;
+            src = '/game-assets/thumbnails/plinko_new.jpg';
+            break;
         case 'mines':
-            return <Flame className="w-4 h-4" />;
+            src = '/game-assets/thumbnails/mines_new.jpg';
+            break;
         case 'crash':
-            return <TrendingUp className="w-4 h-4" />;
+            src = '/game-assets/thumbnails/crash_new.jpg';
+            break;
         case 'blackjack':
-            return <Spade className="w-4 h-4" />;
+            src = '/game-assets/thumbnails/blackjack_new.jpg';
+            break;
         case 'coinflip':
-        case 'coin flip':
-            return <UserIcon className="w-4 h-4" />;
+        case 'flip':
+            src = '/game-assets/thumbnails/flip.png';
+            break;
         default:
             return <Dices className="w-4 h-4" />;
     }
+
+    return (
+        <img
+            src={src}
+            alt={gameType}
+            className="w-5 h-5 rounded-md object-cover shadow-sm"
+        />
+    );
 };
 
 export function GameHistory({ gameType }: GameHistoryProps) {
@@ -217,7 +233,7 @@ export function GameHistory({ gameType }: GameHistoryProps) {
                                             {new Date(bet.created_at).toLocaleTimeString()}
                                         </td>
                                         <td className="px-6 py-4 text-right text-white font-mono">
-                                            ${bet.stake_credits.toFixed(2)}
+                                            ${bet.stake_credits.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </td>
                                         <td className="px-6 py-4 text-right text-[#b1bad3] font-mono">
                                             {multiplier.toFixed(2)}x
@@ -226,7 +242,7 @@ export function GameHistory({ gameType }: GameHistoryProps) {
                                             "px-6 py-4 text-right font-bold font-mono",
                                             isWin ? "text-[#00e701]" : "text-[#b1bad3]"
                                         )}>
-                                            {isWin ? `+$${bet.payout_credits.toFixed(2)}` : '$0.00'}
+                                            {isWin ? `+$${bet.payout_credits.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'}
                                         </td>
                                     </tr>
                                 );

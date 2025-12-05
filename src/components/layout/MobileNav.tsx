@@ -1,4 +1,4 @@
-import { X, Home, Gamepad2, Wallet, Trophy, Users, Gift, BarChart2, FileText, Settings, Headset, Shield, LogOut } from 'lucide-react';
+import { X, Home, Gamepad2, HelpCircle, Wallet, Trophy, Users, Gift, BarChart2, FileText, Settings, Headset, Shield, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useUI } from '@/context/UIContext';
@@ -14,16 +14,11 @@ const MENU_SECTIONS = [
         title: 'Main',
         items: [
             { icon: Home, label: 'Home', link: '/' },
-            { icon: Gamepad2, label: 'Games', link: '/' },
-            { icon: Wallet, label: 'Wallet', link: '/wallet' },
-        ],
-    },
-    {
-        title: 'Features',
-        items: [
+            { icon: Gamepad2, label: 'Games', link: '/dashboard' },
+            { icon: Gift, label: 'Promotions', link: '/promotions' },
             { icon: Trophy, label: 'VIP Club', link: '/vip-club' },
             { icon: Users, label: 'Affiliate', link: '/affiliate' },
-            { icon: Gift, label: 'Promotions', link: '/promotions' },
+            { icon: HelpCircle, label: 'Help', link: '/help' },
         ],
     },
     {

@@ -307,16 +307,17 @@ const BlackjackGame = () => {
                         <div className="space-y-1">
                             <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
                                 <span>Bet Amount</span>
-                                <span>{betAmount.toFixed(8)} LTC</span>
+                                <span>{betAmount.toFixed(2)} USD</span>
                             </div>
                             <div className="relative flex items-center">
                                 <div className="absolute left-3 text-[#b1bad3] pointer-events-none select-none">$</div>
                                 <Input
                                     type="number"
-                                    value={betAmount}
+                                    value={betAmount === 0 ? '' : betAmount}
                                     onChange={handleBetAmountChange}
                                     disabled={gameState === 'playing' || gameState === 'dealerTurn'}
                                     className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-6 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553]"
+                                    placeholder="0"
                                 />
                                 <div className="absolute right-1 flex gap-1">
                                     <button onClick={() => adjustBet(0.5)} disabled={gameState !== 'betting' && gameState !== 'gameOver'} className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors">½</button>

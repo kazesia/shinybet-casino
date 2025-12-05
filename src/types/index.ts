@@ -8,6 +8,10 @@ export interface Profile {
   last_sign_in_at?: string;
   wallet_balance?: number; // Joined field
   wallets?: Array<{ credits: number }>;
+  referral_id?: string;
+  referred_by_user_id?: string;
+  date_of_birth?: string;
+  phone?: string;
 }
 
 export interface Wallet {

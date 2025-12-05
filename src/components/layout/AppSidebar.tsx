@@ -49,37 +49,6 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
   return (
     <div className={cn("flex flex-col h-full bg-[#0f212e] text-[#b1bad3] pt-4", className)}>
 
-      {/* Casino / Sports Toggle */}
-      <div className={cn("mb-4", isSidebarCollapsed ? "px-2" : "px-4")}>
-        <div className={cn(
-          "flex items-center bg-[#1a2c38] rounded-full p-1",
-          isSidebarCollapsed && "flex-col gap-1 rounded-lg"
-        )}>
-          <Link to="/" onClick={onLinkClick} className="flex-1 w-full">
-            <div className={cn(
-              "rounded-full flex items-center justify-center font-bold text-sm transition-all cursor-pointer",
-              isSidebarCollapsed ? "h-8 w-full rounded-md" : "h-9",
-              !isSports
-                ? "bg-[#2f4553] text-white shadow-sm"
-                : "bg-transparent text-[#b1bad3] hover:text-white"
-            )}>
-              {isSidebarCollapsed ? <Gem className="h-4 w-4" /> : "Casino"}
-            </div>
-          </Link>
-          <Link to="/sports" onClick={onLinkClick} className="flex-1 w-full">
-            <div className={cn(
-              "rounded-full flex items-center justify-center font-bold text-sm transition-all cursor-pointer",
-              isSidebarCollapsed ? "h-8 w-full rounded-md" : "h-9",
-              isSports
-                ? "bg-[#2f4553] text-white shadow-sm"
-                : "bg-transparent text-[#b1bad3] hover:text-white"
-            )}>
-              {isSidebarCollapsed ? <Trophy className="h-4 w-4" /> : "Sports"}
-            </div>
-          </Link>
-        </div>
-      </div>
-
       <ScrollArea className="flex-1 px-4 pb-4">
         {/* User Profile Card (Optional, keeping it as it's useful) */}
         {!isSidebarCollapsed && <UserProfileCard />}
@@ -186,21 +155,6 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
               </AccordionItem>
             </Accordion>
 
-            {/* Affiliate */}
-            <Link to="/affiliate" onClick={onLinkClick} className="block">
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start gap-3 h-10 font-semibold",
-                  isActive('/affiliate') ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
-                  isSidebarCollapsed && "justify-center px-0"
-                )}
-              >
-                <Users className="h-4 w-4 shrink-0" />
-                {!isSidebarCollapsed && "Affiliate"}
-              </Button>
-            </Link>
-
             {/* VIP Club */}
             <Link to="/vip-club" onClick={onLinkClick} className="block">
               <Button
@@ -213,6 +167,21 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
               >
                 <Trophy className="h-4 w-4 shrink-0" />
                 {!isSidebarCollapsed && "VIP Club"}
+              </Button>
+            </Link>
+
+            {/* Affiliate */}
+            <Link to="/affiliate" onClick={onLinkClick} className="block">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start gap-3 h-10 font-semibold",
+                  isActive('/affiliate') ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
+                  isSidebarCollapsed && "justify-center px-0"
+                )}
+              >
+                <Users className="h-4 w-4 shrink-0" />
+                {!isSidebarCollapsed && "Affiliate"}
               </Button>
             </Link>
 

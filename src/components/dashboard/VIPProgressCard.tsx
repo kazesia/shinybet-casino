@@ -32,11 +32,11 @@ export default function VIPProgressCard() {
     }
 
     return (
-        <Link to="/vip-club" className="block w-full">
-            <div className="bg-[#0f212e] border border-[#F7D979]/50 rounded-xl p-5 relative overflow-hidden group transition-all hover:border-[#F7D979] hover:shadow-[0_0_20px_-10px_rgba(247,217,121,0.3)]">
+        <Link to="/vip-club" className="block h-full">
+            <div className="bg-[#0f212e] border border-[#F7D979]/50 rounded-xl p-6 h-full flex flex-col justify-between relative overflow-hidden group transition-all hover:border-[#F7D979] hover:shadow-[0_0_20px_-10px_rgba(247,217,121,0.3)]">
 
                 {/* Header Row */}
-                <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <span className="text-white font-bold text-lg tracking-wide">
                             {profile?.username || 'User'}
@@ -60,7 +60,7 @@ export default function VIPProgressCard() {
                 </div>
 
                 {/* Progress Bar */}
-                <div className="relative h-3 bg-[#1a2c38] rounded-full overflow-hidden mb-2">
+                <div className="relative h-6 bg-[#1a2c38] rounded-full overflow-hidden mb-3">
                     <div
                         className="absolute top-0 left-0 h-full bg-[#cfa563] rounded-full transition-all duration-500"
                         style={{ width: `${progressPercent}%` }}

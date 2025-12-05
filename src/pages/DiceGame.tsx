@@ -178,10 +178,10 @@ const DiceGame = () => {
 
       // Handle specific errors
       if (e.message?.includes('Daily loss limit reached')) {
-        toast.error("Daily Loss Limit Reached", {
-          description: "You have hit your daily loss limit. Please come back tomorrow.",
-          duration: 8000,
-        });
+        // toast.error("Daily Loss Limit Reached", {
+        //   description: "You have hit your daily loss limit. Please come back tomorrow.",
+        //   duration: 8000,
+        // });
       } else {
         toast.error(e.message || "Failed to place bet");
       }
@@ -242,7 +242,7 @@ const DiceGame = () => {
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
                   <span>Profit on Win</span>
-                  <span>{profitOnWin.toFixed(8)} LTC</span>
+                  <span>{profitOnWin.toFixed(2)} USD</span>
                 </div>
                 <div className="relative flex items-center">
                   <div className="absolute left-3 text-[#b1bad3] pointer-events-none select-none">$</div>

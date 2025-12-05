@@ -52,8 +52,9 @@ import WithdrawalsCenter from './pages/admin/WithdrawalsCenter';
 import Deposits from './pages/admin/Deposits';
 import CasinoBets from './pages/admin/CasinoBets';
 import SportsBets from './pages/admin/SportsBets';
-import AdminTransactions from './pages/admin/Transactions';
-import GlobalSettings from './pages/admin/GlobalSettings';
+import AdminTransactions from '@/pages/admin/Transactions';
+import AdminAffiliates from '@/pages/admin/Affiliates';
+import GlobalSettings from '@/pages/admin/GlobalSettings';
 import WalletSettings from './pages/admin/WalletSettings';
 
 function App() {
@@ -134,6 +135,7 @@ function App() {
                 <Route path="bets/casino" element={<CasinoBets />} />
                 <Route path="bets/sports" element={<SportsBets />} />
                 <Route path="transactions" element={<AdminTransactions />} />
+                <Route path="affiliates" element={<AdminAffiliates />} />
                 <Route path="settings" element={<GlobalSettings />} />
                 <Route path="wallet" element={<WalletSettings />} />
               </Route>
@@ -148,16 +150,13 @@ function App() {
             <VaultModal />
             <Toaster
               position="top-right"
-              theme="dark"
+              richColors
               closeButton
-              duration={4000}
+              theme="dark"
+              duration={2000}
               toastOptions={{
-                style: {
-                  background: '#1a2c38',
-                  border: '1px solid #2f4553',
-                  color: 'white',
-                },
-                className: 'animate-in fade-in duration-1000',
+                style: { background: '#1a2c38', border: '1px solid #2f4553', color: 'white' },
+                className: 'my-toast-class',
               }}
             />
           </Router>

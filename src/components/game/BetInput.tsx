@@ -50,14 +50,14 @@ export const BetInput: React.FC<BetInputProps> = ({
         }
     };
 
-    const displayValue = typeof value === 'number' ? value.toString() : value;
+    const displayValue = value === 0 || value === '' ? '' : (typeof value === 'number' ? value.toString() : value);
 
     return (
         <div className={cn("space-y-1", className)}>
             <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
                 <span>Bet Amount</span>
                 {/* Optional: Show max bet or balance here if needed, or just current value formatted */}
-                <span>{typeof value === 'number' ? value.toFixed(8) : (parseFloat(value) || 0).toFixed(8)} {currency}</span>
+                <span>{typeof value === 'number' ? value.toFixed(2) : (parseFloat(value) || 0).toFixed(2)} USD</span>
             </div>
 
             <div className="relative flex items-center group">
@@ -74,7 +74,7 @@ export const BetInput: React.FC<BetInputProps> = ({
                     onChange={handleChange}
                     disabled={disabled}
                     className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-8 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553] hover:border-[#3d5565] transition-colors"
-                    placeholder="0.00000000"
+                    placeholder=""
                 />
 
                 {/* Controls (1/2, 2x, Max) */}

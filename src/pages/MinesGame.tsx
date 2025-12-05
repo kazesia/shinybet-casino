@@ -271,15 +271,16 @@ export default function MinesGame() {
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
                   <span>Bet Amount</span>
-                  <span>{betAmount.toFixed(8)} LTC</span>
+                  <span>{betAmount.toFixed(2)} USD</span>
                 </div>
                 <div className="relative flex items-center">
                   <Input
                     type="number"
-                    value={betAmount}
+                    value={betAmount === 0 ? '' : betAmount}
                     onChange={handleBetAmountChange}
                     disabled={gameState === 'playing'}
                     className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553] disabled:opacity-50"
+                    placeholder="0"
                   />
                   <div className="absolute right-1 flex gap-1">
                     <button

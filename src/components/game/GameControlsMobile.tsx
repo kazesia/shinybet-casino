@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import { Settings2, Sparkles } from 'lucide-react';
@@ -75,8 +76,8 @@ export function GameControlsMobile({
             {/* Bet Amount Section */}
             <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
-                    <span className="text-[#b1bad3] font-medium">Bet Amount</span>
-                    <span className="text-white font-mono">{parseFloat(betAmount || '0').toFixed(8)} SOL</span>
+                    <Label className="text-xs font-medium text-[#b1bad3]">Bet Amount</Label>
+                    <div className="text-xs font-bold text-white/70">{parseFloat(betAmount || '0').toFixed(2)} USD</div>
                 </div>
                 <div className="relative">
                     <Input

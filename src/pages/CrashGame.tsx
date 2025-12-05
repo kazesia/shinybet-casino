@@ -127,10 +127,10 @@ export default function CrashGame() {
     const payout = betAmount * currentMult;
     optimisticUpdate(payout);
 
-    toast.success(`Cashed out at ${currentMult.toFixed(2)}x`, {
-      description: `Won ${payout.toFixed(4)}`,
-      className: "bg-green-500/10 border-green-500 text-green-500 font-bold"
-    });
+    // toast.success(`Cashed out at ${currentMult.toFixed(2)}x`, {
+    //   description: `Won ${payout.toFixed(4)}`,
+    //   className: "bg-green-500/10 border-green-500 text-green-500 font-bold"
+    // });
 
     // Sync Win
     syncToDb(betAmount, payout, currentMult, 'win');
@@ -144,7 +144,7 @@ export default function CrashGame() {
     setHistory(prev => [{ id: Date.now().toString(), crash: finalCrash }, ...prev].slice(0, 10));
 
     if (hasBet && !hasCashedOut) {
-      toast.error("Crashed!", { description: `Lost ${betAmount.toFixed(4)}` });
+      // toast.error("Crashed!", { description: `Lost ${betAmount.toFixed(4)}` });
       // Sync Loss
       syncToDb(betAmount, 0, 0, 'loss');
     }
@@ -194,15 +194,16 @@ export default function CrashGame() {
             <div className="space-y-1">
               <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
                 <span>Bet Amount</span>
-                <span>{betAmount.toFixed(8)} LTC</span>
+                <span>{betAmount.toFixed(2)} USD</span>
               </div>
               <div className="relative flex items-center">
                 <Input
                   type="number"
-                  value={betAmount}
+                  value={betAmount === 0 ? '' : betAmount}
                   onChange={handleBetAmountChange}
                   disabled={hasBet && gameState !== 'crashed' && gameState !== 'idle'}
                   className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553] disabled:opacity-50"
+                  placeholder="0"
                 />
                 <div className="absolute right-1 flex gap-1">
                   <button onClick={() => adjustBet(0.5)} disabled={hasBet} className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors disabled:opacity-50">½</button>

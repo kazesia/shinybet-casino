@@ -178,9 +178,9 @@ export default function PlinkoGame() {
     optimisticUpdate(payout);
 
     if (isWin && multiplier > 1) {
-      toast.success(`${multiplier}x`, {
-        className: "bg-green-500/10 border-green-500 text-green-500 font-bold py-2"
-      });
+      // toast.success(`${multiplier}x`, {
+      //   className: "bg-green-500/10 border-green-500 text-green-500 font-bold py-2"
+      // });
     }
 
     // Sync to DB
@@ -278,14 +278,15 @@ export default function PlinkoGame() {
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
                   <span>Bet Amount</span>
-                  <span>{betAmount.toFixed(8)} LTC</span>
+                  <span>{betAmount.toFixed(2)} USD</span>
                 </div>
                 <div className="relative flex items-center">
                   <Input
                     type="number"
-                    value={betAmount}
+                    value={betAmount === 0 ? '' : betAmount}
                     onChange={handleBetAmountChange}
                     className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553]"
+                    placeholder="0"
                   />
                   <div className="absolute right-1 flex gap-1">
                     <button onClick={() => adjustBet(0.5)} className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors">½</button>

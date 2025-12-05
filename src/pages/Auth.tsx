@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -20,13 +20,14 @@ const loginSchema = z.object({
 });
 
 const registerSchema = z.object({
-  username: z.string().min(3, { message: "Username must be at least 3 characters" }),
   email: z.string().email({ message: "Invalid email address" }),
+  username: z.string()
+    .min(3, { message: "Username must be at least 3 characters" })
+    .max(14, { message: "Username must be 3-14 characters long" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
+  dateOfBirth: z.string().min(1, { message: "Date of birth is required" }),
+  phone: z.string().optional(),
+  referralCode: z.string().optional(),
 });
 
 export default function AuthPage() {
@@ -34,6 +35,24 @@ export default function AuthPage() {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [isResetOpen, setIsResetOpen] = useState(false);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [showPhone, setShowPhone] = useState(false);
+  const [showReferral, setShowReferral] = useState(false);
+
+  // Check for referral code in URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const ref = params.get('r');
+    if (ref) {
+      setReferralCode(ref);
+      // Store in localStorage for persistence across page reloads
+      localStorage.setItem('referral_code', ref);
+    } else {
+      // Check if previously stored
+      const stored = localStorage.getItem('referral_code');
+      if (stored) setReferralCode(stored);
+    }
+  }, [location]);
 
   // Forms
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -68,17 +87,49 @@ export default function AuthPage() {
   const onRegister = async (data: z.infer<typeof registerSchema>) => {
     setIsLoading(true);
     try {
+      // Validate age (must be 18+)
+      const birthDate = new Date(data.dateOfBirth);
+      const age = Math.floor((Date.now() - birthDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+
+      if (age < 18) {
+        toast.error('You must be at least 18 years old to register');
+        setIsLoading(false);
+        return;
+      }
+
+      // Get referrer ID - prioritize form input, then URL/localStorage
+      let referredByUserId = null;
+      const codeToCheck = data.referralCode || referralCode;
+
+      if (codeToCheck) {
+        const { data: referrerData } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('referral_id', codeToCheck)
+          .single();
+
+        if (referrerData) {
+          referredByUserId = referrerData.id;
+        }
+      }
+
       const { error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
           data: {
             username: data.username,
+            date_of_birth: data.dateOfBirth,
+            phone: data.phone || null,
+            referred_by_user_id: referredByUserId,
           },
         },
       });
 
       if (error) throw error;
+
+      // Clear referral code from storage after successful signup
+      localStorage.removeItem('referral_code');
 
       toast.success("Account created! Please check your email.");
     } catch (error: any) {
@@ -169,29 +220,103 @@ export default function AuthPage() {
             {/* Register Tab */}
             <TabsContent value="register">
               <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
+                {/* Email */}
                 <div className="space-y-2">
-                  <Label htmlFor="reg-username">Username</Label>
-                  <Input id="reg-username" placeholder="CryptoKing" {...registerForm.register("username")} className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-[#FFD700]" />
-                  {registerForm.formState.errors.username && <p className="text-xs text-red-500">{registerForm.formState.errors.username.message}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="reg-email">Email</Label>
-                  <Input id="reg-email" type="email" placeholder="m@example.com" {...registerForm.register("email")} className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-[#FFD700]" />
+                  <Label htmlFor="reg-email">Email <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="reg-email"
+                    type="email"
+                    placeholder="m@example.com"
+                    {...registerForm.register("email")}
+                    className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-[#FFD700]"
+                  />
                   {registerForm.formState.errors.email && <p className="text-xs text-red-500">{registerForm.formState.errors.email.message}</p>}
                 </div>
+
+                {/* Username */}
                 <div className="space-y-2">
-                  <Label htmlFor="reg-password">Password</Label>
-                  <Input id="reg-password" type="password" {...registerForm.register("password")} className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-[#FFD700]" />
+                  <Label htmlFor="reg-username">Username <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="reg-username"
+                    placeholder="CryptoKing"
+                    {...registerForm.register("username")}
+                    className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-[#FFD700]"
+                  />
+                  {registerForm.formState.errors.username && <p className="text-xs text-red-500">{registerForm.formState.errors.username.message}</p>}
+                  <p className="text-xs text-muted-foreground">Your username must be 3-14 characters long.</p>
+                </div>
+
+                {/* Password */}
+                <div className="space-y-2">
+                  <Label htmlFor="reg-password">Password <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="reg-password"
+                    type="password"
+                    {...registerForm.register("password")}
+                    className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-[#FFD700]"
+                  />
                   {registerForm.formState.errors.password && <p className="text-xs text-red-500">{registerForm.formState.errors.password.message}</p>}
                 </div>
+
+                {/* Date of Birth */}
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
-                  <Input id="confirm-password" type="password" {...registerForm.register("confirmPassword")} className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-[#FFD700]" />
-                  {registerForm.formState.errors.confirmPassword && <p className="text-xs text-red-500">{registerForm.formState.errors.confirmPassword.message}</p>}
+                  <Label htmlFor="dob">Date of Birth <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="dob"
+                    type="date"
+                    {...registerForm.register("dateOfBirth")}
+                    className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-[#FFD700]"
+                  />
+                  {registerForm.formState.errors.dateOfBirth && <p className="text-xs text-red-500">{registerForm.formState.errors.dateOfBirth.message}</p>}
                 </div>
+
+                {/* Phone (Optional) */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="phone-toggle"
+                      checked={showPhone}
+                      onChange={(e) => setShowPhone(e.target.checked)}
+                      className="w-4 h-4 rounded border-zinc-800 bg-zinc-900 text-[#FFD700] focus:ring-[#FFD700]"
+                    />
+                    <Label htmlFor="phone-toggle" className="cursor-pointer text-white">Phone (Optional)</Label>
+                  </div>
+                  {showPhone && (
+                    <Input
+                      type="tel"
+                      placeholder="Enter phone number"
+                      {...registerForm.register("phone")}
+                      className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-[#FFD700] mt-2"
+                    />
+                  )}
+                </div>
+
+                {/* Referral Code (Optional) */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="referral-toggle"
+                      checked={showReferral || !!referralCode}
+                      onChange={(e) => setShowReferral(e.target.checked)}
+                      className="w-4 h-4 rounded border-zinc-800 bg-zinc-900 text-[#FFD700] focus:ring-[#FFD700]"
+                    />
+                    <Label htmlFor="referral-toggle" className="cursor-pointer text-white">Referral Code (Optional)</Label>
+                  </div>
+                  {(showReferral || referralCode) && (
+                    <Input
+                      placeholder="Enter referral code"
+                      defaultValue={referralCode || ''}
+                      {...registerForm.register("referralCode")}
+                      className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-[#FFD700] mt-2"
+                    />
+                  )}
+                </div>
+
                 <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-[#F7D979] to-[#D9A94F] text-black font-bold hover:opacity-90">
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Create Account
+                  Continue
                 </Button>
               </form>
             </TabsContent>

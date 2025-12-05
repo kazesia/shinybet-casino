@@ -30,6 +30,7 @@ const NAV_ITEMS = [
   { label: 'Casino Bets', icon: Dices, path: '/admin/bets/casino' },
   { label: 'Sports Bets', icon: Dices, path: '/admin/bets/sports' },
   { label: 'Transactions', icon: History, path: '/admin/transactions' },
+  { label: 'Affiliates', icon: Users, path: '/admin/affiliates' },
   { label: 'Settings', icon: Settings, path: '/admin/settings' },
 ];
 

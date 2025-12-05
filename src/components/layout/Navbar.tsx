@@ -23,6 +23,8 @@ import { toast } from 'sonner';
 import { WalletDropdown } from '@/components/wallet/WalletDropdown';
 import { useDashboardData } from '@/hooks/useDashboardData';
 
+import { SearchModal } from '@/components/search/SearchModal';
+
 const LOGO_URL = "https://cdn.discordapp.com/attachments/1442155264613814302/1445539875116810392/Collabeco_2_-removebg-preview.png?ex=6930b76b&is=692f65eb&hm=9be06a69591c9fba9edca705a2295c341ddde42e5112db67b58dbc0d77f00ed5";
 
 // VIP Tiers for progress calculation
@@ -40,6 +42,7 @@ const Navbar = () => {
   const { openAuthModal, openWalletModal, toggleSidebar, openStatsModal, toggleChat, isChatOpen, openVaultModal } = useUI();
   const { stats } = useDashboardData();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -113,7 +116,29 @@ const Navbar = () => {
           <Menu className="h-5 w-5" />
         </Button>
 
-
+        {/* Casino/Sports Toggle */}
+        <div className="hidden md:flex items-center gap-2">
+          <Link to="/">
+            <div className={cn(
+              "px-6 py-2 rounded-lg flex items-center justify-center font-bold text-sm transition-all cursor-pointer",
+              !isSports
+                ? "bg-[#F7D979] text-black"
+                : "bg-[#2f4553] text-white hover:bg-[#3d5565]"
+            )}>
+              Casino
+            </div>
+          </Link>
+          <Link to="/sports">
+            <div className={cn(
+              "px-6 py-2 rounded-lg flex items-center justify-center font-bold text-sm transition-all cursor-pointer",
+              isSports
+                ? "bg-[#F7D979] text-black"
+                : "bg-[#2f4553] text-white hover:bg-[#3d5565]"
+            )}>
+              Sports
+            </div>
+          </Link>
+        </div>
 
         {/* 2. Logo */}
         <Link to="/" className="flex items-center gap-2 shrink-0">
@@ -153,7 +178,12 @@ const Navbar = () => {
             {/* Icons Group */}
             <div className="flex items-center gap-1">
               {/* Search */}
-              <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743] h-10 w-10 rounded-[4px]">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsSearchOpen(true)}
+                className="text-[#b1bad3] hover:text-white hover:bg-[#213743] h-10 w-10 rounded-[4px]"
+              >
                 <Search className="h-5 w-5" />
               </Button>
 
@@ -266,6 +296,9 @@ const Navbar = () => {
           </>
         )}
       </div>
+
+      {/* Search Modal */}
+      <SearchModal open={isSearchOpen} onOpenChange={setIsSearchOpen} />
     </nav>
   );
 };

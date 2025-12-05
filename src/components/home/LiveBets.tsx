@@ -30,14 +30,48 @@ const GAMES = [
 // --- Helper Components ---
 
 const CryptoIcon = ({ currency }: { currency: typeof CRYPTO_CURRENCIES[0] }) => (
-  <div className={cn("w-4 h-4 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0", currency.color)}>
-    {currency.icon}
+  <div className="w-4 h-4 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 bg-[#00e701]">
+    $
   </div>
 );
 
 const GameIcon = ({ type }: { type: string }) => {
-  const game = GAMES.find(g => g.type.toLowerCase() === type.toLowerCase()) || GAMES[0];
-  return <span className="text-lg">{game.emoji}</span>;
+  const normalizedType = type.toLowerCase().replace(' ', '');
+  let src = '';
+
+  switch (normalizedType) {
+    case 'dice':
+      src = '/game-assets/thumbnails/dice_new.png';
+      break;
+    case 'plinko':
+      src = '/game-assets/thumbnails/plinko_new.jpg';
+      break;
+    case 'mines':
+      src = '/game-assets/thumbnails/mines_new.jpg';
+      break;
+    case 'crash':
+      src = '/game-assets/thumbnails/crash_new.jpg';
+      break;
+    case 'blackjack':
+      src = '/game-assets/thumbnails/blackjack_new.jpg';
+      break;
+    case 'coinflip':
+    case 'flip':
+      src = '/game-assets/thumbnails/flip.png';
+      break;
+    default:
+      // Fallback to emoji if no image
+      const game = GAMES.find(g => g.type.toLowerCase() === type.toLowerCase()) || GAMES[0];
+      return <span className="text-lg">{game.emoji}</span>;
+  }
+
+  return (
+    <img
+      src={src}
+      alt={type}
+      className="w-5 h-5 rounded-md object-cover shadow-sm"
+    />
+  );
 };
 
 // Extended Bet type for UI display
@@ -267,7 +301,7 @@ export default function RecentBets() {
                       "font-bold font-mono text-sm flex items-center gap-1",
                       isWin ? "text-[#00e701]" : "text-[#b1bad3]"
                     )}>
-                      {isWin ? '+' : '-'}${isWin ? bet.payout_credits.toFixed(2) : bet.stake_credits.toFixed(2)}
+                      {isWin ? '+' : '-'}${isWin ? bet.payout_credits.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : bet.stake_credits.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       <CryptoIcon currency={currency} />
                     </div>
                     <div className="text-xs text-[#b1bad3] font-mono">
@@ -353,7 +387,7 @@ export default function RecentBets() {
                     <TableCell className="text-right py-3">
                       <div className="flex items-center justify-end gap-1.5">
                         <span className="text-white font-medium text-sm">
-                          ${bet.stake_credits.toFixed(2)}
+                          ${bet.stake_credits.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                         <CryptoIcon currency={currency} />
                       </div>
@@ -373,7 +407,7 @@ export default function RecentBets() {
                           "font-bold text-sm",
                           isWin ? "text-[#00e701]" : isLoss ? "text-red-500" : "text-[#b1bad3]"
                         )}>
-                          {isWin ? `+$${bet.payout_credits.toFixed(2)}` : isLoss ? `-$${bet.stake_credits.toFixed(2)}` : '$0.00'}
+                          {isWin ? `+$${bet.payout_credits.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : isLoss ? `-$${bet.stake_credits.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'}
                         </span>
                         <CryptoIcon currency={currency} />
                       </div>
