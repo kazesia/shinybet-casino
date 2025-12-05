@@ -79,18 +79,14 @@ export default function AdminNotifications() {
 
                 toast.success(`Notification sent to ${users.length} users!`);
             } else {
-                // Send to specific user - query auth.users for email
-                const { data: authUser, error: authError } = await supabase.auth.admin.listUsers();
+                // Send to specific user by username
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('username', targetEmail) // Using targetEmail field for username input
+                    .single();
 
-                if (authError) {
-                    console.error('Error fetching users:', authError);
-                    toast.error('Failed to fetch users');
-                    return;
-                }
-
-                const targetUser = authUser.users.find(u => u.email === targetEmail);
-
-                if (!targetUser) {
+                if (profileError || !profile) {
                     toast.error('User not found');
                     return;
                 }
@@ -98,7 +94,7 @@ export default function AdminNotifications() {
                 const { error } = await supabase
                     .from('notifications')
                     .insert({
-                        user_id: targetUser.id,
+                        user_id: profile.id,
                         title,
                         message,
                         type,
@@ -180,11 +176,11 @@ export default function AdminNotifications() {
                                 {/* Target Email (if specific) */}
                                 {targetType === 'specific' && (
                                     <div className="space-y-2">
-                                        <Label className="text-white">User Email</Label>
+                                        <Label className="text-white">Username</Label>
                                         <Input
                                             value={targetEmail}
                                             onChange={(e) => setTargetEmail(e.target.value)}
-                                            placeholder="user@example.com"
+                                            placeholder="username"
                                             className="bg-[#0f212e] border-[#2f4553] text-white"
                                         />
                                     </div>
