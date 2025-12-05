@@ -144,7 +144,7 @@ export default function CoinFlip() {
 
     while (autobetRef.current && betsRemaining > 0 && betAmount <= balance) {
       const result = await handleFlip();
-      if (result) {
+      if (result && typeof result === 'object' && 'profit' in result) {
         totalProfit += result.profit;
         setAutobetStats(prev => ({
           betsPlaced: prev.betsPlaced + 1,

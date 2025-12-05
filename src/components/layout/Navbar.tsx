@@ -228,7 +228,7 @@ const Navbar = () => {
                   </DropdownMenuLabel>
 
                   {/* Admin Items */}
-                  {profile?.role === 'admin' && (
+                  {(profile?.role === 'admin' || profile?.role === 'super_admin') && (
                     <>
                       <DropdownMenuSeparator className="bg-[#2f4553] my-2" />
                       {ADMIN_ITEMS.map((item, index) => (
