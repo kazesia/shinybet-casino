@@ -467,6 +467,7 @@ const BlackjackGame = () => {
         {/* Live Bets */ }
     <RecentBets />
 
+    </div >
     );
 };
 

@@ -540,4 +540,3 @@ const DiceGame = () => {
 };
 
 export default DiceGame;
-```
