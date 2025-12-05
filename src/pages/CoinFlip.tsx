@@ -10,7 +10,7 @@ import { useWallet } from '@/context/WalletContext';
 import { useUI } from '@/context/UIContext';
 import { toast } from 'sonner';
 import { Bet } from '@/types';
-import { RecentBets } from '@/components/games/RecentBets';
+import RecentBets from '@/components/home/LiveBets';
 
 export default function CoinFlip() {
   const { user } = useAuth();
@@ -357,8 +357,8 @@ export default function CoinFlip() {
 
         </div>
 
-        {/* Recent Bets */}
-        <RecentBets gameType="CoinFlip" />
+        {/* Live Bets */}
+        <RecentBets />
 
       </div>
     </div>

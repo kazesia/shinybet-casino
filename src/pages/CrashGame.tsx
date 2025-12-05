@@ -10,7 +10,7 @@ import { useWallet } from '@/context/WalletContext';
 import { useUI } from '@/context/UIContext';
 import { toast } from 'sonner';
 import CrashCanvas from '@/components/games/crash/CrashCanvas';
-import { RecentBets } from '@/components/games/RecentBets';
+import RecentBets from '@/components/home/LiveBets';
 
 // Configuration
 const HOUSE_EDGE = 0.04; // 4% chance to crash instantly at 1.00x
@@ -347,8 +347,8 @@ export default function CrashGame() {
           </div>
         </div>
 
-        {/* Recent Bets */}
-        <RecentBets gameType="Crash" />
+        {/* Live Bets */}
+        <RecentBets />
 
       </div>
     </div>
