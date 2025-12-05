@@ -462,13 +462,13 @@ const BlackjackGame = () => {
                 </div>
 
             </div>
+
+            {/* Live Bets */}
+            <RecentBets />
+
         </div>
-
-        {/* Live Bets */ }
-    <RecentBets />
-
-    </div >
     );
 };
 
 export default BlackjackGame;
+```
