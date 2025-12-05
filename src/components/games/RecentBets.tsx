@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Dices, Zap, Flame, TrendingUp, Spade, User as UserIcon } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { cn } from '@/lib/utils';
 
 interface Bet {
     id: string;
