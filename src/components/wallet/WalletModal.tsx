@@ -278,7 +278,7 @@ const DepositView = ({
             <CommandList>
               <CommandEmpty>No coin found.</CommandEmpty>
               <CommandGroup>
-                {coins.map((coin) => (
+                {coins.filter(c => c.active).map((coin) => (
                   <CommandItem
                     key={coin.id}
                     value={coin.name}
@@ -435,7 +435,7 @@ const WithdrawView = ({
               <CommandList>
                 <CommandEmpty>No coin found.</CommandEmpty>
                 <CommandGroup>
-                  {coins.map((coin) => (
+                  {coins.filter(c => c.active).map((coin) => (
                     <CommandItem
                       key={coin.id}
                       value={coin.name}
