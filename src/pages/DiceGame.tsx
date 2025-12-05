@@ -14,6 +14,7 @@ import { Bet } from '@/types';
 import { BetInput } from '@/components/game/BetInput';
 import { useViewport } from '@/hooks/useViewport';
 import { GameControlsMobile } from '@/components/game/GameControlsMobile';
+import RecentBets from '@/components/home/LiveBets';
 
 const DiceGame = () => {
   const { user } = useAuth();
@@ -529,9 +530,14 @@ const DiceGame = () => {
           </div>
         </div>
 
-      </div >
-    </div >
+      </div>
+
+      {/* Live Bets */}
+      <RecentBets />
+
+    </div>
   );
 };
 
 export default DiceGame;
+```

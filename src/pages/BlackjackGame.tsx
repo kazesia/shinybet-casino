@@ -9,6 +9,7 @@ import { useWallet } from '@/context/WalletContext';
 import { useSound } from '@/hooks/useSound';
 import { toast } from 'sonner';
 import { Bet } from '@/types';
+import RecentBets from '@/components/home/LiveBets';
 
 type Card = {
     suit: 'hearts' | 'diamonds' | 'clubs' | 'spades';
@@ -462,6 +463,10 @@ const BlackjackGame = () => {
 
             </div>
         </div>
+
+        {/* Live Bets */ }
+    <RecentBets />
+
     );
 };
 
