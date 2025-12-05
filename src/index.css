@@ -4,13 +4,16 @@
 
 @layer base {
   :root {
-    --background: 210 30% 12%; /* #0f212e */
+    --background: 210 30% 12%;
+    /* #0f212e */
     --foreground: 0 0% 100%;
-    --card: 204 25% 16%; /* #1a2c38 */
+    --card: 204 25% 16%;
+    /* #1a2c38 */
     --card-foreground: 0 0% 100%;
     --popover: 204 25% 16%;
     --popover-foreground: 0 0% 100%;
-    --primary: 212 83% 48%; /* #1475e1 */
+    --primary: 212 83% 48%;
+    /* #1475e1 */
     --primary-foreground: 0 0% 100%;
     --secondary: 204 25% 16%;
     --secondary-foreground: 0 0% 100%;
@@ -27,9 +30,11 @@
   }
 
   .dark {
-    --background: 210 30% 12%; /* #0f212e */
+    --background: 210 30% 12%;
+    /* #0f212e */
     --foreground: 0 0% 100%;
-    --card: 204 25% 16%; /* #1a2c38 */
+    --card: 204 25% 16%;
+    /* #1a2c38 */
     --card-foreground: 0 0% 100%;
     --popover: 204 25% 16%;
     --popover-foreground: 0 0% 100%;
@@ -53,6 +58,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-[#0f212e] text-white font-sans antialiased;
   }
@@ -62,19 +68,24 @@
   .text-gold-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-[#F7D979] to-[#D9A94F];
   }
+
   .bg-gold-gradient {
     @apply bg-gradient-to-r from-[#F7D979] to-[#D9A94F];
   }
+
   /* Stake specific utilities */
   .bg-stake-dark {
     background-color: #0f212e;
   }
+
   .bg-stake-card {
     background-color: #1a2c38;
   }
+
   .bg-stake-hover {
     background-color: #213743;
   }
+
   .text-stake-gray {
     color: #b1bad3;
   }

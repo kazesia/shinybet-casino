@@ -10,6 +10,7 @@ import { useSound } from '@/hooks/useSound';
 import { toast } from 'sonner';
 import { Bet } from '@/types';
 import RecentBets from '@/components/home/LiveBets';
+import { useUI } from '@/context/UIContext';
 
 type Card = {
     suit: 'hearts' | 'diamonds' | 'clubs' | 'spades';
@@ -23,6 +24,7 @@ const VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'
 const BlackjackGame = () => {
     const { user } = useAuth();
     const { balance, optimisticUpdate } = useWallet();
+    const { openFairnessModal } = useUI();
     const sound = useSound();
 
     // Game State
@@ -31,26 +33,7 @@ const BlackjackGame = () => {
     const [playerHand, setPlayerHand] = useState<Card[]>([]);
     const [dealerHand, setDealerHand] = useState<Card[]>([]);
     const [deck, setDeck] = useState<Card[]>([]);
-    const [history, setHistory] = useState<Bet[]>([]);
     const [outcome, setOutcome] = useState<'win' | 'loss' | 'push' | null>(null);
-
-    useEffect(() => {
-        if (user) {
-            fetchHistory();
-        }
-    }, [user]);
-
-    const fetchHistory = async () => {
-        const { data } = await supabase
-            .from('bets')
-            .select('*')
-            .eq('user_id', user?.id)
-            .eq('game_type', 'Blackjack')
-            .order('created_at', { ascending: false })
-            .limit(10);
-
-        if (data) setHistory(data as unknown as Bet[]);
-    };
 
     const createDeck = () => {
         const newDeck: Card[] = [];
@@ -215,7 +198,7 @@ const BlackjackGame = () => {
                 console.error("Bet error:", betError);
                 toast.error(`Failed to save bet: ${betError.message}`);
             }
-            if (bet) setHistory(prev => [bet as unknown as Bet, ...prev].slice(0, 10));
+
 
         } catch (e) {
             console.error("DB Sync error:", e);
@@ -357,6 +340,17 @@ const BlackjackGame = () => {
                     {/* Game Area */}
                     <div className="flex-1 bg-[#0f212e] p-6 md:p-12 flex flex-col relative min-h-[500px]">
 
+                        {/* Fairness Button */}
+                        <div className="absolute top-4 right-4 z-10">
+                            <div
+                                className="flex items-center gap-2 bg-[#213743] px-3 py-1 rounded-full cursor-pointer hover:bg-[#2f4553] transition-colors"
+                                onClick={openFairnessModal}
+                            >
+                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                <span className="text-xs font-bold text-white">Fairness</span>
+                            </div>
+                        </div>
+
                         {/* Dealer Hand */}
                         <div className="flex flex-col items-center mb-12">
                             <div className="text-sm font-bold text-[#b1bad3] mb-2">Dealer</div>
@@ -428,38 +422,7 @@ const BlackjackGame = () => {
                     </div>
                 </div>
 
-                {/* History Table (Same as Dice) */}
-                <div className="bg-[#1a2c38] rounded-lg border border-[#213743] overflow-hidden">
-                    <div className="flex items-center justify-between p-4 border-b border-[#213743]">
-                        <h3 className="text-white font-bold">Recent Bets</h3>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-xs text-[#b1bad3] bg-[#0f212e] uppercase">
-                                <tr>
-                                    <th className="px-6 py-3">Game</th>
-                                    <th className="px-6 py-3">User</th>
-                                    <th className="px-6 py-3">Time</th>
-                                    <th className="px-6 py-3 text-right">Bet Amount</th>
-                                    <th className="px-6 py-3 text-right">Payout</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {history.map((bet) => (
-                                    <tr key={bet.id} className="bg-[#1a2c38] border-b border-[#213743] hover:bg-[#213743]">
-                                        <td className="px-6 py-4 font-medium text-white">Blackjack</td>
-                                        <td className="px-6 py-4 text-[#b1bad3]">{user?.email?.split('@')[0] || 'Hidden'}</td>
-                                        <td className="px-6 py-4 text-[#b1bad3]">{new Date(bet.created_at).toLocaleTimeString()}</td>
-                                        <td className="px-6 py-4 text-right text-white font-mono">{bet.stake_credits.toFixed(8)}</td>
-                                        <td className={cn("px-6 py-4 text-right font-bold", bet.result === 'win' ? "text-[#FFD700]" : "text-[#b1bad3]")}>
-                                            {bet.payout_credits > 0 ? `+${bet.payout_credits.toFixed(8)}` : '0.00000000'}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+
 
             </div>
 

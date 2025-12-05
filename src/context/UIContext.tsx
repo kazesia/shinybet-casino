@@ -30,6 +30,9 @@ interface UIContextType {
   isChatOpen: boolean;
   toggleChat: () => void;
   setChatOpen: (open: boolean) => void;
+
+  selectedFiat: string;
+  setSelectedFiat: (currency: string) => void;
 }
 
 const UIContext = createContext<UIContextType>({
@@ -62,6 +65,9 @@ const UIContext = createContext<UIContextType>({
   isChatOpen: true,
   toggleChat: () => { },
   setChatOpen: () => { },
+
+  selectedFiat: 'USD',
+  setSelectedFiat: () => { },
 });
 
 export const useUI = () => useContext(UIContext);
@@ -97,6 +103,14 @@ export const UIProvider = ({ children }: { children: React.ReactNode }) => {
     return true;
   });
 
+  // Fiat Currency state
+  const [selectedFiat, setSelectedFiat] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('selectedFiat') || 'USD';
+    }
+    return 'USD';
+  });
+
   useEffect(() => {
     localStorage.setItem('sidebarCollapsed', JSON.stringify(isSidebarCollapsed));
   }, [isSidebarCollapsed]);
@@ -104,6 +118,10 @@ export const UIProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     localStorage.setItem('chatOpen', JSON.stringify(isChatOpen));
   }, [isChatOpen]);
+
+  useEffect(() => {
+    localStorage.setItem('selectedFiat', selectedFiat);
+  }, [selectedFiat]);
 
   const openAuthModal = (view: 'login' | 'register' = 'login') => {
     setAuthView(view);
@@ -158,7 +176,9 @@ export const UIProvider = ({ children }: { children: React.ReactNode }) => {
       setSidebarCollapsed,
       isChatOpen,
       toggleChat,
-      setChatOpen
+      setChatOpen,
+      selectedFiat,
+      setSelectedFiat
     }}>
       {children}
     </UIContext.Provider>

@@ -1,14 +1,14 @@
 import { Button } from '@/components/ui/button';
-import { Search, Bell, Menu, User, MessageSquare, ChevronDown, Settings, LogOut, Wallet, Crown, Users, Trophy, BarChart2, FileText, ClipboardCheck, Shield, Headset, Lock } from 'lucide-react';
+import { StarButton } from '@/components/ui/star-button';
+import { Search, Bell, Menu, User, MessageSquare, ChevronDown, Settings, LogOut, Wallet, Crown, Users, Trophy, BarChart2, FileText, ClipboardCheck, Shield, Headset, Lock, ShieldCheck } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useWallet } from '@/context/WalletContext';
-import LanguageSelector from '@/components/LanguageSelector';
 import { useUI } from '@/context/UIContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { AppSidebar } from './AppSidebar';
 import { useState } from 'react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { VIPModal } from '@/components/VIPModal';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,16 +17,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { WalletDropdown } from '@/components/wallet/WalletDropdown';
 import { useDashboardData } from '@/hooks/useDashboardData';
-
 import { SearchModal } from '@/components/search/SearchModal';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
-
-const LOGO_URL = "https://cdn.discordapp.com/attachments/1442155264613814302/1445539875116810392/Collabeco_2_-removebg-preview.png?ex=6930b76b&is=692f65eb&hm=9be06a69591c9fba9edca705a2295c341ddde42e5112db67b58dbc0d77f00ed5";
 
 // VIP Tiers for progress calculation
 const VIP_TIERS = [
@@ -40,10 +36,11 @@ const VIP_TIERS = [
 const Navbar = () => {
   const { user, profile, signOut } = useAuth();
   const { balance } = useWallet();
-  const { openAuthModal, openWalletModal, toggleSidebar, openStatsModal, toggleChat, isChatOpen, openVaultModal } = useUI();
+  const { openAuthModal, openWalletModal, toggleSidebar, openStatsModal, toggleChat, isChatOpen, openVaultModal, isSidebarCollapsed } = useUI();
   const { stats } = useDashboardData();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isVIPModalOpen, setIsVIPModalOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -77,28 +74,34 @@ const Navbar = () => {
 
   // Dropdown Menu Items Configuration
   const MENU_ITEMS = [
-    { label: 'Wallet', icon: Wallet, action: () => openWalletModal('overview') },
-    { label: 'Vault', icon: Lock, action: () => openVaultModal() },
-    { label: 'VIP', icon: Trophy, link: '/vip-club' },
-    { label: 'Affiliate', icon: Users, link: '/affiliate' },
-    { label: 'Statistics', icon: BarChart2, action: () => openStatsModal() },
-    { label: 'Transactions', icon: FileText, link: '/transactions' },
-    { label: 'My Bets', icon: ClipboardCheck, link: '/my-bets' },
-    { label: 'Settings', icon: Settings, link: '/settings' },
-    { label: 'Play Smart', icon: Shield, link: '/responsible-gambling' },
-    { label: 'Live Support', icon: Headset, link: '/help' },
+    { label: 'Wallet', icon: Wallet, action: () => openWalletModal('overview'), imageIcon: '/icons/wallet.png' },
+    { label: 'Vault', icon: Lock, action: () => openVaultModal(), imageIcon: '/icons/vault.png' },
+    { label: 'VIP', icon: Trophy, action: () => setIsVIPModalOpen(true), imageIcon: '/icons/vip.png' },
+    { label: 'Affiliate', icon: Users, link: '/affiliate', imageIcon: '/icons/affiliate.png', invertToWhite: true },
+    { label: 'Statistics', icon: BarChart2, action: () => openStatsModal(), imageIcon: '/icons/statistics.png', invertToWhite: true },
+    { label: 'Transactions', icon: FileText, link: '/transactions', imageIcon: '/icons/transactions.png' },
+    { label: 'My Bets', icon: ClipboardCheck, link: '/my-bets', imageIcon: '/icons/mybets.png' },
+    { label: 'Settings', icon: Settings, link: '/settings', imageIcon: '/icons/settings.png', invertToWhite: true },
+    { label: 'Play Smart', icon: Shield, link: '/responsible-gambling', imageIcon: '/icons/playsmart.png' },
+    { label: 'Live Support', icon: Headset, link: '/help', imageIcon: '/icons/livesupport.png', invertToWhite: true },
+  ];
+
+  // Admin-only menu items
+  const ADMIN_ITEMS = [
+    { label: 'Admin Panel', icon: ShieldCheck, link: '/admin/dashboard' },
+    { label: 'Wallet Settings', icon: Settings, link: '/admin/wallet' },
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 w-full h-16 bg-[#1a2c38] shadow-md flex items-center px-4 gap-4 border-b border-[#1a2c38]">
+    <nav className="fixed top-0 left-0 right-0 z-50 w-full h-14 bg-[#1a2c38] flex items-center px-3 border-b border-[#0f212e]/50">
 
-      {/* --- LEFT SECTION --- */}
-      <div className="flex items-center gap-2 md:gap-4">
+      {/* === LEFT SECTION: Menu + Casino/Sports Toggle === */}
+      <div className="flex items-center gap-2">
 
-        {/* 1. Hamburger Menu */}
+        {/* Hamburger Menu (Mobile) */}
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white lg:hidden shrink-0">
+            <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#2f4553] h-9 w-9 rounded lg:hidden">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
@@ -112,90 +115,101 @@ const Navbar = () => {
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
-          className="text-[#b1bad3] hover:text-white hidden lg:flex shrink-0"
+          className="text-[#b1bad3] hover:text-white hover:bg-[#2f4553] h-9 w-9 rounded hidden lg:flex"
         >
           <Menu className="h-5 w-5" />
         </Button>
 
-        {/* Casino/Sports Toggle */}
-        <div className="hidden md:flex items-center gap-2">
-          <Link to="/">
-            <div className={cn(
-              "px-6 py-2 rounded-lg flex items-center justify-center font-bold text-sm transition-all cursor-pointer",
-              !isSports
-                ? "bg-[#F7D979] text-black"
-                : "bg-[#2f4553] text-white hover:bg-[#3d5565]"
-            )}>
-              Casino
-            </div>
-          </Link>
-          <Link to="/sports">
-            <div className={cn(
-              "px-6 py-2 rounded-lg flex items-center justify-center font-bold text-sm transition-all cursor-pointer",
-              isSports
-                ? "bg-[#F7D979] text-black"
-                : "bg-[#2f4553] text-white hover:bg-[#3d5565]"
-            )}>
-              Sports
-            </div>
-          </Link>
-        </div>
-
-        {/* 2. Logo */}
-        <Link to="/" className="flex items-center gap-2 shrink-0">
-          <img
-            src="https://media.discordapp.net/attachments/1442506658155855925/1446069962493005844/Collabeco_2_-removebg-preview.png?ex=6932a519&is=69315399&hm=cab9148f2cdcafb486a7ff6e92852c787bcb0e5b193af549d467c257f8913b73&=&format=webp&quality=lossless&width=750&height=750"
-            alt="Shiny.bet Logo"
-            className="h-8 w-8 object-contain"
-          />
-          <span className="hidden sm:block text-xl font-bold text-white">
-            Shiny<span className="text-[#ffd700]">.bet</span>
-          </span>
-        </Link>
+        {/* Casino / Sports Toggle - Gradient Style (hidden when sidebar collapsed) */}
+        {!isSidebarCollapsed && (
+          <div className="hidden md:flex items-center gap-1">
+            <Link to="/casino">
+              <StarButton
+                variant={!isSports ? "green" : "default"}
+                className={cn(
+                  "h-9 px-6 min-w-[100px]",
+                  isSports && "opacity-70 grayscale hover:opacity-100 hover:grayscale-0 transition-all font-medium"
+                )}
+                backgroundColor={isSports ? "#2f4553" : undefined}
+                lightColor={isSports ? "#b1bad3" : undefined}
+              >
+                Casino
+              </StarButton>
+            </Link>
+            <Link to="/sports">
+              <StarButton
+                variant={isSports ? "orange" : "default"}
+                className={cn(
+                  "h-9 px-6 min-w-[100px]",
+                  !isSports && "opacity-70 grayscale hover:opacity-100 hover:grayscale-0 transition-all font-medium"
+                )}
+                backgroundColor={!isSports ? "#2f4553" : undefined}
+                lightColor={!isSports ? "#b1bad3" : undefined}
+              >
+                Sports
+              </StarButton>
+            </Link>
+          </div>
+        )}
       </div>
 
-      {/* --- SPACER --- */}
+      {/* === CENTER: Logo (Left-aligned after toggle) === */}
+      {/* === CENTER: Logo (Left-aligned after toggle) === */}
+      <Link to="/" className="flex items-center gap-3 ml-4">
+        <img src="/logo.png" alt="Shiny.bet Logo" className="h-10 w-auto" />
+        <span className="text-2xl font-black italic tracking-tight hidden sm:block">
+          <span className="text-white">Shiny</span>
+          <span className="text-[#FFD700]">.bet</span>
+        </span>
+      </Link>
+
+      {/* === ABSOLUTE CENTER: Balance + Wallet (Logged in only) === */}
+      {
+        user && (
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+            {/* Balance Display with Dropdown */}
+            <div className="hidden sm:flex items-center">
+              <WalletDropdown />
+            </div>
+
+            {/* Wallet Button - Gold */}
+            <StarButton
+              onClick={() => openWalletModal('overview')}
+              variant="gold"
+              className="h-9 px-6 shadow-[0_2px_0_#B8860B]"
+            >
+              Wallet
+            </StarButton>
+          </div>
+        )
+      }
+
+      {/* === SPACER === */}
       <div className="flex-1" />
 
-      {/* --- CENTER: Balance & Wallet (Absolute Positioned) --- */}
-      {user && (
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-          <WalletDropdown />
-          <Button
-            onClick={() => openWalletModal('overview')}
-            className="bg-[#1475e1] hover:bg-[#1266c9] text-white font-bold h-10 px-4 md:px-6 rounded-lg shadow-lg transition-all active:scale-95"
-          >
-            <Wallet className="w-4 h-4 md:mr-2" />
-            <span className="hidden md:inline">Wallet</span>
-          </Button>
-        </div>
-      )}
-
-      {/* --- RIGHT SECTION --- */}
-      <div className="flex items-center gap-2 md:gap-3">
+      {/* === RIGHT SECTION: Icons === */}
+      <div className="flex items-center gap-2">
 
         {user ? (
           <>
-            {/* Icons Group */}
-            <div className="flex items-center gap-1">
+
+            {/* Icon Group */}
+            <div className="flex items-center gap-0.5">
               {/* Search */}
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsSearchOpen(true)}
-                className="text-[#b1bad3] hover:text-white hover:bg-[#213743] h-10 w-10 rounded-[4px]"
+                className="text-[#b1bad3] hover:text-white hover:bg-[#2f4553] h-9 w-9 rounded"
               >
-                <Search className="h-5 w-5" />
+                <Search className="h-5 w-5 text-white" strokeWidth={2.5} />
               </Button>
 
-              {/* Notifications */}
-              <NotificationBell />
-
-              {/* User Dropdown Menu */}
+              {/* User Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743] h-10 w-10 rounded-[4px]">
-                    <User className="h-5 w-5" />
+                  <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#2f4553] h-9 w-9 rounded">
+                    <User className="h-5 w-5 text-white" fill="white" stroke="none" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-60 bg-[#1a2c38] border-[#2f4553] text-white p-2 shadow-xl mt-2">
@@ -205,7 +219,7 @@ const Navbar = () => {
                       <p className="text-xs leading-none text-[#b1bad3] opacity-70">{user.email}</p>
                     </div>
                     <div className="mt-3 h-1.5 w-full bg-[#0f212e] rounded-full overflow-hidden">
-                      <div className="h-full bg-[#F7D979] transition-all duration-500" style={{ width: `${vipProgressPercent}%` }} />
+                      <div className="h-full bg-[#1fff20] transition-all duration-500" style={{ width: `${vipProgressPercent}%` }} />
                     </div>
                     <div className="flex justify-between mt-1 text-[10px] text-[#b1bad3]">
                       <span>VIP Progress</span>
@@ -213,14 +227,40 @@ const Navbar = () => {
                     </div>
                   </DropdownMenuLabel>
 
+                  {/* Admin Items */}
+                  {profile?.role === 'admin' && (
+                    <>
+                      <DropdownMenuSeparator className="bg-[#2f4553] my-2" />
+                      {ADMIN_ITEMS.map((item, index) => (
+                        <Link key={`admin-${index}`} to={item.link || '#'} className="block">
+                          <DropdownMenuItem className="flex items-center w-full cursor-pointer hover:bg-[#213743] focus:bg-[#213743] p-2 rounded-md group transition-colors">
+                            <item.icon className="mr-3 h-4 w-4 text-[#1fff20] group-hover:text-[#1fff20] transition-colors" />
+                            <span className="font-medium text-sm text-[#1fff20] group-hover:text-[#1fff20] transition-colors">{item.label}</span>
+                          </DropdownMenuItem>
+                        </Link>
+                      ))}
+                    </>
+                  )}
+
                   <DropdownMenuSeparator className="bg-[#2f4553] mb-2" />
 
                   <div className="space-y-1">
                     {MENU_ITEMS.map((item, index) => {
                       const ItemContent = (
                         <>
-                          <item.icon className="mr-3 h-4 w-4 text-[#b1bad3] group-hover:text-white transition-colors" />
-                          <span className="font-medium text-sm text-[#b1bad3] group-hover:text-white transition-colors">{item.label}</span>
+                          {item.imageIcon ? (
+                            <img
+                              src={item.imageIcon}
+                              alt={item.label}
+                              className={`mr-3 h-5 w-5 object-contain ${item.invertToWhite ? 'brightness-0 invert' : ''}`}
+                            />
+                          ) : (
+                            <item.icon
+                              className="mr-3 h-5 w-5 text-white"
+                              strokeWidth={2}
+                            />
+                          )}
+                          <span className="font-semibold text-sm text-white">{item.label}</span>
                         </>
                       );
 
@@ -244,13 +284,15 @@ const Navbar = () => {
                     })}
 
                     <DropdownMenuItem onClick={handleSignOut} className="flex items-center w-full cursor-pointer hover:bg-[#213743] focus:bg-[#213743] p-2 rounded-md group transition-colors mt-2">
-                      <LogOut className="mr-3 h-4 w-4 text-[#b1bad3] group-hover:text-white transition-colors" />
-                      <span className="font-medium text-sm text-[#b1bad3] group-hover:text-white transition-colors">Logout</span>
+                      <LogOut className="mr-3 h-5 w-5 text-white" strokeWidth={2} />
+                      <span className="font-semibold text-sm text-white">Logout</span>
                     </DropdownMenuItem>
                   </div>
-
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              {/* Notifications */}
+              <NotificationBell />
 
               {/* Chat Toggle */}
               <Button
@@ -258,29 +300,32 @@ const Navbar = () => {
                 size="icon"
                 onClick={toggleChat}
                 className={cn(
-                  "text-[#b1bad3] hover:text-white hover:bg-[#213743] h-10 w-10 rounded-[4px] hidden md:inline-flex",
-                  isChatOpen && "bg-[#213743] text-white"
+                  "text-[#b1bad3] hover:text-white hover:bg-[#2f4553] h-9 w-9 rounded hidden md:inline-flex",
+                  isChatOpen && "bg-[#2f4553] text-white"
                 )}
               >
-                <MessageSquare className="h-5 w-5" />
+                <MessageSquare className="h-5 w-5 text-white" fill="white" stroke="none" />
               </Button>
             </div>
           </>
         ) : (
           <>
-            <Button variant="ghost" onClick={() => openAuthModal('login')} className="text-white font-bold hover:bg-[#213743]">
-              Log In
+            <Button variant="ghost" onClick={() => openAuthModal('login')} className="text-white font-bold hover:bg-[#2f4553] h-9">
+              Sign In
             </Button>
-            <Button onClick={() => openAuthModal('register')} className="bg-[#1475e1] hover:bg-[#1475e1]/90 text-white font-bold">
+            <StarButton onClick={() => openAuthModal('register')} variant="gold" className="h-9 shadow-[0_2px_0_#B8860B]">
               Register
-            </Button>
+            </StarButton>
           </>
         )}
       </div>
 
       {/* Search Modal */}
       <SearchModal open={isSearchOpen} onOpenChange={setIsSearchOpen} />
-    </nav>
+
+      {/* VIP Modal */}
+      <VIPModal open={isVIPModalOpen} onOpenChange={setIsVIPModalOpen} />
+    </nav >
   );
 };
 

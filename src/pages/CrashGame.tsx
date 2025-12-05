@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Settings2, BarChart2, Volume2, TrendingUp, History } from 'lucide-react';
+import { Settings2, BarChart2, Volume2, VolumeX, TrendingUp, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
@@ -11,6 +11,7 @@ import { useUI } from '@/context/UIContext';
 import { toast } from 'sonner';
 import CrashCanvas from '@/components/games/crash/CrashCanvas';
 import RecentBets from '@/components/home/LiveBets';
+import { useGameSounds } from '@/hooks/useGameSounds';
 
 // Configuration
 const HOUSE_EDGE = 0.04; // 4% chance to crash instantly at 1.00x
@@ -20,6 +21,7 @@ export default function CrashGame() {
   const { user } = useAuth();
   const { balance, optimisticUpdate } = useWallet();
   const { openFairnessModal } = useUI();
+  const { playSound, soundEnabled, toggleSound } = useGameSounds();
 
   // Game State
   const [gameState, setGameState] = useState<'idle' | 'starting' | 'running' | 'crashed'>('idle');
@@ -127,11 +129,7 @@ export default function CrashGame() {
 
     const payout = betAmount * currentMult;
     optimisticUpdate(payout);
-
-    // toast.success(`Cashed out at ${currentMult.toFixed(2)}x`, {
-    //   description: `Won ${payout.toFixed(4)}`,
-    //   className: "bg-green-500/10 border-green-500 text-green-500 font-bold"
-    // });
+    playSound('cashout');
 
     // Sync Win
     syncToDb(betAmount, payout, currentMult, 'win');
@@ -145,7 +143,7 @@ export default function CrashGame() {
     setHistory(prev => [{ id: Date.now().toString(), crash: finalCrash }, ...prev].slice(0, 10));
 
     if (hasBet && !hasCashedOut) {
-      // toast.error("Crashed!", { description: `Lost ${betAmount.toFixed(4)}` });
+      playSound('explosion');
       // Sync Loss
       syncToDb(betAmount, 0, 0, 'loss');
     }

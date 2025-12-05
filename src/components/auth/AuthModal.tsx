@@ -12,7 +12,6 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { useUI } from '@/context/UIContext';
 
-const LOGO_URL = "https://media.discordapp.net/attachments/1446113430150054081/1446113527676010557/Collabeco_2_-removebg-preview.png?ex=6932cdac&is=69317c2c&hm=38303892f78abdbe443b156f1d743bf3b5e6e24eed548173ae79df6013bc646c&=&format=webp&quality=lossless&width=750&height=750";
 
 // Validation Schemas
 const loginSchema = z.object({
@@ -151,9 +150,11 @@ export function AuthModal() {
       <DialogContent className="sm:max-w-[400px] bg-zinc-950 border-white/10 text-white max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-center items-center">
           <div className="h-16 w-16 mb-4 flex items-center justify-center">
-            <img src={LOGO_URL} alt="Shiny Logo" className="h-full w-full object-contain" />
+            <img src="/logo.png" alt="Shiny.bet Logo" className="h-full w-full object-contain" />
           </div>
-          <DialogTitle className="text-2xl font-bold">Welcome to Shiny.bet</DialogTitle>
+          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+            Welcome to <span className="italic">Shiny<span className="text-[#FFD700]">.bet</span></span>
+          </DialogTitle>
           <DialogDescription>The premier crypto casino experience</DialogDescription>
         </DialogHeader>
 

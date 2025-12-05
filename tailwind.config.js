@@ -122,6 +122,10 @@ export default {
           from: { opacity: "0" },
           to: { opacity: "1" },
         },
+        "star-btn": {
+          "0%": { "offset-distance": "0%" },
+          "100%": { "offset-distance": "100%" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -129,6 +133,7 @@ export default {
         "slide-in-bottom": "slide-in-bottom 0.3s ease-out",
         "slide-out-bottom": "slide-out-bottom 0.3s ease-out",
         "fade-in": "fade-in 0.2s ease-out",
+        "star-btn": "star-btn calc(var(--duration)*1s) linear infinite",
       },
       screens: {
         'xs': '475px',

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Settings2, Maximize2, BarChart2, Volume2 } from 'lucide-react';
+import { Settings2, Maximize2, BarChart2, Volume2, VolumeX, Infinity as InfinityIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
@@ -11,12 +11,14 @@ import { useUI } from '@/context/UIContext';
 import { toast } from 'sonner';
 import { Bet } from '@/types';
 import RecentBets from '@/components/home/LiveBets';
+import { useGameSounds } from '@/hooks/useGameSounds';
 
 export default function CoinFlip() {
   const { user } = useAuth();
   const { balance, optimisticUpdate } = useWallet();
   const { openFairnessModal } = useUI();
   const controls = useAnimation();
+  const { playSound, soundEnabled, toggleSound } = useGameSounds();
 
   // Game State
   const [betAmount, setBetAmount] = useState<number>(0);
@@ -24,6 +26,12 @@ export default function CoinFlip() {
   const [isFlipping, setIsFlipping] = useState<boolean>(false);
   const [history, setHistory] = useState<Bet[]>([]);
   const [mode, setMode] = useState<'manual' | 'auto'>('manual');
+
+  // Autobet State
+  const [numberOfBets, setNumberOfBets] = useState<number>(10);
+  const [isAutobetting, setIsAutobetting] = useState<boolean>(false);
+  const [autobetStats, setAutobetStats] = useState({ betsPlaced: 0, profit: 0 });
+  const autobetRef = useRef<boolean>(false);
 
   // Animation State
   const [coinRotation, setCoinRotation] = useState(0);
@@ -86,10 +94,10 @@ export default function CoinFlip() {
 
     // Result Handling
     if (isWin) {
+      playSound('win');
       optimisticUpdate(payout);
-      toast.success(`Won ${payout.toFixed(4)}!`, { className: "text-green-500" });
     } else {
-      toast("Better luck next time", { className: "text-red-500" });
+      playSound('lose');
     }
 
     // DB Sync
@@ -112,10 +120,49 @@ export default function CoinFlip() {
     } finally {
       setIsFlipping(false);
     }
+
+    return { isWin, profit: isWin ? payout - betAmount : -betAmount };
   };
 
   const handleRandomPick = () => {
     setSelectedSide(Math.random() > 0.5 ? 'heads' : 'tails');
+  };
+
+  // Autobet Functions
+  const startAutobet = async () => {
+    if (!user) return toast.error("Please log in to play");
+    if (betAmount <= 0) return toast.error("Invalid bet amount");
+    if (betAmount > balance) return toast.error("Insufficient balance");
+    if (isAutobetting) return;
+
+    autobetRef.current = true;
+    setIsAutobetting(true);
+    setAutobetStats({ betsPlaced: 0, profit: 0 });
+
+    let betsRemaining = numberOfBets;
+    let totalProfit = 0;
+
+    while (autobetRef.current && betsRemaining > 0 && betAmount <= balance) {
+      const result = await handleFlip();
+      if (result) {
+        totalProfit += result.profit;
+        setAutobetStats(prev => ({
+          betsPlaced: prev.betsPlaced + 1,
+          profit: totalProfit
+        }));
+        betsRemaining--;
+      }
+      // Small delay between bets
+      await new Promise(r => setTimeout(r, 500));
+    }
+
+    autobetRef.current = false;
+    setIsAutobetting(false);
+  };
+
+  const stopAutobet = () => {
+    autobetRef.current = false;
+    setIsAutobetting(false);
   };
 
   return (
@@ -150,56 +197,129 @@ export default function CoinFlip() {
               </button>
             </div>
 
-            {/* Bet Amount */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
-                <span>Bet Amount</span>
-                <span>{betAmount.toFixed(8)} LTC</span>
-              </div>
-              <div className="relative flex items-center">
-                <Input
-                  type="number"
-                  value={betAmount}
-                  onChange={handleBetInputChange}
-                  disabled={isFlipping}
-                  className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553] disabled:opacity-50"
-                />
-                <div className="absolute right-1 flex gap-1">
-                  <button
-                    onClick={() => adjustBet(0.5)}
-                    disabled={isFlipping}
-                    className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors disabled:opacity-50"
-                  >
-                    ½
-                  </button>
-                  <button
-                    onClick={() => adjustBet(2)}
-                    disabled={isFlipping}
-                    className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors disabled:opacity-50"
-                  >
-                    2×
-                  </button>
+            {/* Manual Mode Controls */}
+            {mode === 'manual' && (
+              <>
+                {/* Bet Amount */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
+                    <span>Bet Amount</span>
+                    <span>{betAmount.toFixed(8)} LTC</span>
+                  </div>
+                  <div className="relative flex items-center">
+                    <Input
+                      type="number"
+                      value={betAmount}
+                      onChange={handleBetInputChange}
+                      disabled={isFlipping}
+                      className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10 focus-visible:ring-1 focus-visible:ring-[#2f4553] disabled:opacity-50"
+                    />
+                    <div className="absolute right-1 flex gap-1">
+                      <button
+                        onClick={() => adjustBet(0.5)}
+                        disabled={isFlipping}
+                        className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors disabled:opacity-50"
+                      >
+                        ½
+                      </button>
+                      <button
+                        onClick={() => adjustBet(2)}
+                        disabled={isFlipping}
+                        className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors disabled:opacity-50"
+                      >
+                        2×
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Bet Button */}
-            <Button
-              onClick={handleFlip}
-              disabled={isFlipping}
-              className="w-full h-12 mt-2 bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-black text-base shadow-[0_4px_0_#B8860B] active:shadow-none active:translate-y-[4px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isFlipping ? "Flipping..." : "Bet"}
-            </Button>
+                {/* Bet Button */}
+                <Button
+                  onClick={handleFlip}
+                  disabled={isFlipping}
+                  className="w-full h-12 mt-2 bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] font-black text-base shadow-[0_4px_0_#B8860B] active:shadow-none active:translate-y-[4px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isFlipping ? "Flipping..." : "Bet"}
+                </Button>
 
-            {/* Random Pick */}
-            <Button
-              onClick={handleRandomPick}
-              disabled={isFlipping}
-              className="w-full h-10 bg-[#2f4553] hover:bg-[#3d5565] text-white font-bold border border-transparent hover:border-[#b1bad3]/20"
-            >
-              Random Pick
-            </Button>
+                {/* Random Pick */}
+                <Button
+                  onClick={handleRandomPick}
+                  disabled={isFlipping}
+                  className="w-full h-10 bg-[#2f4553] hover:bg-[#3d5565] text-white font-bold border border-transparent hover:border-[#b1bad3]/20"
+                >
+                  Random Pick
+                </Button>
+              </>
+            )}
+
+            {/* Auto Mode Controls */}
+            {mode === 'auto' && (
+              <>
+                {/* Bet Amount */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
+                    <span>Bet Amount</span>
+                  </div>
+                  <div className="relative flex items-center">
+                    <Input
+                      type="number"
+                      value={betAmount}
+                      onChange={handleBetInputChange}
+                      disabled={isAutobetting}
+                      className="bg-[#0f212e] border-[#2f4553] text-white font-bold pl-4 pr-24 h-10"
+                    />
+                    <div className="absolute right-1 flex gap-1">
+                      <button onClick={() => adjustBet(0.5)} disabled={isAutobetting} className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors disabled:opacity-50">½</button>
+                      <button onClick={() => adjustBet(2)} disabled={isAutobetting} className="px-2 py-1 text-xs font-bold bg-[#2f4553] hover:bg-[#3d5565] rounded text-[#b1bad3] hover:text-white transition-colors disabled:opacity-50">2×</button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Number of Bets */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-bold text-[#b1bad3]">
+                    <span>Number of Bets</span>
+                  </div>
+                  <Input
+                    type="number"
+                    value={numberOfBets}
+                    onChange={(e) => setNumberOfBets(parseInt(e.target.value) || 10)}
+                    disabled={isAutobetting}
+                    className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-10"
+                  />
+                </div>
+
+                {/* Autobet Stats */}
+                {isAutobetting && (
+                  <div className="bg-[#0f212e] rounded-lg p-3 space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[#b1bad3]">Bets Placed</span>
+                      <span className="text-white font-bold">{autobetStats.betsPlaced}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[#b1bad3]">Profit</span>
+                      <span className={cn("font-bold", autobetStats.profit >= 0 ? "text-[#00e701]" : "text-[#ed4245]")}>
+                        {autobetStats.profit >= 0 ? '+' : ''}{autobetStats.profit.toFixed(4)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Start/Stop Button */}
+                <Button
+                  onClick={isAutobetting ? stopAutobet : startAutobet}
+                  className={cn(
+                    "w-full h-12 mt-2 font-black text-base shadow-[0_4px_0] active:shadow-none active:translate-y-[4px] transition-all",
+                    isAutobetting
+                      ? "bg-[#ed4245] hover:bg-[#c73c3e] text-white shadow-[#9a2f31]"
+                      : "bg-[#FFD700] hover:bg-[#DAA520] text-[#0f212e] shadow-[#B8860B]"
+                  )}
+                >
+                  {isAutobetting ? "Stop Autobet" : "Start Autobet"}
+                </Button>
+              </>
+            )}
 
             {/* Side Selection */}
             <div className="flex gap-2">
@@ -345,22 +465,20 @@ export default function CoinFlip() {
                   className="flex items-center gap-2 bg-[#213743] px-3 py-1 rounded-full hover:bg-[#2f4553] cursor-pointer transition-colors"
                   onClick={openFairnessModal}
                 >
-                  <div className="w-3 h-3 rounded-full bg-green-500 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                  </div>
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                   <span className="text-xs font-bold text-white">Fairness</span>
                 </div>
               </div>
             </div>
 
-          </div>
+          </div> {/* Closes RIGHT: Game Area */}
 
-        </div>
+        </div> {/* Closes the main flex container for LEFT and RIGHT sections */}
 
         {/* Live Bets */}
         <RecentBets />
 
-      </div>
+      </div> {/* Closes the outer-most div of the component */}
     </div>
   );
 }

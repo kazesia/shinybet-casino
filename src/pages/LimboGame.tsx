@@ -1,19 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Settings2, BarChart2, TrendingUp } from 'lucide-react';
+import { Settings2, BarChart2, TrendingUp, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useWallet } from '@/context/WalletContext';
 import { useUI } from '@/context/UIContext';
 import { toast } from 'sonner';
+import RecentBets from '@/components/home/LiveBets';
+import { useGameSounds } from '@/hooks/useGameSounds';
 
 export default function LimboGame() {
     const { user } = useAuth();
     const { balance, optimisticUpdate } = useWallet();
     const { openFairnessModal } = useUI();
+    const { playSound, soundEnabled, toggleSound } = useGameSounds();
 
     // Game State
     const [betAmount, setBetAmount] = useState<number>(0);
@@ -22,6 +25,12 @@ export default function LimboGame() {
     const [lastResult, setLastResult] = useState<number | null>(null);
     const [lastWin, setLastWin] = useState<boolean | null>(null);
     const [mode, setMode] = useState<'manual' | 'auto'>('manual');
+
+    // Autobet State
+    const [numberOfBets, setNumberOfBets] = useState<number>(10);
+    const [isAutobetting, setIsAutobetting] = useState<boolean>(false);
+    const [autobetStats, setAutobetStats] = useState({ betsPlaced: 0, profit: 0 });
+    const autobetRef = useRef<boolean>(false);
 
     const handleBetAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = parseFloat(e.target.value);
@@ -32,11 +41,11 @@ export default function LimboGame() {
         setBetAmount(prev => parseFloat((prev * factor).toFixed(8)));
     };
 
-    const handlePlay = async () => {
-        if (!user) return toast.error("Please log in to play");
-        if (betAmount <= 0) return toast.error("Invalid bet amount");
-        if (betAmount > balance) return toast.error("Insufficient balance");
-        if (targetMultiplier < 1.01) return toast.error("Target must be at least 1.01x");
+    const handlePlay = async (): Promise<{ isWin: boolean; profit: number } | undefined> => {
+        if (!user) { toast.error("Please log in to play"); return; }
+        if (betAmount <= 0) { toast.error("Invalid bet amount"); return; }
+        if (betAmount > balance) { toast.error("Insufficient balance"); return; }
+        if (targetMultiplier < 1.01) { toast.error("Target must be at least 1.01x"); return; }
         if (isPlaying) return;
 
         setIsPlaying(true);
@@ -46,22 +55,16 @@ export default function LimboGame() {
         await new Promise(resolve => setTimeout(resolve, 800));
 
         // Generate result using house edge
-        // Probability of winning = 0.99 / targetMultiplier
-        // Generate random multiplier between 1.00 and a max value
         const houseEdge = 0.99;
         const winProbability = houseEdge / targetMultiplier;
         const randomValue = Math.random();
 
-        // If random < winProbability, user wins
         const isWin = randomValue < winProbability;
 
-        // Generate the actual multiplier shown
         let resultMultiplier: number;
         if (isWin) {
-            // Generate a multiplier >= target
             resultMultiplier = targetMultiplier + (Math.random() * targetMultiplier * 0.5);
         } else {
-            // Generate a multiplier < target
             resultMultiplier = 1.00 + (Math.random() * (targetMultiplier - 1.00));
         }
 
@@ -71,16 +74,18 @@ export default function LimboGame() {
         setLastWin(isWin);
 
         if (isWin) {
+            playSound('win');
             optimisticUpdate(payout);
-            toast.success(`Won ${payout.toFixed(4)}!`, { className: "text-yellow-500" });
         } else {
-            toast.error(`Lost! ${resultMultiplier.toFixed(2)}x < ${targetMultiplier.toFixed(2)}x`);
+            playSound('lose');
         }
 
         // Sync to DB
         syncToDb(betAmount, payout, resultMultiplier, isWin);
 
         setIsPlaying(false);
+
+        return { isWin, profit: isWin ? payout - betAmount : -betAmount };
     };
 
     const syncToDb = async (stake: number, payout: number, result: number, isWin: boolean) => {
@@ -103,11 +108,46 @@ export default function LimboGame() {
 
             if (betError) {
                 console.error("Bet error:", betError);
-                toast.error(`Failed to save bet: ${betError.message}`);
             }
         } catch (e) {
             console.error("Unexpected error:", e);
         }
+    };
+
+    // Autobet Functions
+    const startAutobet = async () => {
+        if (!user) return toast.error("Please log in to play");
+        if (betAmount <= 0) return toast.error("Invalid bet amount");
+        if (betAmount > balance) return toast.error("Insufficient balance");
+        if (isAutobetting) return;
+
+        autobetRef.current = true;
+        setIsAutobetting(true);
+        setAutobetStats({ betsPlaced: 0, profit: 0 });
+
+        let betsRemaining = numberOfBets;
+        let totalProfit = 0;
+
+        while (autobetRef.current && betsRemaining > 0 && betAmount <= balance) {
+            const result = await handlePlay();
+            if (result) {
+                totalProfit += result.profit;
+                setAutobetStats(prev => ({
+                    betsPlaced: prev.betsPlaced + 1,
+                    profit: totalProfit
+                }));
+                betsRemaining--;
+            }
+            await new Promise(r => setTimeout(r, 300));
+        }
+
+        autobetRef.current = false;
+        setIsAutobetting(false);
+    };
+
+    const stopAutobet = () => {
+        autobetRef.current = false;
+        setIsAutobetting(false);
     };
 
     return (
@@ -261,7 +301,7 @@ export default function LimboGame() {
                                     className="flex items-center gap-2 bg-[#213743] px-3 py-1 rounded-full cursor-pointer hover:bg-[#2f4553] transition-colors"
                                     onClick={openFairnessModal}
                                 >
-                                    <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+                                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                                     <span className="text-xs font-bold text-white">Fairness</span>
                                 </div>
                                 <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
@@ -273,6 +313,9 @@ export default function LimboGame() {
                     </div>
 
                 </div>
+
+                {/* Live Bets */}
+                <RecentBets />
 
             </div>
         </div>

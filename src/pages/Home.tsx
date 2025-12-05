@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { SHINY_ORIGINALS } from '@/lib/games';
 import { GameCard } from '@/components/shared/GameCard';
+import { Features } from '@/components/ui/features-8';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -25,7 +26,7 @@ export default function Home() {
 
   // Otherwise show Landing Page
   return (
-    <main>
+    <>
       <Hero />
 
       <div className="container py-8 md:py-12 space-y-8 md:space-y-12 max-w-[1400px] mx-auto px-4 md:px-8">
@@ -94,7 +95,10 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Features Section */}
+        <Features />
+
       </div>
-    </main>
+    </>
   );
 }

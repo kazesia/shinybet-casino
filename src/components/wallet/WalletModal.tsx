@@ -4,7 +4,6 @@ import { useUI } from '@/context/UIContext';
 import { useViewport } from '@/hooks/useViewport';
 import { supabase } from '@/lib/supabase';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import QRCode from 'react-qr-code';
@@ -15,11 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  Settings,
-  RefreshCw,
   CreditCard,
   ArrowRightLeft,
-  Search,
   Check,
   AlertTriangle
 } from 'lucide-react';
@@ -29,16 +25,23 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
-// Mock Data for Coins
-const COINS = [
-  { id: 'BTC', name: 'Bitcoin', icon: '₿', color: 'bg-orange-500' },
-  { id: 'ETH', name: 'Ethereum', icon: 'Ξ', color: 'bg-blue-500' },
-  { id: 'LTC', name: 'Litecoin', icon: 'Ł', color: 'bg-gray-400' },
-  { id: 'USDT', name: 'Tether', icon: '₮', color: 'bg-green-500' },
-  { id: 'SOL', name: 'Solana', icon: '◎', color: 'bg-purple-500' },
-  { id: 'DOGE', name: 'Dogecoin', icon: 'Ð', color: 'bg-yellow-500' },
-  { id: 'XRP', name: 'Ripple', icon: '✕', color: 'bg-blue-400' },
-  { id: 'TRX', name: 'Tron', icon: '♦', color: 'bg-red-500' },
+// Coin type from database
+interface CryptoCoin {
+  id: string;
+  name: string;
+  symbol: string;
+  icon_url: string | null;
+  color: string;
+  deposit_address: string | null;
+  network: string | null;
+  active: boolean;
+}
+
+// Fallback coins if database fetch fails
+const FALLBACK_COINS: CryptoCoin[] = [
+  { id: 'BTC', name: 'Bitcoin', symbol: '₿', icon_url: null, color: 'bg-orange-500', deposit_address: null, network: null, active: true },
+  { id: 'ETH', name: 'Ethereum', symbol: 'Ξ', icon_url: null, color: 'bg-blue-500', deposit_address: null, network: null, active: true },
+  { id: 'LTC', name: 'Litecoin', symbol: 'Ł', icon_url: null, color: 'bg-gray-400', deposit_address: null, network: null, active: true },
 ];
 
 const FIAT_CURRENCIES = [
@@ -53,177 +56,64 @@ const FIAT_CURRENCIES = [
   { code: 'BRL', symbol: 'R$', name: 'Brazilian Real', flag: '🇧🇷' },
 ];
 
-export function WalletModal() {
-  const { user } = useAuth();
-  const { isWalletModalOpen, closeWalletModal, walletTab } = useUI();
-  const { isMobile } = useViewport();
-  const [activeTab, setActiveTab] = useState<'overview' | 'buy' | 'swap' | 'settings'>('overview');
-  const [view, setView] = useState<'main' | 'deposit' | 'withdraw'>('main');
-  const [balance, setBalance] = useState(0);
+// --- Sub-Components ---
 
-  // Settings State
-  const [hideZeroBalances, setHideZeroBalances] = useState(false);
-  const [displayFiat, setDisplayFiat] = useState(true);
-  const [selectedFiat, setSelectedFiat] = useState('USD');
-
-  // Deposit State
-  const [selectedCoin, setSelectedCoin] = useState(COINS[2]); // Default LTC
-  const [depositAddress, setDepositAddress] = useState('');
-  const [isAddressLoading, setIsAddressLoading] = useState(false);
-  const [openCombobox, setOpenCombobox] = useState(false);
-
-  // Withdraw State
-  const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [withdrawAddress, setWithdrawAddress] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (isWalletModalOpen) {
-      if (walletTab === 'deposit') {
-        setActiveTab('overview');
-        setView('deposit');
-      } else if (walletTab === 'withdraw') {
-        setActiveTab('overview');
-        setView('withdraw');
-      } else {
-        setActiveTab('overview');
-        setView('main');
-      }
-      if (user) fetchWalletData();
-    }
-  }, [isWalletModalOpen, walletTab, user]);
-
-  // Fetch address when coin changes
-  useEffect(() => {
-    if (view === 'deposit') {
-      fetchDepositAddress();
-    }
-  }, [selectedCoin, view]);
-
-  const fetchWalletData = async () => {
-    const { data: wallet } = await supabase.from('wallets').select('credits').eq('user_id', user?.id).single();
-    if (wallet) setBalance(wallet.credits);
-  };
-
-  const fetchDepositAddress = async () => {
-    setIsAddressLoading(true);
-    try {
-      // Fetch global address (user_id is null)
-      const { data: addr } = await supabase
-        .from('deposit_addresses')
-        .select('address')
-        .is('user_id', null)
-        .eq('currency', selectedCoin.id)
-        .eq('active', true)
-        .single();
-
-      if (addr) {
-        setDepositAddress(addr.address);
-      } else {
-        setDepositAddress('');
-      }
-    } finally {
-      setIsAddressLoading(false);
-    }
-  };
-
-  const handleCopy = () => {
-    if (!depositAddress) return;
-    navigator.clipboard.writeText(depositAddress);
-    toast.success("Address copied to clipboard");
-  };
-
-  const handleWithdraw = async () => {
-    setIsSubmitting(true);
-    const amount = parseFloat(withdrawAmount);
-
-    if (isNaN(amount) || amount <= 0) {
-      toast.error("Invalid amount");
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      const { error } = await supabase.rpc('request_withdrawal', {
-        p_user_id: user?.id,
-        p_amount: amount,
-        p_currency: selectedCoin.id,
-        p_address: withdrawAddress
-      });
-
-      if (error) throw error;
-
-      toast.success("Withdrawal requested successfully");
-      setWithdrawAmount('');
-      setWithdrawAddress('');
-      fetchWalletData();
-      setView('main');
-    } catch (error: any) {
-      toast.error(error.message || "Withdrawal failed");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // --- Sub-Components ---
-
-  const CoinIcon = ({ coin, className }: { coin: typeof selectedCoin, className?: string }) => (
-    <div className={cn(`flex items-center justify-center rounded-full text-white font-bold ${coin.color}`, className)}>
-      {coin.icon}
+const CoinIcon = ({ coin, className }: { coin: CryptoCoin, className?: string }) => (
+  coin.icon_url ? (
+    <div className={cn("flex items-center justify-center rounded-full bg-[#0f212e] overflow-hidden", className)}>
+      <img src={coin.icon_url} alt={coin.name} className="w-5 h-5 object-contain" />
     </div>
-  );
+  ) : (
+    <div className={cn(`flex items-center justify-center rounded-full text-white font-bold ${coin.color}`, className)}>
+      {coin.symbol || coin.id[0]}
+    </div>
+  )
+);
 
-  const OverviewTab = () => (
+interface OverviewTabProps {
+  balance: number;
+  setView: (view: 'main' | 'deposit' | 'withdraw') => void;
+}
+
+const OverviewTab = ({ balance, setView }: OverviewTabProps) => {
+  const { selectedFiat } = useUI();
+  const currency = FIAT_CURRENCIES.find(c => c.code === selectedFiat) || FIAT_CURRENCIES[0];
+
+  return (
     <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
       {/* Balance Header */}
       <div className="space-y-1">
         <div className="text-sm text-[#b1bad3] font-medium">Balance</div>
         <div className="flex items-center gap-2">
-          <span className="text-3xl font-bold text-white">${balance.toFixed(2)}</span>
-          <div className="bg-[#00e701] rounded-full p-0.5">
-            <div className="w-4 h-4 text-black font-bold flex items-center justify-center text-[10px]">$</div>
+          <span className="text-4xl font-bold text-white">{currency.symbol}{balance.toFixed(2)}</span>
+          <div className="bg-[#00e701] rounded-full w-7 h-7 flex items-center justify-center">
+            <span className="text-black font-bold text-sm">{currency.symbol}</span>
           </div>
         </div>
       </div>
 
-      {/* Currency List */}
+      {/* Currency Balance Card */}
       <div className="bg-[#0f212e] rounded-xl border border-[#2f4553] overflow-hidden">
         <div className="flex justify-between px-4 py-3 border-b border-[#2f4553] bg-[#1a2c38]">
-          <span className="text-sm text-[#b1bad3]">Currency</span>
-          <span className="text-sm text-[#b1bad3]">Value</span>
+          <span className="text-sm font-medium text-[#b1bad3]">Currency</span>
+          <span className="text-sm font-medium text-[#b1bad3]">Value</span>
         </div>
-        <div className="divide-y divide-[#2f4553] max-h-[240px] overflow-y-auto">
-          {/* Main Balance (Credits) */}
-          <div className="flex items-center justify-between px-4 py-4 hover:bg-[#213743] transition-colors cursor-pointer">
+        <div className="p-4">
+          <div className="flex items-center justify-between py-2">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#00e701] flex items-center justify-center text-black font-bold">$</div>
+              <div className="w-10 h-10 rounded-full bg-[#00e701] flex items-center justify-center">
+                <span className="text-black font-bold text-lg">{currency.symbol}</span>
+              </div>
               <div>
-                <div className="font-bold text-white">USD</div>
-                <div className="text-xs text-[#b1bad3]">US Dollar</div>
+                <div className="font-bold text-white text-base">{currency.code}</div>
+                <div className="text-xs text-[#b1bad3]">{currency.name}</div>
               </div>
             </div>
             <div className="text-right">
-              <div className="font-bold text-white">{balance.toFixed(2)}</div>
-              <div className="text-xs text-[#b1bad3]">$1.00</div>
+              <div className="font-bold text-white text-base">{balance.toFixed(2)}</div>
+              <div className="text-xs text-[#b1bad3]">{currency.symbol}1.00</div>
             </div>
           </div>
-
-          {/* Other Coins */}
-          {COINS.map(coin => (
-            <div key={coin.id} className="flex items-center justify-between px-4 py-4 hover:bg-[#213743] transition-colors cursor-pointer">
-              <div className="flex items-center gap-3">
-                <CoinIcon coin={coin} className="w-8 h-8 text-sm" />
-                <div>
-                  <div className="font-bold text-white">{coin.id}</div>
-                  <div className="text-xs text-[#b1bad3]">{coin.name}</div>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="font-bold text-white">0.00000000</div>
-                <div className="text-xs text-[#b1bad3]">$0.00 USD</div>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
@@ -244,16 +134,32 @@ export function WalletModal() {
       </div>
 
       {/* 2FA Promo */}
-      <div className="bg-gradient-to-r from-[#1a2c38] to-[#0f212e] rounded-xl p-4 border border-[#2f4553] flex flex-col gap-3">
+      <div className="bg-[#0f212e] rounded-xl p-4 border border-[#2f4553] space-y-3">
         <p className="text-sm text-[#b1bad3]">Improve your account security with Two-Factor Authentication</p>
-        <Button variant="outline" className="w-full border-[#2f4553] bg-[#213743] hover:bg-[#2f4553] text-white font-bold">
+        <Button variant="outline" className="w-full border-[#2f4553] bg-[#213743] hover:bg-[#2f4553] text-white font-bold h-11">
           Enable 2FA
         </Button>
       </div>
     </div>
   );
+};
 
-  const SettingsTab = () => (
+interface SettingsTabProps {
+  hideZeroBalances: boolean;
+  setHideZeroBalances: (val: boolean) => void;
+  displayFiat: boolean;
+  setDisplayFiat: (val: boolean) => void;
+}
+
+const SettingsTab = ({
+  hideZeroBalances,
+  setHideZeroBalances,
+  displayFiat,
+  setDisplayFiat
+}: SettingsTabProps) => {
+  const { selectedFiat, setSelectedFiat } = useUI();
+
+  return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -311,18 +217,198 @@ export function WalletModal() {
       </div>
     </div>
   );
+};
 
-  const DepositView = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300 h-full flex flex-col">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-2">
-        <Button variant="ghost" size="icon" onClick={() => setView('main')} className="h-8 w-8 -ml-2 text-[#b1bad3] hover:text-white">
-          <ChevronLeft className="w-5 h-5" />
-        </Button>
-        <h2 className="text-lg font-bold text-white">Deposit</h2>
+interface DepositViewProps {
+  setView: (view: 'main' | 'deposit' | 'withdraw') => void;
+  selectedCoin: CryptoCoin;
+  setSelectedCoin: (coin: CryptoCoin) => void;
+  depositAddress: string;
+  isAddressLoading: boolean;
+  handleCopy: () => void;
+  openCombobox: boolean;
+  setOpenCombobox: (open: boolean) => void;
+  coins: CryptoCoin[];
+}
+
+const DepositView = ({
+  setView,
+  selectedCoin,
+  setSelectedCoin,
+  depositAddress,
+  isAddressLoading,
+  handleCopy,
+  openCombobox,
+  setOpenCombobox,
+  coins
+}: DepositViewProps) => (
+  <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300 h-full flex flex-col">
+    {/* Header */}
+    <div className="flex items-center gap-2 mb-2">
+      <Button variant="ghost" size="icon" onClick={() => setView('main')} className="h-8 w-8 -ml-2 text-[#b1bad3] hover:text-white">
+        <ChevronLeft className="w-5 h-5" />
+      </Button>
+      <h2 className="text-lg font-bold text-white">Deposit</h2>
+    </div>
+
+    {/* Coin Selector */}
+    <div className="space-y-2">
+      <label className="text-sm text-[#b1bad3] font-medium">Currency</label>
+      <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={openCombobox}
+            className="w-full justify-between bg-[#1a2c38] border-[#2f4553] text-white hover:bg-[#213743] hover:text-white h-14 px-4"
+          >
+            <div className="flex items-center gap-3">
+              <CoinIcon coin={selectedCoin} className="w-8 h-8 text-sm" />
+              <div className="flex flex-col items-start">
+                <span className="font-bold leading-none">{selectedCoin.id}</span>
+                <span className="text-xs text-[#b1bad3] leading-none mt-1">{selectedCoin.name}</span>
+              </div>
+            </div>
+            <ChevronRight className="ml-2 h-4 w-4 shrink-0 opacity-50 rotate-90" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[400px] p-0 bg-[#1a2c38] border-[#2f4553]">
+          <Command className="bg-[#1a2c38] text-white">
+            <CommandInput placeholder="Search coin..." className="h-12 border-b border-[#2f4553]" />
+            <CommandList>
+              <CommandEmpty>No coin found.</CommandEmpty>
+              <CommandGroup>
+                {coins.map((coin) => (
+                  <CommandItem
+                    key={coin.id}
+                    value={coin.name}
+                    onSelect={() => {
+                      setSelectedCoin(coin);
+                      setOpenCombobox(false);
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 cursor-pointer aria-selected:bg-[#213743] aria-selected:text-white hover:bg-[#213743]"
+                  >
+                    <CoinIcon coin={coin} className="w-8 h-8 text-sm" />
+                    <div className="flex flex-col">
+                      <span className="font-bold text-white">{coin.id}</span>
+                      <span className="text-xs text-[#b1bad3]">{coin.name}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
+
+    {/* QR Code & Address */}
+    <div className="flex-1 flex flex-col items-center justify-center gap-6 py-4">
+      {depositAddress ? (
+        <>
+          <div className="bg-white p-4 rounded-xl shadow-lg animate-in zoom-in-95 duration-300">
+            <QRCode value={depositAddress} size={160} />
+          </div>
+
+          <div className="w-full space-y-4">
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+              <div className="text-xs text-red-200">
+                <span className="font-bold text-red-400">Important:</span> Only send <span className="font-bold text-white">{selectedCoin.name} ({selectedCoin.id})</span> to this address. Sending any other asset will result in permanent loss.
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-[#b1bad3]">Deposit Address</span>
+                <span className="text-[#b1bad3] text-xs">Network: <span className="text-white font-bold">{selectedCoin.name}</span></span>
+              </div>
+              <div className="flex gap-2">
+                <div className="flex-1 bg-[#0f212e] border border-[#2f4553] rounded-lg px-4 py-3 text-sm font-mono text-white truncate flex items-center">
+                  {isAddressLoading ? <Loader2 className="h-4 w-4 animate-spin text-[#b1bad3]" /> : depositAddress}
+                </div>
+                <Button
+                  onClick={handleCopy}
+                  className="h-full aspect-square bg-[#2f4553] hover:bg-[#3d5565] border border-[#2f4553] transition-all active:scale-95"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-8 space-y-4 animate-in fade-in zoom-in-95 duration-300">
+          <div className="w-16 h-16 bg-[#213743] rounded-full flex items-center justify-center mx-auto">
+            <Wallet className="w-8 h-8 text-[#b1bad3]" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-white font-bold">No Address Found</h3>
+            <p className="text-sm text-[#b1bad3] max-w-[250px] mx-auto">
+              Please contact support or check back later for a deposit address for {selectedCoin.name}.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* Footer Info */}
+    <div className="bg-[#0f212e] rounded-lg p-3 border border-[#2f4553] flex items-center justify-between text-xs">
+      <span className="text-[#b1bad3]">Direct Deposit</span>
+      <div className="flex items-center gap-2">
+        <div className="flex -space-x-2">
+          <div className="w-5 h-5 rounded-full bg-yellow-500 border border-[#0f212e]" />
+          <div className="w-5 h-5 rounded-full bg-orange-500 border border-[#0f212e]" />
+          <div className="w-5 h-5 rounded-full bg-blue-500 border border-[#0f212e]" />
+        </div>
+        <span className="text-[#b1bad3]">+300</span>
       </div>
+    </div>
+  </div>
+);
 
-      {/* Coin Selector */}
+interface WithdrawViewProps {
+  setView: (view: 'main' | 'deposit' | 'withdraw') => void;
+  selectedCoin: CryptoCoin;
+  setSelectedCoin: (coin: CryptoCoin) => void;
+  withdrawAmount: string;
+  setWithdrawAmount: (amount: string) => void;
+  withdrawAddress: string;
+  setWithdrawAddress: (address: string) => void;
+  isSubmitting: boolean;
+  handleWithdraw: () => void;
+  balance: number;
+  openCombobox: boolean;
+  setOpenCombobox: (open: boolean) => void;
+  coins: CryptoCoin[];
+}
+
+const WithdrawView = ({
+  setView,
+  selectedCoin,
+  setSelectedCoin,
+  withdrawAmount,
+  setWithdrawAmount,
+  withdrawAddress,
+  setWithdrawAddress,
+  isSubmitting,
+  handleWithdraw,
+  balance,
+  openCombobox,
+  setOpenCombobox,
+  coins
+}: WithdrawViewProps) => (
+  <div className="space-y-5">
+    {/* Header */}
+    <div className="flex items-center gap-2 mb-4">
+      <Button variant="ghost" size="icon" onClick={() => setView('main')} className="h-8 w-8 -ml-2 text-[#b1bad3] hover:text-white hover:bg-[#2f4553]">
+        <ChevronLeft className="w-5 h-5" />
+      </Button>
+      <h2 className="text-xl font-bold text-white">Withdraw</h2>
+    </div>
+
+    <div className="space-y-5">
+      {/* Currency Selector */}
       <div className="space-y-2">
         <label className="text-sm text-[#b1bad3] font-medium">Currency</label>
         <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
@@ -331,16 +417,16 @@ export function WalletModal() {
               variant="outline"
               role="combobox"
               aria-expanded={openCombobox}
-              className="w-full justify-between bg-[#1a2c38] border-[#2f4553] text-white hover:bg-[#213743] hover:text-white h-14 px-4"
+              className="w-full justify-between bg-[#0f212e] border-[#2f4553] text-white hover:bg-[#213743] hover:text-white h-16 px-4 rounded-lg"
             >
               <div className="flex items-center gap-3">
-                <CoinIcon coin={selectedCoin} className="w-8 h-8 text-sm" />
+                <CoinIcon coin={selectedCoin} className="w-10 h-10 text-base" />
                 <div className="flex flex-col items-start">
-                  <span className="font-bold leading-none">{selectedCoin.id}</span>
+                  <span className="font-bold text-base leading-none">{selectedCoin.id}</span>
                   <span className="text-xs text-[#b1bad3] leading-none mt-1">{selectedCoin.name}</span>
                 </div>
               </div>
-              <ChevronRight className="ml-2 h-4 w-4 shrink-0 opacity-50 rotate-90" />
+              <ChevronRight className="ml-2 h-5 w-5 shrink-0 opacity-50 rotate-90" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[400px] p-0 bg-[#1a2c38] border-[#2f4553]">
@@ -349,7 +435,7 @@ export function WalletModal() {
               <CommandList>
                 <CommandEmpty>No coin found.</CommandEmpty>
                 <CommandGroup>
-                  {COINS.map((coin) => (
+                  {coins.map((coin) => (
                     <CommandItem
                       key={coin.id}
                       value={coin.name}
@@ -373,196 +459,204 @@ export function WalletModal() {
         </Popover>
       </div>
 
-      {/* QR Code & Address */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 py-4">
-        {depositAddress ? (
-          <>
-            <div className="bg-white p-4 rounded-xl shadow-lg animate-in zoom-in-95 duration-300">
-              <QRCode value={depositAddress} size={160} />
-            </div>
-
-            <div className="w-full space-y-4">
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                <div className="text-xs text-red-200">
-                  <span className="font-bold text-red-400">Important:</span> Only send <span className="font-bold text-white">{selectedCoin.name} ({selectedCoin.id})</span> to this address. Sending any other asset will result in permanent loss.
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#b1bad3]">Deposit Address</span>
-                  <span className="text-[#b1bad3] text-xs">Network: <span className="text-white font-bold">{selectedCoin.name}</span></span>
-                </div>
-                <div className="flex gap-2">
-                  <div className="flex-1 bg-[#0f212e] border border-[#2f4553] rounded-lg px-4 py-3 text-sm font-mono text-white truncate flex items-center">
-                    {isAddressLoading ? <Loader2 className="h-4 w-4 animate-spin text-[#b1bad3]" /> : depositAddress}
-                  </div>
-                  <Button
-                    onClick={handleCopy}
-                    className="h-full aspect-square bg-[#2f4553] hover:bg-[#3d5565] border border-[#2f4553] transition-all active:scale-95"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="text-center py-8 space-y-4 animate-in fade-in zoom-in-95 duration-300">
-            <div className="w-16 h-16 bg-[#213743] rounded-full flex items-center justify-center mx-auto">
-              <Wallet className="w-8 h-8 text-[#b1bad3]" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-white font-bold">No Address Found</h3>
-              <p className="text-sm text-[#b1bad3] max-w-[250px] mx-auto">
-                Please contact support or check back later for a deposit address for {selectedCoin.name}.
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Footer Info */}
-      <div className="bg-[#0f212e] rounded-lg p-3 border border-[#2f4553] flex items-center justify-between text-xs">
-        <span className="text-[#b1bad3]">Direct Deposit</span>
-        <div className="flex items-center gap-2">
-          <div className="flex -space-x-2">
-            <div className="w-5 h-5 rounded-full bg-yellow-500 border border-[#0f212e]" />
-            <div className="w-5 h-5 rounded-full bg-orange-500 border border-[#0f212e]" />
-            <div className="w-5 h-5 rounded-full bg-blue-500 border border-[#0f212e]" />
-          </div>
-          <span className="text-[#b1bad3]">+300</span>
+      {/* Amount Input */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <label className="text-[#b1bad3] font-medium">Amount</label>
+          <span className="text-[#b1bad3]">Available: <span className="text-white font-bold">{balance.toFixed(2)}</span></span>
         </div>
-      </div>
-    </div>
-  );
-
-  const WithdrawView = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-      <div className="flex items-center gap-2 mb-2">
-        <Button variant="ghost" size="icon" onClick={() => setView('main')} className="h-8 w-8 -ml-2 text-[#b1bad3] hover:text-white">
-          <ChevronLeft className="w-5 h-5" />
-        </Button>
-        <h2 className="text-lg font-bold text-white">Withdraw</h2>
-      </div>
-
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm text-[#b1bad3] font-medium">Currency</label>
-          <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={openCombobox}
-                className="w-full justify-between bg-[#1a2c38] border-[#2f4553] text-white hover:bg-[#213743] hover:text-white h-14 px-4"
-              >
-                <div className="flex items-center gap-3">
-                  <CoinIcon coin={selectedCoin} className="w-8 h-8 text-sm" />
-                  <div className="flex flex-col items-start">
-                    <span className="font-bold leading-none">{selectedCoin.id}</span>
-                    <span className="text-xs text-[#b1bad3] leading-none mt-1">{selectedCoin.name}</span>
-                  </div>
-                </div>
-                <ChevronRight className="ml-2 h-4 w-4 shrink-0 opacity-50 rotate-90" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[400px] p-0 bg-[#1a2c38] border-[#2f4553]">
-              <Command className="bg-[#1a2c38] text-white">
-                <CommandInput placeholder="Search coin..." className="h-12 border-b border-[#2f4553]" />
-                <CommandList>
-                  <CommandEmpty>No coin found.</CommandEmpty>
-                  <CommandGroup>
-                    {COINS.map((coin) => (
-                      <CommandItem
-                        key={coin.id}
-                        value={coin.name}
-                        onSelect={() => {
-                          setSelectedCoin(coin);
-                          setOpenCombobox(false);
-                        }}
-                        className="flex items-center gap-3 px-4 py-3 cursor-pointer aria-selected:bg-[#213743] aria-selected:text-white hover:bg-[#213743]"
-                      >
-                        <CoinIcon coin={coin} className="w-8 h-8 text-sm" />
-                        <div className="flex flex-col">
-                          <span className="font-bold text-white">{coin.id}</span>
-                          <span className="text-xs text-[#b1bad3]">{coin.name}</span>
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <label className="text-[#b1bad3] font-medium">Amount</label>
-            <span className="text-[#b1bad3]">Available: <span className="text-white font-bold">{balance.toFixed(8)}</span></span>
-          </div>
-          <div className="relative">
-            <Input
-              type="number"
-              value={withdrawAmount}
-              onChange={(e) => setWithdrawAmount(e.target.value)}
-              className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-12 pl-4 pr-16 focus-visible:ring-1 focus-visible:ring-[#1475e1]"
-              placeholder="0.00000000"
-            />
-            <Button
-              variant="ghost"
-              className="absolute right-1 top-1 h-10 text-[#1475e1] font-bold hover:text-[#1475e1] hover:bg-[#1475e1]/10"
-              onClick={() => setWithdrawAmount(balance.toString())}
-            >
-              Max
-            </Button>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm text-[#b1bad3] font-medium">Address</label>
-          <Input
-            value={withdrawAddress}
-            onChange={(e) => setWithdrawAddress(e.target.value)}
-            className="bg-[#0f212e] border-[#2f4553] text-white font-mono h-12 focus-visible:ring-1 focus-visible:ring-[#1475e1]"
-            placeholder={`Paste your ${selectedCoin.id} address here`}
+        <div className="relative">
+          <input
+            type="text"
+            inputMode="decimal"
+            value={withdrawAmount}
+            onChange={(e) => setWithdrawAmount(e.target.value)}
+            onKeyDown={(e) => e.stopPropagation()}
+            className="w-full bg-[#0f212e] border border-[#2f4553] text-white font-bold h-14 pl-4 pr-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1475e1] focus:border-transparent placeholder:text-[#557086]"
+            placeholder="0.00"
           />
-        </div>
-
-        <div className="flex justify-between text-xs text-[#b1bad3] px-1">
-          <span>Minimum Withdrawal</span>
-          <span className="text-white font-bold">$1.60 {selectedCoin.icon}</span>
-        </div>
-        <div className="flex justify-between text-xs text-[#b1bad3] px-1">
-          <span>Transaction Fee</span>
-          <span className="text-white font-bold">$0.02 {selectedCoin.icon}</span>
+          <Button
+            type="button"
+            variant="ghost"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-4 text-[#1475e1] font-bold hover:text-[#1475e1] hover:bg-[#1475e1]/10 rounded-md"
+            onClick={() => setWithdrawAmount(balance.toString())}
+          >
+            Max
+          </Button>
         </div>
       </div>
 
-      <Button
-        onClick={handleWithdraw}
-        disabled={isSubmitting}
-        className="w-full h-12 bg-[#1475e1] hover:bg-[#1475e1]/90 text-white font-bold text-base rounded-lg mt-4"
-      >
-        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Withdraw {selectedCoin.id}
-      </Button>
+      {/* Address Input */}
+      <div className="space-y-2">
+        <label className="text-sm text-[#b1bad3] font-medium">Address</label>
+        <input
+          type="text"
+          value={withdrawAddress}
+          onChange={(e) => setWithdrawAddress(e.target.value)}
+          onKeyDown={(e) => e.stopPropagation()}
+          className="w-full bg-[#0f212e] border border-[#2f4553] text-white font-mono h-14 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1475e1] focus:border-transparent placeholder:text-[#557086]"
+          placeholder={`Paste your ${selectedCoin.id} address here`}
+        />
+      </div>
+
+      {/* Minimum Info */}
+      <div className="flex justify-between text-sm px-1">
+        <span className="text-[#b1bad3]">Minimum Withdrawal</span>
+        <span className="text-white font-bold">$15.00</span>
+      </div>
     </div>
-  );
+
+    {/* Submit Button */}
+    <Button
+      onClick={handleWithdraw}
+      disabled={isSubmitting || !withdrawAmount || !withdrawAddress}
+      className="w-full h-14 bg-[#1475e1] hover:bg-[#1475e1]/90 text-white font-bold text-base rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      Withdraw {selectedCoin.id}
+    </Button>
+  </div>
+);
+
+export function WalletModal() {
+  const { user } = useAuth();
+  const { isWalletModalOpen, closeWalletModal, walletTab } = useUI();
+  const { isMobile } = useViewport();
+  const [activeTab, setActiveTab] = useState<'overview' | 'buy' | 'swap' | 'settings'>('overview');
+  const [view, setView] = useState<'main' | 'deposit' | 'withdraw'>('main');
+  const [balance, setBalance] = useState(0);
+
+  // Settings State
+  const [hideZeroBalances, setHideZeroBalances] = useState(false);
+  const [displayFiat, setDisplayFiat] = useState(true);
+
+  // Coins State
+  const [coins, setCoins] = useState<CryptoCoin[]>(FALLBACK_COINS);
+  const [isCoinsLoading, setIsCoinsLoading] = useState(true);
+
+  // Deposit State
+  const [selectedCoin, setSelectedCoin] = useState<CryptoCoin>(FALLBACK_COINS[2]); // Default LTC
+  const [depositAddress, setDepositAddress] = useState('');
+  const [isAddressLoading, setIsAddressLoading] = useState(false);
+  const [openCombobox, setOpenCombobox] = useState(false);
+
+  // Withdraw State
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawAddress, setWithdrawAddress] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isWalletModalOpen) {
+      if (walletTab === 'deposit') {
+        setActiveTab('overview');
+        setView('deposit');
+      } else if (walletTab === 'withdraw') {
+        setActiveTab('overview');
+        setView('withdraw');
+      } else {
+        setActiveTab('overview');
+        setView('main');
+      }
+      if (user) fetchWalletData();
+      fetchCoins();
+    }
+  }, [isWalletModalOpen, walletTab, user]);
+
+  // Fetch address when coin changes
+  useEffect(() => {
+    if (view === 'deposit' && selectedCoin) {
+      // Use deposit_address from the coin if available
+      if (selectedCoin.deposit_address) {
+        setDepositAddress(selectedCoin.deposit_address);
+      } else {
+        setDepositAddress('');
+      }
+    }
+  }, [selectedCoin, view]);
+
+  const fetchCoins = async () => {
+    setIsCoinsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('crypto_coins')
+        .select('*')
+        .eq('active', true)
+        .order('display_order', { ascending: true });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setCoins(data);
+        // Set default selected coin (LTC or first available)
+        const ltc = data.find(c => c.id === 'LTC');
+        setSelectedCoin(ltc || data[0]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch coins:', error);
+      // Keep fallback coins
+    } finally {
+      setIsCoinsLoading(false);
+    }
+  };
+
+  const fetchWalletData = async () => {
+    const { data: wallet } = await supabase.from('wallets').select('credits').eq('user_id', user?.id).single();
+    if (wallet) setBalance(wallet.credits);
+  };
+
+  const handleCopy = () => {
+    if (!depositAddress) return;
+    navigator.clipboard.writeText(depositAddress);
+    toast.success("Address copied to clipboard");
+  };
+
+  const handleWithdraw = async () => {
+    setIsSubmitting(true);
+    const amount = parseFloat(withdrawAmount);
+
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Invalid amount");
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const { error } = await supabase.rpc('request_withdrawal', {
+        p_user_id: user?.id,
+        p_amount: amount,
+        p_currency: selectedCoin.id,
+        p_address: withdrawAddress
+      });
+
+      if (error) throw error;
+
+      toast.success("Withdrawal requested successfully");
+      setWithdrawAmount('');
+      setWithdrawAddress('');
+      fetchWalletData();
+      setView('main');
+    } catch (error: any) {
+      toast.error(error.message || "Withdrawal failed");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <Dialog open={isWalletModalOpen} onOpenChange={(open) => !open && closeWalletModal()}>
-      <DialogContent hideClose className={cn(
-        "bg-[#1a2c38] border-[#2f4553] text-white p-0 gap-0 overflow-hidden shadow-2xl duration-200",
-        isMobile ? "w-full h-full max-w-none rounded-none border-0" : "sm:max-w-[480px]"
-      )}>
+      <DialogContent
+        hideClose
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className={cn(
+          "bg-[#1a2c38] border-[#2f4553] text-white p-0 gap-0 overflow-hidden shadow-2xl",
+          isMobile ? "w-full h-full max-w-none rounded-none border-0" : "sm:max-w-[480px]"
+        )}
+      >
 
         {/* Header Bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#2f4553]">
           <div className="flex items-center gap-2">
-            <Wallet className="w-5 h-5 text-white" />
+            <Wallet className="w-5 h-5 text-yellow-500 fill-yellow-500/20" />
             <DialogTitle className="text-lg font-bold text-white">Wallet</DialogTitle>
           </div>
           <Button variant="ghost" size="icon" onClick={closeWalletModal} className="text-[#b1bad3] hover:text-white hover:bg-[#2f4553] h-8 w-8 rounded-full">
@@ -616,8 +710,15 @@ export function WalletModal() {
         <div className="p-6 min-h-[400px]">
           {view === 'main' && (
             <>
-              {activeTab === 'overview' && <OverviewTab />}
-              {activeTab === 'settings' && <SettingsTab />}
+              {activeTab === 'overview' && <OverviewTab balance={balance} setView={setView} />}
+              {activeTab === 'settings' && (
+                <SettingsTab
+                  hideZeroBalances={hideZeroBalances}
+                  setHideZeroBalances={setHideZeroBalances}
+                  displayFiat={displayFiat}
+                  setDisplayFiat={setDisplayFiat}
+                />
+              )}
               {activeTab === 'buy' && (
                 <div className="flex flex-col items-center justify-center h-[300px] text-center space-y-4">
                   <CreditCard className="w-12 h-12 text-[#2f4553]" />
@@ -632,8 +733,36 @@ export function WalletModal() {
               )}
             </>
           )}
-          {view === 'deposit' && <DepositView />}
-          {view === 'withdraw' && <WithdrawView />}
+          {view === 'deposit' && (
+            <DepositView
+              setView={setView}
+              selectedCoin={selectedCoin}
+              setSelectedCoin={setSelectedCoin}
+              depositAddress={depositAddress}
+              isAddressLoading={isAddressLoading}
+              handleCopy={handleCopy}
+              openCombobox={openCombobox}
+              setOpenCombobox={setOpenCombobox}
+              coins={coins}
+            />
+          )}
+          {view === 'withdraw' && (
+            <WithdrawView
+              setView={setView}
+              selectedCoin={selectedCoin}
+              setSelectedCoin={setSelectedCoin}
+              withdrawAmount={withdrawAmount}
+              setWithdrawAmount={setWithdrawAmount}
+              withdrawAddress={withdrawAddress}
+              setWithdrawAddress={setWithdrawAddress}
+              isSubmitting={isSubmitting}
+              handleWithdraw={handleWithdraw}
+              balance={balance}
+              openCombobox={openCombobox}
+              setOpenCombobox={setOpenCombobox}
+              coins={coins}
+            />
+          )}
         </div>
 
       </DialogContent>

@@ -9,7 +9,6 @@ import {
   Gift,
   Newspaper,
   MessageSquare,
-  Shield,
   Headphones,
   Globe,
   Users,
@@ -19,11 +18,21 @@ import {
   Zap,
   TrendingUp,
   Spade,
-  User,
+  Star,
   Trophy,
+  Clock,
+  Swords,
+  LayoutList,
+  Sparkles,
   Gamepad2,
+  CircleDot,
   Dices,
-  Wallet
+  Target,
+  Rocket,
+  Coins,
+  RotateCcw,
+  CirclePlay,
+  Lock
 } from 'lucide-react';
 import {
   Accordion,
@@ -41,147 +50,219 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
   const { isSidebarCollapsed } = useUI();
   const { profile } = useAuth();
 
-  const isSports = location.pathname.includes('/sports');
+  const isCasino = location.pathname === '/casino' || location.pathname.startsWith('/game/');
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
   const isActive = (path: string) => location.pathname === path;
 
-  return (
-    <div className={cn("flex flex-col h-full bg-[#0f212e] text-[#b1bad3] pt-4", className)}>
+  // Shared styles
+  const menuItemClass = "w-full justify-start gap-3 h-11 font-bold text-[14px] rounded-lg transition-all";
+  const iconClass = "h-5 w-5 shrink-0 [&>*]:fill-current [&>*]:stroke-none";
+  const accordionTriggerClass = "px-3 py-2.5 text-[14px] font-bold text-white hover:text-white hover:bg-[#213743] rounded-lg hover:no-underline [&[data-state=open]]:bg-[#213743]";
+  const dropdownItemClass = "w-full justify-start h-10 text-sm font-medium text-[#b1bad3] hover:text-white hover:bg-[#1a2c38] rounded-md";
+  const sectionTitleClass = "px-3 py-2 text-[11px] font-bold text-[#b1bad3] uppercase tracking-wider";
 
-      <ScrollArea className="flex-1 px-4 pb-4">
-        {/* User Profile Card (Optional, keeping it as it's useful) */}
+  // Games list with proper order - available flag for coming soon
+  const CASINO_GAMES = [
+    { name: 'New Releases', icon: Sparkles, link: '/casino?filter=new', available: true },
+    { name: 'Shiny Originals', icon: Gem, link: '/casino?filter=originals', available: true },
+    { name: 'Slots', icon: Gamepad2, link: '/casino?filter=slots', available: true },
+    { name: 'Dice', icon: Dices, link: '/game/dice', available: true },
+    { name: 'Mines', icon: Flame, link: '/game/mines', available: true },
+    { name: 'Crash', icon: TrendingUp, link: '/game/crash', available: true },
+    { name: 'Plinko', icon: Zap, link: '/game/plinko', available: false },
+    { name: 'Limbo', icon: Rocket, link: '/game/limbo', available: true },
+    { name: 'Blackjack', icon: Spade, link: '/game/blackjack', available: true },
+    { name: 'Keno', icon: Target, link: '/game/keno', available: false },
+    { name: 'Dragon Tower', icon: Flame, link: '/game/dragon-tower', available: true },
+    { name: 'Flip', icon: Coins, link: '/game/coinflip', available: true },
+    { name: 'Wheel', icon: RotateCcw, link: '/game/wheel', available: false },
+    { name: 'Snakes', icon: CirclePlay, link: '/game/snakes', available: false },
+  ];
+
+  return (
+    <div className={cn("flex flex-col h-full bg-[#0f212e] text-white pt-4", className)}>
+
+      <ScrollArea className="flex-1 px-3 pb-4">
+        {/* User Profile Card */}
         {!isSidebarCollapsed && <UserProfileCard />}
 
-        {/* Main Navigation Card */}
+        {/* Main Navigation */}
         <div className={cn(
           "rounded-xl overflow-hidden transition-all duration-300 mt-2",
           isSidebarCollapsed ? "bg-transparent" : ""
         )}>
 
-          {/* Admin Section */}
-          {isAdmin && (
-            <div className="mb-1 space-y-1">
-              <Link to="/admin" onClick={onLinkClick}>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start gap-3 h-10 font-semibold text-[#F7D979] hover:text-[#F7D979] hover:bg-[#F7D979]/10 border border-[#F7D979]/20",
-                    isSidebarCollapsed && "justify-center px-0"
-                  )}
-                >
-                  <ShieldCheck className="h-4 w-4" />
-                  {!isSidebarCollapsed && "Admin Panel"}
-                </Button>
-              </Link>
-              <Link to="/admin/wallet" onClick={onLinkClick}>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start gap-3 h-10 font-semibold text-[#F7D979] hover:text-[#F7D979] hover:bg-[#F7D979]/10 border border-[#F7D979]/20",
-                    isSidebarCollapsed && "justify-center px-0"
-                  )}
-                >
-                  <Wallet className="h-4 w-4" />
-                  {!isSidebarCollapsed && "Wallet Settings"}
-                </Button>
-              </Link>
-            </div>
-          )}
+          <div className="space-y-0.5">
 
-          {/* Main Menu Items */}
-          <div className="space-y-1">
+            {/* Casino-specific menu items */}
+            {isCasino && (
+              <>
+                {/* Top Section - User Actions */}
+                <Link to="/favourites" onClick={onLinkClick} className="block">
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      menuItemClass,
+                      isActive('/favourites') ? "bg-[#213743] text-white" : "text-white hover:text-white hover:bg-[#213743]",
+                      isSidebarCollapsed && "justify-center px-0"
+                    )}
+                  >
+                    <Star className={iconClass} />
+                    {!isSidebarCollapsed && "Favourites"}
+                  </Button>
+                </Link>
 
-            {/* Games Accordion (New) */}
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="games" className="border-none">
-                {!isSidebarCollapsed ? (
-                  <AccordionTrigger className="px-3 py-2 text-sm font-semibold text-[#b1bad3] hover:text-white hover:bg-[#213743] rounded-lg hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <Gamepad2 className="h-4 w-4" />
-                      <span>Games</span>
-                    </div>
-                  </AccordionTrigger>
-                ) : (
-                  <div className="flex justify-center py-2">
-                    <Gamepad2 className="h-4 w-4" />
-                  </div>
+                <Link to="/recent" onClick={onLinkClick} className="block">
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      menuItemClass,
+                      isActive('/recent') ? "bg-[#213743] text-white" : "text-white hover:text-white hover:bg-[#213743]",
+                      isSidebarCollapsed && "justify-center px-0"
+                    )}
+                  >
+                    <Clock className={iconClass} />
+                    {!isSidebarCollapsed && "Recent"}
+                  </Button>
+                </Link>
+
+                <Link to="/challenges" onClick={onLinkClick} className="block">
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      menuItemClass,
+                      isActive('/challenges') ? "bg-[#213743] text-white" : "text-white hover:text-white hover:bg-[#213743]",
+                      isSidebarCollapsed && "justify-center px-0"
+                    )}
+                  >
+                    <Swords className={iconClass} />
+                    {!isSidebarCollapsed && "Challenges"}
+                  </Button>
+                </Link>
+
+                <Link to="/my-bets" onClick={onLinkClick} className="block">
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      menuItemClass,
+                      isActive('/my-bets') ? "bg-[#213743] text-white" : "text-white hover:text-white hover:bg-[#213743]",
+                      isSidebarCollapsed && "justify-center px-0"
+                    )}
+                  >
+                    <LayoutList className={iconClass} />
+                    {!isSidebarCollapsed && "My Bets"}
+                  </Button>
+                </Link>
+
+                {/* Divider + Games Section */}
+                {!isSidebarCollapsed && (
+                  <>
+                    <div className="h-px bg-[#2f4553] my-3 mx-1" />
+                    <div className={sectionTitleClass}>Games</div>
+                  </>
                 )}
-                <AccordionContent className="pt-1 pb-0">
-                  <div className="pl-4 space-y-1">
-                    {[
-                      { label: 'Dice', icon: Dices, link: '/game/dice' },
-                      { label: 'Crash', icon: TrendingUp, link: '/game/crash' },
-                      { label: 'Plinko', icon: Zap, link: '/game/plinko' },
-                      { label: 'Mines', icon: Flame, link: '/game/mines' },
-                      { label: 'Blackjack', icon: Spade, link: '/game/blackjack' },
-                      { label: 'Coin Flip', icon: User, link: '/game/coinflip' },
-                    ].map((item) => (
-                      <Link key={item.label} to={item.link} onClick={onLinkClick}>
-                        <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white gap-2">
-                          <item.icon className="h-3 w-3" />
-                          {item.label}
-                        </Button>
-                      </Link>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
 
-            {/* Promotions */}
+                {/* Games List */}
+                {CASINO_GAMES.map((game) => (
+                  game.available ? (
+                    <Link key={game.name} to={game.link} onClick={onLinkClick} className="block">
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          menuItemClass,
+                          isActive(game.link) ? "bg-[#213743] text-white" : "text-white hover:text-white hover:bg-[#213743]",
+                          isSidebarCollapsed && "justify-center px-0"
+                        )}
+                      >
+                        <game.icon className={iconClass} />
+                        {!isSidebarCollapsed && game.name}
+                      </Button>
+                    </Link>
+                  ) : (
+                    <div key={game.name} className="block">
+                      <Button
+                        variant="ghost"
+                        disabled
+                        className={cn(
+                          menuItemClass,
+                          "text-[#b1bad3]/50 cursor-not-allowed hover:bg-transparent",
+                          isSidebarCollapsed && "justify-center px-0"
+                        )}
+                      >
+                        <game.icon className="h-5 w-5 shrink-0 opacity-50" />
+                        {!isSidebarCollapsed && (
+                          <span className="flex items-center gap-2">
+                            {game.name}
+                            <span className="text-[10px] bg-[#2f4553] px-1.5 py-0.5 rounded text-[#b1bad3]">Soon</span>
+                          </span>
+                        )}
+                      </Button>
+                    </div>
+                  )
+                ))}
+
+                {/* Divider */}
+                {!isSidebarCollapsed && <div className="h-px bg-[#2f4553] my-3 mx-1" />}
+              </>
+            )}
+
+            {/* Common Menu Items */}
+
+            {/* Promotions Dropdown */}
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="promotions" className="border-none">
                 {!isSidebarCollapsed ? (
-                  <AccordionTrigger className="px-3 py-2 text-sm font-semibold text-[#b1bad3] hover:text-white hover:bg-[#213743] rounded-lg hover:no-underline">
+                  <AccordionTrigger className={accordionTriggerClass}>
                     <div className="flex items-center gap-3">
-                      <Gift className="h-4 w-4" />
+                      <Gift className={iconClass} />
                       <span>Promotions</span>
                     </div>
                   </AccordionTrigger>
                 ) : (
-                  <Link to="/promotions" onClick={onLinkClick} className="flex justify-center py-2">
-                    <Gift className="h-4 w-4" />
+                  <Link to="/promotions" onClick={onLinkClick} className="flex justify-center py-3 hover:bg-[#213743] rounded-lg">
+                    <Gift className={iconClass} />
                   </Link>
                 )}
-                <AccordionContent className="pt-1 pb-0">
-                  <div className="pl-4 space-y-1">
+                <AccordionContent className="pt-1 pb-2 px-2">
+                  <div className="bg-[#1a2c38] rounded-lg p-2 space-y-1">
                     <Link to="/promotions" onClick={onLinkClick}>
-                      <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">View All</Button>
+                      <Button variant="ghost" className={dropdownItemClass}>View All Promos</Button>
                     </Link>
-                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">Welcome Bonus</Button>
+                    <Button variant="ghost" className={dropdownItemClass}>Welcome Bonus</Button>
+                    <Button variant="ghost" className={dropdownItemClass}>Daily Rewards</Button>
                   </div>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-
-            {/* VIP Club */}
-            <Link to="/vip-club" onClick={onLinkClick} className="block">
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start gap-3 h-10 font-semibold",
-                  isActive('/vip-club') ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
-                  isSidebarCollapsed && "justify-center px-0"
-                )}
-              >
-                <Trophy className="h-4 w-4 shrink-0" />
-                {!isSidebarCollapsed && "VIP Club"}
-              </Button>
-            </Link>
 
             {/* Affiliate */}
             <Link to="/affiliate" onClick={onLinkClick} className="block">
               <Button
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start gap-3 h-10 font-semibold",
-                  isActive('/affiliate') ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
+                  menuItemClass,
+                  isActive('/affiliate') ? "bg-[#213743] text-white" : "text-white hover:text-white hover:bg-[#213743]",
                   isSidebarCollapsed && "justify-center px-0"
                 )}
               >
-                <Users className="h-4 w-4 shrink-0" />
+                <Users className={iconClass} />
                 {!isSidebarCollapsed && "Affiliate"}
+              </Button>
+            </Link>
+
+            {/* VIP Club */}
+            <Link to="/vip-club" onClick={onLinkClick} className="block">
+              <Button
+                variant="ghost"
+                className={cn(
+                  menuItemClass,
+                  isActive('/vip-club') ? "bg-[#213743] text-white" : "text-white hover:text-white hover:bg-[#213743]",
+                  isSidebarCollapsed && "justify-center px-0"
+                )}
+              >
+                <Trophy className={iconClass} />
+                {!isSidebarCollapsed && "VIP Club"}
               </Button>
             </Link>
 
@@ -190,12 +271,12 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
               <Button
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start gap-3 h-10 font-semibold",
-                  isActive('/blog') ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
+                  menuItemClass,
+                  isActive('/blog') ? "bg-[#213743] text-white" : "text-white hover:text-white hover:bg-[#213743]",
                   isSidebarCollapsed && "justify-center px-0"
                 )}
               >
-                <Newspaper className="h-4 w-4 shrink-0" />
+                <Newspaper className={iconClass} />
                 {!isSidebarCollapsed && "Blog"}
               </Button>
             </Link>
@@ -205,39 +286,39 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
               <Button
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start gap-3 h-10 font-semibold",
-                  isActive('/forum') ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
+                  menuItemClass,
+                  isActive('/forum') ? "bg-[#213743] text-white" : "text-white hover:text-white hover:bg-[#213743]",
                   isSidebarCollapsed && "justify-center px-0"
                 )}
               >
-                <MessageSquare className="h-4 w-4 shrink-0" />
+                <MessageSquare className={iconClass} />
                 {!isSidebarCollapsed && "Forum"}
               </Button>
             </Link>
 
             {/* Divider */}
-            {!isSidebarCollapsed && <div className="h-px bg-[#2f4553] my-4 mx-3" />}
+            {!isSidebarCollapsed && <div className="h-px bg-[#2f4553] my-3 mx-1" />}
 
-            {/* Sponsorships */}
+            {/* Sponsorships Dropdown */}
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="sponsorships" className="border-none">
                 {!isSidebarCollapsed ? (
-                  <AccordionTrigger className="px-3 py-2 text-sm font-semibold text-[#b1bad3] hover:text-white hover:bg-[#213743] rounded-lg hover:no-underline">
+                  <AccordionTrigger className={accordionTriggerClass}>
                     <div className="flex items-center gap-3">
-                      <Shield className="h-4 w-4" />
+                      <Gem className={iconClass} />
                       <span>Sponsorships</span>
                     </div>
                   </AccordionTrigger>
                 ) : (
-                  <div className="flex justify-center py-2">
-                    <Shield className="h-4 w-4" />
+                  <div className="flex justify-center py-3 hover:bg-[#213743] rounded-lg cursor-pointer">
+                    <Gem className={iconClass} />
                   </div>
                 )}
-                <AccordionContent className="pt-1 pb-0">
-                  <div className="pl-4 space-y-1">
-                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">UFC</Button>
-                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">Everton FC</Button>
-                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">Alfa Romeo F1</Button>
+                <AccordionContent className="pt-1 pb-2 px-2">
+                  <div className="bg-[#1a2c38] rounded-lg p-2 space-y-1">
+                    <Button variant="ghost" className={dropdownItemClass}>UFC</Button>
+                    <Button variant="ghost" className={dropdownItemClass}>Everton FC</Button>
+                    <Button variant="ghost" className={dropdownItemClass}>Alfa Romeo F1</Button>
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -248,12 +329,12 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
               <Button
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start gap-3 h-10 font-semibold",
-                  isActive('/responsible-gambling') ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
+                  menuItemClass,
+                  isActive('/responsible-gambling') ? "bg-[#213743] text-white" : "text-white hover:text-white hover:bg-[#213743]",
                   isSidebarCollapsed && "justify-center px-0"
                 )}
               >
-                <ShieldCheck className="h-4 w-4 shrink-0" />
+                <ShieldCheck className={iconClass} />
                 {!isSidebarCollapsed && "Responsible Gambling"}
               </Button>
             </Link>
@@ -263,37 +344,38 @@ export function AppSidebar({ className, onLinkClick }: SidebarProps) {
               <Button
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start gap-3 h-10 font-semibold",
-                  isActive('/help') ? "bg-[#213743] text-white" : "text-[#b1bad3] hover:text-white hover:bg-[#213743]",
+                  menuItemClass,
+                  isActive('/help') ? "bg-[#213743] text-white" : "text-white hover:text-white hover:bg-[#213743]",
                   isSidebarCollapsed && "justify-center px-0"
                 )}
               >
-                <Headphones className="h-4 w-4 shrink-0" />
+                <Headphones className={iconClass} />
                 {!isSidebarCollapsed && "Live Support"}
               </Button>
             </Link>
 
-            {/* Language */}
+            {/* Language Dropdown */}
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="language" className="border-none">
                 {!isSidebarCollapsed ? (
-                  <AccordionTrigger className="px-3 py-2 text-sm font-semibold text-[#b1bad3] hover:text-white hover:bg-[#213743] rounded-lg hover:no-underline">
+                  <AccordionTrigger className={accordionTriggerClass}>
                     <div className="flex items-center gap-3">
-                      <Globe className="h-4 w-4" />
+                      <Globe className={iconClass} />
                       <span>Language: English</span>
                     </div>
                   </AccordionTrigger>
                 ) : (
-                  <div className="flex justify-center py-2">
-                    <Globe className="h-4 w-4" />
+                  <div className="flex justify-center py-3 hover:bg-[#213743] rounded-lg cursor-pointer">
+                    <Globe className={iconClass} />
                   </div>
                 )}
-                <AccordionContent className="pt-1 pb-0">
-                  <div className="pl-4 space-y-1">
-                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-white bg-[#213743]">English</Button>
-                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">Español</Button>
-                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">Français</Button>
-                    <Button variant="ghost" className="w-full justify-start h-8 text-xs text-[#b1bad3] hover:text-white">Deutsch</Button>
+                <AccordionContent className="pt-1 pb-2 px-2">
+                  <div className="bg-[#1a2c38] rounded-lg p-2 space-y-1">
+                    <Button variant="ghost" className={cn(dropdownItemClass, "text-white bg-[#213743]")}>English</Button>
+                    <Button variant="ghost" className={dropdownItemClass}>Español</Button>
+                    <Button variant="ghost" className={dropdownItemClass}>Français</Button>
+                    <Button variant="ghost" className={dropdownItemClass}>Deutsch</Button>
+                    <Button variant="ghost" className={dropdownItemClass}>Português</Button>
                   </div>
                 </AccordionContent>
               </AccordionItem>

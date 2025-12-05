@@ -197,17 +197,17 @@ export default function RecentBets() {
   return (
     <div className="w-full bg-[#1a2c38] rounded-xl border border-[#2f4553] overflow-hidden shadow-xl flex flex-col">
       {/* Header with Tabs */}
-      <div className="p-4 border-b border-[#2f4553] bg-[#0f212e]">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="p-3 border-b border-[#2f4553] bg-[#0f212e]">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           {/* Tabs */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-[#1a2c38] p-1 rounded-lg">
             <button
               onClick={() => setActiveTab('my')}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                "px-4 py-2 rounded-md text-sm font-bold transition-all",
                 activeTab === 'my'
                   ? "bg-[#2f4553] text-white"
-                  : "text-[#b1bad3] hover:text-white hover:bg-[#1a2c38]"
+                  : "text-[#b1bad3] hover:text-white"
               )}
             >
               My Bets
@@ -215,10 +215,10 @@ export default function RecentBets() {
             <button
               onClick={() => setActiveTab('all')}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                "px-4 py-2 rounded-md text-sm font-bold transition-all",
                 activeTab === 'all'
                   ? "bg-[#2f4553] text-white"
-                  : "text-[#b1bad3] hover:text-white hover:bg-[#1a2c38]"
+                  : "text-[#b1bad3] hover:text-white"
               )}
             >
               All Bets
@@ -226,10 +226,10 @@ export default function RecentBets() {
             <button
               onClick={() => setActiveTab('high')}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                "px-4 py-2 rounded-md text-sm font-bold transition-all",
                 activeTab === 'high'
                   ? "bg-[#2f4553] text-white"
-                  : "text-[#b1bad3] hover:text-white hover:bg-[#1a2c38]"
+                  : "text-[#b1bad3] hover:text-white"
               )}
             >
               High Rollers
@@ -237,10 +237,10 @@ export default function RecentBets() {
             <button
               onClick={() => setActiveTab('race')}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                "px-4 py-2 rounded-md text-sm font-bold transition-all",
                 activeTab === 'race'
                   ? "bg-[#2f4553] text-white"
-                  : "text-[#b1bad3] hover:text-white hover:bg-[#1a2c38]"
+                  : "text-[#b1bad3] hover:text-white"
               )}
             >
               Race Leaderboard
@@ -249,13 +249,13 @@ export default function RecentBets() {
 
           {/* Settings & Limit Selector */}
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-[#b1bad3] hover:text-white hover:bg-[#2f4553]">
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-[#b1bad3] hover:text-white hover:bg-[#2f4553] rounded-lg">
               <Settings className="w-4 h-4" />
             </Button>
             <select
               value={limit}
               onChange={(e) => setLimit(Number(e.target.value))}
-              className="bg-[#1a2c38] border border-[#2f4553] text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#b1bad3]"
+              className="bg-[#1a2c38] border border-[#2f4553] text-white text-sm font-bold rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#b1bad3] cursor-pointer"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
@@ -365,7 +365,7 @@ export default function RecentBets() {
                         <div className="flex items-center justify-center w-6 h-6">
                           <GameIcon type={bet.game_type} />
                         </div>
-                        <span className="capitalize text-sm font-medium hidden xl:inline-block text-[#b1bad3]">{bet.game_type}</span>
+                        <span className="capitalize text-sm font-bold text-white">{bet.game_type}</span>
                       </div>
                     </TableCell>
 

@@ -55,9 +55,13 @@ export default function AdminLayout() {
   const NavContent = () => (
     <div className="flex flex-col h-full bg-admin-surface border-r border-admin-border">
       <div className="flex items-center gap-2 px-6 py-6 border-b border-admin-border">
-        <img src={LOGO_URL} alt="Shiny Admin" className="h-8 w-auto" />
+        <img
+          src="https://media.discordapp.net/attachments/1442506658155855925/1446069962493005844/Collabeco_2_-removebg-preview.png?ex=6932a519&is=69315399&hm=cab9148f2cdcafb486a7ff6e92852c787bcb0e5b193af549d467c257f8913b73&=&format=webp&quality=lossless&width=750&height=750"
+          alt="Shiny Admin"
+          className="h-10 w-10 object-contain"
+        />
         <span className="text-xl font-bold tracking-tight text-white">
-          Shiny<span className="text-admin-accent">.admin</span>
+          Shiny<span className="text-[#ffd700]">.bet</span> <span className="text-admin-accent text-sm">Admin</span>
         </span>
       </div>
 

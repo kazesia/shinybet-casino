@@ -66,6 +66,17 @@ export const SHINY_ORIGINALS = [
         status: 'active'
     },
     {
+        id: 'dragon-tower',
+        name: 'Dragon Tower',
+        link: '/game/dragon-tower',
+        color: 'text-orange-400',
+        bgGradient: 'from-orange-600 to-red-700',
+        icon: '🐉',
+        image: '/game-assets/thumbnails/dragon_tower_new.png',
+        playing: 1847,
+        status: 'active'
+    },
+    {
         id: 'limbo',
         name: 'Limbo',
         link: '/game/limbo',

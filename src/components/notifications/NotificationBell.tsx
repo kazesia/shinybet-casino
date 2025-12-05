@@ -15,7 +15,7 @@ export function NotificationBell() {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <button className="relative p-2 hover:bg-[#2f4553] rounded-lg transition-colors">
-                    <Bell className="w-5 h-5 text-[#b1bad3] hover:text-white transition-colors" />
+                    <Bell className="w-5 h-5 text-white" fill="white" stroke="none" />
                     {unreadCount > 0 && (
                         <span className={cn(
                             "absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center",

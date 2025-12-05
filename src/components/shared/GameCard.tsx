@@ -1,8 +1,12 @@
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { PlayCircle } from 'lucide-react';
+import { usePlayerCount } from '@/context/PlayerCountContext';
 
 export const GameCard = ({ game, isOriginal = false }: { game: any, isOriginal?: boolean }) => {
+    const { getGamePlayers } = usePlayerCount();
+    const livePlayerCount = getGamePlayers(game.id);
+
     if (isOriginal) {
         return (
             <Link
@@ -84,7 +88,7 @@ export const GameCard = ({ game, isOriginal = false }: { game: any, isOriginal?:
                     {game.status === 'active' ? (
                         <>
                             <div className="w-1.5 h-1.5 rounded-full bg-[#00e701] shadow-[0_0_6px_#00e701] animate-pulse" />
-                            <span className="font-bold text-white">{game.playing.toLocaleString()}</span>
+                            <span className="font-bold text-white">{livePlayerCount.toLocaleString()}</span>
                             <span className="text-white/70">playing</span>
                         </>
                     ) : (

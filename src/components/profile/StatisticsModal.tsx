@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUI } from '@/context/UIContext';
@@ -21,7 +21,7 @@ const TIERS = [
 export function StatisticsModal() {
   const { isStatsModalOpen, closeStatsModal } = useUI();
   const { user, profile } = useAuth();
-  
+
   const [stats, setStats] = useState({
     totalBets: 0,
     wins: 0,
@@ -41,7 +41,7 @@ export function StatisticsModal() {
     try {
       // 1. Get Wagered Amount from RPC (Most accurate for VIP)
       const { data: userStats } = await supabase.rpc('get_user_stats', { user_id: user?.id });
-      
+
       // 2. Get Counts directly from bets table
       // Note: In a real large-scale app, these counts should be incremented in a profile_stats table via triggers
       const { count: totalBets } = await supabase
@@ -94,12 +94,12 @@ export function StatisticsModal() {
   return (
     <Dialog open={isStatsModalOpen} onOpenChange={(open) => !open && closeStatsModal()}>
       <DialogContent className="sm:max-w-[500px] bg-[#1a2c38] border-[#2f4553] text-white p-0 gap-0 overflow-hidden shadow-2xl">
-        
+
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#2f4553]">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-white" />
-            <DialogTitle className="text-lg font-bold text-white">Statistics</DialogTitle>
+            <h2 className="text-lg font-bold text-white">Statistics</h2>
           </div>
           <Button variant="ghost" size="icon" onClick={closeStatsModal} className="text-[#b1bad3] hover:text-white hover:bg-[#2f4553] h-8 w-8 rounded-full">
             <X className="w-5 h-5" />
@@ -107,7 +107,7 @@ export function StatisticsModal() {
         </div>
 
         <div className="p-6 space-y-6">
-          
+
           {/* User Info */}
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -117,7 +117,7 @@ export function StatisticsModal() {
           </div>
 
           <div className="p-2 bg-[#213743] rounded-lg w-fit">
-             <Star className="w-5 h-5 text-[#b17827]" />
+            <Star className="w-5 h-5 text-[#b17827]" />
           </div>
 
           {/* VIP Progress */}
@@ -126,10 +126,10 @@ export function StatisticsModal() {
               <span className="font-bold text-white">Your VIP Progress</span>
               <span className="font-bold text-white">{progressPercent.toFixed(2)}%</span>
             </div>
-            
+
             <div className="relative h-2 bg-[#0f212e] rounded-full overflow-hidden">
-              <div 
-                className="absolute top-0 left-0 h-full bg-[#b17827] rounded-full transition-all duration-1000 ease-out" 
+              <div
+                className="absolute top-0 left-0 h-full bg-[#b17827] rounded-full transition-all duration-1000 ease-out"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>

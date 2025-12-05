@@ -114,9 +114,15 @@ export default function AdminNotifications() {
 
             // Refresh history
             fetchHistory();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error sending notification:', error);
-            toast.error('Failed to send notification');
+            console.error('Error details:', {
+                message: error?.message,
+                code: error?.code,
+                details: error?.details,
+                hint: error?.hint
+            });
+            toast.error(`Failed to send notification: ${error?.message || 'Unknown error'}`);
         } finally {
             setLoading(false);
         }
@@ -285,6 +291,7 @@ export default function AdminNotifications() {
                                                     <TableHead className="text-[#b1bad3]">Message</TableHead>
                                                     <TableHead className="text-[#b1bad3]">Type</TableHead>
                                                     <TableHead className="text-[#b1bad3]">Time</TableHead>
+                                                    <TableHead className="text-[#b1bad3] text-right">Actions</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
@@ -307,6 +314,37 @@ export default function AdminNotifications() {
                                                         </TableCell>
                                                         <TableCell className="text-[#b1bad3] text-sm">
                                                             {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={async () => {
+                                                                        try {
+                                                                            console.log('Deleting notification:', notification.id);
+                                                                            const { error } = await supabase
+                                                                                .from('notifications')
+                                                                                .delete()
+                                                                                .eq('id', notification.id);
+
+                                                                            if (error) {
+                                                                                console.error('Delete error:', error);
+                                                                                toast.error(`Failed to delete: ${error.message}`);
+                                                                            } else {
+                                                                                toast.success('Deleted successfully');
+                                                                                fetchHistory();
+                                                                            }
+                                                                        } catch (err: any) {
+                                                                            console.error('Delete exception:', err);
+                                                                            toast.error(`Error: ${err.message}`);
+                                                                        }
+                                                                    }}
+                                                                    className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                                                                >
+                                                                    Delete
+                                                                </Button>
+                                                            </div>
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}

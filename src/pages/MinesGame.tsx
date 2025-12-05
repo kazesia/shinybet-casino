@@ -515,10 +515,7 @@ export default function MinesGame() {
                   className="flex items-center gap-2 bg-[#213743] px-3 py-1 rounded-full hover:bg-[#2f4553] cursor-pointer transition-colors"
                   onClick={openFairnessModal}
                 >
-                  <div className="w-3 h-3 rounded-full bg-green-500 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                  </div>
-                  <span className="text-xs font-bold text-white">Fairness</span>
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                 </div>
               </div>
             </div>

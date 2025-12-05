@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Settings2, BarChart2, Circle } from 'lucide-react';
+import { Settings2, BarChart2, Circle, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useWallet } from '@/context/WalletContext';
 import { useUI } from '@/context/UIContext';
 import { toast } from 'sonner';
+import RecentBets from '@/components/home/LiveBets';
+import { useGameSounds } from '@/hooks/useGameSounds';
 
 // Roulette numbers with colors (European Roulette: 0-36)
 const ROULETTE_NUMBERS = [
@@ -38,6 +40,7 @@ export default function RouletteGame() {
     const { user } = useAuth();
     const { balance, optimisticUpdate } = useWallet();
     const { openFairnessModal } = useUI();
+    const { playSound, soundEnabled, toggleSound } = useGameSounds();
 
     const [betAmount, setBetAmount] = useState<number>(0);
     const [bets, setBets] = useState<Bet[]>([]);
@@ -136,10 +139,10 @@ export default function RouletteGame() {
         const isWin = totalPayout > 0;
 
         if (isWin) {
+            playSound('win');
             optimisticUpdate(totalPayout);
-            toast.success(`Won ${totalPayout.toFixed(4)}!`, { className: "text-yellow-500" });
         } else {
-            toast.error(`Lost! Number was ${result}`);
+            playSound('lose');
         }
 
         // Sync to DB
@@ -342,7 +345,7 @@ export default function RouletteGame() {
                                     className="flex items-center gap-2 bg-[#213743] px-3 py-1 rounded-full cursor-pointer hover:bg-[#2f4553] transition-colors"
                                     onClick={openFairnessModal}
                                 >
-                                    <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+                                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                                     <span className="text-xs font-bold text-white">Fairness</span>
                                 </div>
                                 <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
@@ -354,6 +357,9 @@ export default function RouletteGame() {
                     </div>
 
                 </div>
+
+                {/* Live Bets */}
+                <RecentBets />
 
             </div>
         </div>
