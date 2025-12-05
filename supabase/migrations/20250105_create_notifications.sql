@@ -37,9 +37,8 @@ CREATE POLICY "Users can update own notifications"
 CREATE POLICY "Admins can insert notifications"
   ON notifications FOR INSERT
   WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM profiles
-      WHERE id = auth.uid() AND role = 'admin'
+    auth.uid() IN (
+      SELECT id FROM profiles WHERE role = 'admin'
     )
   );
 
@@ -47,8 +46,7 @@ CREATE POLICY "Admins can insert notifications"
 CREATE POLICY "Admins can read all notifications"
   ON notifications FOR SELECT
   USING (
-    EXISTS (
-      SELECT 1 FROM profiles
-      WHERE id = auth.uid() AND role = 'admin'
-    )
+    auth.uid() IN (
+      SELECT id FROM profiles WHERE role = 'admin'
+    ) OR auth.uid() = user_id
   );

@@ -252,29 +252,6 @@ const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Notifications */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743] h-10 w-10 rounded-[4px] relative">
-                    <Bell className="h-5 w-5" />
-                    <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#1a2c38]" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 p-0 bg-[#1a2c38] border-[#2f4553] text-white mt-2" align="end">
-                  <div className="p-3 border-b border-[#2f4553] flex justify-between items-center">
-                    <h4 className="font-bold text-sm">Notifications</h4>
-                    <span className="text-xs text-[#1475e1] cursor-pointer hover:underline">Mark all read</span>
-                  </div>
-                  <ScrollArea className="h-[300px]">
-                    <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                      <Bell className="h-12 w-12 text-[#2f4553] mb-3" />
-                      <p className="text-sm text-[#b1bad3]">No notifications yet</p>
-                      <p className="text-xs text-[#2f4553] mt-1">We'll notify you when something important happens</p>
-                    </div>
-                  </ScrollArea>
-                </PopoverContent>
-              </Popover>
-
               {/* Chat Toggle */}
               <Button
                 variant="ghost"
