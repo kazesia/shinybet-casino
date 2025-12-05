@@ -59,7 +59,11 @@ const getGameIcon = (gameType: string) => {
     );
 };
 
-export function RecentBets() {
+interface RecentBetsProps {
+    gameType?: string;
+}
+
+export function RecentBets({ gameType }: RecentBetsProps) {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('all');
     const [bets, setBets] = useState<Bet[]>([]);
@@ -76,6 +80,10 @@ export function RecentBets() {
 
             if (activeTab === 'my' && user) {
                 query = query.eq('user_id', user.id);
+            }
+
+            if (gameType) {
+                query = query.eq('game_type', gameType);
             }
 
             const { data, error } = await query;

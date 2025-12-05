@@ -12,7 +12,7 @@ import { useWallet } from '@/context/WalletContext';
 import { useUI } from '@/context/UIContext';
 import { toast } from 'sonner';
 import { PLINKO_CONFIG, getMultipliers, getBucketColor } from '@/components/games/plinko/config';
-import { GameHistory } from '@/components/games/GameHistory';
+import { RecentBets } from '@/components/games/RecentBets';
 import { useViewport } from '@/hooks/useViewport';
 import { GameControlsMobile } from '@/components/game/GameControlsMobile';
 
@@ -444,8 +444,8 @@ export default function PlinkoGame() {
           </div>
         )}
 
-        {/* History */}
-        <GameHistory gameType="Plinko" />
+        {/* Recent Bets */}
+        <RecentBets gameType="Plinko" />
 
       </div>
     </div>
