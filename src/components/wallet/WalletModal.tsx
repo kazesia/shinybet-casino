@@ -286,8 +286,8 @@ const DepositView = ({
             />
           </div>
           <div
-            className="max-h-[300px] overflow-y-auto p-1 coin-list-scroll"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            className="max-h-[300px] overflow-y-scroll p-1 coin-list-scroll overscroll-contain"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
           >
             {coins.filter(c => c.active).map((coin) => (
               <div
