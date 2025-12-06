@@ -272,32 +272,32 @@ const DepositView = ({
             <ChevronRight className="ml-2 h-4 w-4 shrink-0 opacity-50 rotate-90" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[400px] p-0 bg-[#1a2c38] border-[#2f4553]">
-          <Command className="bg-[#1a2c38] text-white">
-            <CommandInput placeholder="Search coin..." className="h-12 border-b border-[#2f4553]" />
-            <CommandList>
-              <CommandEmpty>No coin found.</CommandEmpty>
-              <CommandGroup>
-                {coins.filter(c => c.active).map((coin) => (
-                  <CommandItem
-                    key={coin.id}
-                    value={coin.name}
-                    onSelect={() => {
-                      setSelectedCoin(coin);
-                      setOpenCombobox(false);
-                    }}
-                    className="flex items-center gap-3 px-4 py-3 cursor-pointer aria-selected:bg-[#213743] aria-selected:text-white hover:bg-[#213743]"
-                  >
-                    <CoinIcon coin={coin} className="w-8 h-8 text-sm" />
-                    <div className="flex flex-col">
-                      <span className="font-bold text-white">{coin.id}</span>
-                      <span className="text-xs text-[#b1bad3]">{coin.name}</span>
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
+        <PopoverContent className="w-[400px] p-0 bg-[#1a2c38] border-[#2f4553] z-[100]" sideOffset={5}>
+          <div className="p-2 border-b border-[#2f4553]">
+            <input
+              type="text"
+              placeholder="Search coin..."
+              className="w-full h-10 px-3 bg-[#0f212e] border border-[#2f4553] rounded-lg text-white placeholder:text-[#557086] focus:outline-none focus:border-[#3d5564]"
+            />
+          </div>
+          <div className="max-h-[300px] overflow-y-auto p-1 scrollbar-hide">
+            {coins.filter(c => c.active).map((coin) => (
+              <div
+                key={coin.id}
+                onClick={() => {
+                  setSelectedCoin(coin);
+                  setOpenCombobox(false);
+                }}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer hover:bg-[#213743] transition-colors"
+              >
+                <CoinIcon coin={coin} className="w-8 h-8 text-sm" />
+                <div className="flex flex-col">
+                  <span className="font-bold text-white">{coin.id}</span>
+                  <span className="text-xs text-[#b1bad3]">{coin.name}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </PopoverContent>
       </Popover>
     </div>
@@ -429,32 +429,32 @@ const WithdrawView = ({
               <ChevronRight className="ml-2 h-5 w-5 shrink-0 opacity-50 rotate-90" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[400px] p-0 bg-[#1a2c38] border-[#2f4553]">
-            <Command className="bg-[#1a2c38] text-white">
-              <CommandInput placeholder="Search coin..." className="h-12 border-b border-[#2f4553]" />
-              <CommandList>
-                <CommandEmpty>No coin found.</CommandEmpty>
-                <CommandGroup>
-                  {coins.filter(c => c.active).map((coin) => (
-                    <CommandItem
-                      key={coin.id}
-                      value={coin.name}
-                      onSelect={() => {
-                        setSelectedCoin(coin);
-                        setOpenCombobox(false);
-                      }}
-                      className="flex items-center gap-3 px-4 py-3 cursor-pointer aria-selected:bg-[#213743] aria-selected:text-white hover:bg-[#213743]"
-                    >
-                      <CoinIcon coin={coin} className="w-8 h-8 text-sm" />
-                      <div className="flex flex-col">
-                        <span className="font-bold text-white">{coin.id}</span>
-                        <span className="text-xs text-[#b1bad3]">{coin.name}</span>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
+          <PopoverContent className="w-[400px] p-0 bg-[#1a2c38] border-[#2f4553] z-[100]" sideOffset={5}>
+            <div className="p-2 border-b border-[#2f4553]">
+              <input
+                type="text"
+                placeholder="Search coin..."
+                className="w-full h-10 px-3 bg-[#0f212e] border border-[#2f4553] rounded-lg text-white placeholder:text-[#557086] focus:outline-none focus:border-[#3d5564]"
+              />
+            </div>
+            <div className="max-h-[300px] overflow-y-auto p-1 scrollbar-hide">
+              {coins.filter(c => c.active).map((coin) => (
+                <div
+                  key={coin.id}
+                  onClick={() => {
+                    setSelectedCoin(coin);
+                    setOpenCombobox(false);
+                  }}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer hover:bg-[#213743] transition-colors"
+                >
+                  <CoinIcon coin={coin} className="w-8 h-8 text-sm" />
+                  <div className="flex flex-col">
+                    <span className="font-bold text-white">{coin.id}</span>
+                    <span className="text-xs text-[#b1bad3]">{coin.name}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </PopoverContent>
         </Popover>
       </div>
