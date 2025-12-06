@@ -273,6 +273,11 @@ const DepositView = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[400px] p-0 bg-[#1a2c38] border-[#2f4553] z-[100]" sideOffset={5}>
+          <style>{`
+            .coin-list-scroll::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
           <div className="p-2 border-b border-[#2f4553]">
             <input
               type="text"
@@ -280,7 +285,10 @@ const DepositView = ({
               className="w-full h-10 px-3 bg-[#0f212e] border border-[#2f4553] rounded-lg text-white placeholder:text-[#557086] focus:outline-none focus:border-[#3d5564]"
             />
           </div>
-          <div className="max-h-[300px] overflow-y-auto p-1 scrollbar-hide">
+          <div
+            className="max-h-[300px] overflow-y-auto p-1 coin-list-scroll"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
             {coins.filter(c => c.active).map((coin) => (
               <div
                 key={coin.id}
