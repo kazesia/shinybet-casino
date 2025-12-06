@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const LOGO_URL = "https://cdn.discordapp.com/attachments/1442155264613814302/1445539875116810392/Collabeco_2_-removebg-preview.png?ex=6930b76b&is=692f65eb&hm=9be06a69591c9fba9edca705a2295c341ddde42e5112db67b58dbc0d77f00ed5";
+
 
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
@@ -56,7 +56,7 @@ export default function AdminLayout() {
     <div className="flex flex-col h-full bg-admin-surface border-r border-admin-border">
       <div className="flex items-center gap-2 px-6 py-6 border-b border-admin-border">
         <img
-          src="https://media.discordapp.net/attachments/1442506658155855925/1446069962493005844/Collabeco_2_-removebg-preview.png?ex=6932a519&is=69315399&hm=cab9148f2cdcafb486a7ff6e92852c787bcb0e5b193af549d467c257f8913b73&=&format=webp&quality=lossless&width=750&height=750"
+          src="/logo.png"
           alt="Shiny Admin"
           className="h-10 w-10 object-contain"
         />
@@ -129,7 +129,7 @@ export default function AdminLayout() {
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 border-b border-admin-border bg-admin-surface/80 backdrop-blur-md z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <img src={LOGO_URL} alt="Shiny Admin" className="h-8 w-auto" />
+          <img src="/logo.png" alt="Shiny Admin" className="h-8 w-auto" />
           <span className="font-bold text-white">Admin Panel</span>
         </div>
         <Sheet open={open} onOpenChange={setOpen}>

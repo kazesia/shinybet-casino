@@ -8,6 +8,7 @@ import { X, Users } from 'lucide-react';
 import { ChatMessage, ChatMessageProps } from './ChatMessage';
 import { MessageInput } from './MessageInput';
 import { CountrySelector } from './CountrySelector';
+import { StatisticsModal } from '@/components/profile/StatisticsModal';
 
 export default function ChatPanel() {
     const { user, profile } = useAuth();
@@ -18,6 +19,15 @@ export default function ChatPanel() {
     const [userCountry, setUserCountry] = useState('🇺🇸'); // Default
     const scrollRef = useRef<HTMLDivElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+    const [selectedUsername, setSelectedUsername] = useState<string>('');
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+    const handleUsernameClick = (userId: string, username: string) => {
+        setSelectedUserId(userId);
+        setSelectedUsername(username);
+        setIsProfileModalOpen(true);
+    };
 
     // Fetch initial messages
     useEffect(() => {
@@ -145,7 +155,9 @@ export default function ChatPanel() {
                         <ChatMessage
                             key={msg.id}
                             {...msg}
-                            isOwnMessage={user?.id === (msg as any).user_id} // Cast if type mismatch on user_id
+                            userId={(msg as any).user_id}
+                            isOwnMessage={user?.id === (msg as any).user_id}
+                            onUsernameClick={handleUsernameClick}
                         />
                     ))}
                     <div ref={messagesEndRef} />
@@ -157,6 +169,14 @@ export default function ChatPanel() {
                 onSendMessage={handleSendMessage}
                 isLoading={isLoading}
                 disabled={!user}
+            />
+
+            {/* User Profile Modal */}
+            <StatisticsModal
+                externalUserId={selectedUserId}
+                externalUsername={selectedUsername}
+                isExternalOpen={isProfileModalOpen}
+                onExternalClose={() => setIsProfileModalOpen(false)}
             />
         </div>
     );

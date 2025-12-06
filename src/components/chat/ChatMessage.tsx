@@ -4,14 +4,16 @@ import { cn } from '@/lib/utils';
 
 export interface ChatMessageProps {
     id: string;
+    userId?: string;
     username: string;
     message: string;
     country: string;
     created_at: string;
     isOwnMessage?: boolean;
+    onUsernameClick?: (userId: string, username: string) => void;
 }
 
-export function ChatMessage({ username, message, country, created_at, isOwnMessage }: ChatMessageProps) {
+export function ChatMessage({ userId, username, message, country, created_at, isOwnMessage, onUsernameClick }: ChatMessageProps) {
     // Simple mention highlighting
     const renderMessage = (text: string) => {
         const parts = text.split(/(@\w+)/g);
@@ -27,6 +29,12 @@ export function ChatMessage({ username, message, country, created_at, isOwnMessa
         });
     };
 
+    const handleUsernameClick = () => {
+        if (userId && onUsernameClick) {
+            onUsernameClick(userId, username);
+        }
+    };
+
     return (
         <div className={cn(
             "group flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200",
@@ -40,10 +48,13 @@ export function ChatMessage({ username, message, country, created_at, isOwnMessa
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
                     <span className="text-sm">{country}</span>
-                    <span className={cn(
-                        "text-xs font-bold truncate cursor-pointer hover:underline",
-                        isOwnMessage ? "text-[#1475e1]" : "text-white"
-                    )}>
+                    <span
+                        className={cn(
+                            "text-xs font-bold truncate cursor-pointer hover:underline",
+                            isOwnMessage ? "text-[#1475e1]" : "text-[#1475e1]"
+                        )}
+                        onClick={handleUsernameClick}
+                    >
                         {username}
                     </span>
                     <span className="text-[10px] text-[#b1bad3]/50 ml-auto">

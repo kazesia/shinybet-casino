@@ -39,8 +39,8 @@ export default function AdminDashboard() {
             <Users className="h-4 w-4 text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{stats?.total_users || 0}</div>
-            <p className="text-xs text-muted-foreground">{stats?.active_users_24h || 0} Active (24h)</p>
+            <div className="text-2xl font-bold text-white">{(stats?.total_users || 0).toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">{(stats?.active_users_24h || 0).toLocaleString()} Active (24h)</p>
           </CardContent>
         </Card>
 
@@ -51,7 +51,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${stats?.net_profit && stats.net_profit >= 0 ? 'text-brand-success' : 'text-brand-danger'}`}>
-              {stats?.net_profit && stats.net_profit >= 0 ? '+' : ''}{stats?.net_profit?.toFixed(2) || '0.00'}
+              {stats?.net_profit && stats.net_profit >= 0 ? '+' : ''}${(stats?.net_profit || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <p className="text-xs text-muted-foreground">Total Revenue</p>
           </CardContent>
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
             <TrendingUp className="h-4 w-4 text-[#F7D979]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{stats?.total_wagered?.toFixed(2) || '0.00'}</div>
+            <div className="text-2xl font-bold text-white">${(stats?.total_wagered || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             <p className="text-xs text-muted-foreground">Volume</p>
           </CardContent>
         </Card>
@@ -74,7 +74,7 @@ export default function AdminDashboard() {
             <Percent className="h-4 w-4 text-purple-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{stats?.house_edge_profit?.toFixed(2) || '0.00'}</div>
+            <div className="text-2xl font-bold text-white">${(stats?.house_edge_profit || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             <p className="text-xs text-muted-foreground">Theoretical Profit</p>
           </CardContent>
         </Card>
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
                   {recentDeposits?.slice(0, 5).map((d) => (
                     <TableRow key={d.id} className="border-white/10 hover:bg-white/5">
                       <TableCell className="font-medium text-white">{d.profiles?.username || 'Unknown'}</TableCell>
-                      <TableCell>{d.amount_credits} Credits</TableCell>
+                      <TableCell>${(d.amount_credits || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-right">
                         <Badge variant="outline" className="border-brand-success text-brand-success">{d.status}</Badge>
                       </TableCell>
@@ -136,7 +136,7 @@ export default function AdminDashboard() {
                   {recentWithdrawals?.slice(0, 5).map((w) => (
                     <TableRow key={w.id} className="border-white/10 hover:bg-white/5">
                       <TableCell className="font-medium text-white">{w.profiles?.username || 'Unknown'}</TableCell>
-                      <TableCell>{w.amount_credits} Credits</TableCell>
+                      <TableCell>${(w.amount_credits || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-right">
                         <Badge variant="outline" className={
                           w.status === 'pending' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500' :

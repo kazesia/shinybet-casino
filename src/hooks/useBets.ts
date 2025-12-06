@@ -43,6 +43,7 @@ export const useBets = (gameType = 'all', page = 0, pageSize = 10) => {
             let query = supabase
                 .from('bets')
                 .select('*', { count: 'exact' })
+                .eq('user_id', user.id)
                 .order('created_at', { ascending: false })
                 .range(page * pageSize, (page + 1) * pageSize - 1);
 

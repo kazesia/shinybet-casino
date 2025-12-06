@@ -14,7 +14,7 @@ export function VaultModal() {
   const { user } = useAuth();
   const { balance, refreshBalance } = useWallet();
   const { isVaultModalOpen, closeVaultModal } = useUI();
-  
+
   const [vaultBalance, setVaultBalance] = useState(0);
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,7 @@ export function VaultModal() {
       .select('amount')
       .eq('user_id', user?.id)
       .single();
-    
+
     if (!error && data) {
       setVaultBalance(data.amount);
     } else if (error && error.code === 'PGRST116') {
@@ -77,12 +77,12 @@ export function VaultModal() {
 
   return (
     <Dialog open={isVaultModalOpen} onOpenChange={(open) => !open && closeVaultModal()}>
-      <DialogContent className="sm:max-w-[480px] bg-[#1a2c38] border-[#2f4553] text-white p-0 gap-0 overflow-hidden shadow-2xl">
-        
+      <DialogContent className="sm:max-w-[480px] bg-[#1a2c38] border-[#2f4553] text-white p-0 gap-0 overflow-hidden shadow-2xl [&>button]:hidden">
+
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#2f4553] bg-[#0f212e]">
           <div className="flex items-center gap-2">
-            <Lock className="w-5 h-5 text-[#F7D979]" />
+            <img src="/icons/vault.png" alt="Vault" className="w-5 h-5" />
             <DialogTitle className="text-lg font-bold text-white">Vault</DialogTitle>
           </div>
           <Button variant="ghost" size="icon" onClick={closeVaultModal} className="text-[#b1bad3] hover:text-white hover:bg-[#2f4553] h-8 w-8 rounded-full">
@@ -95,20 +95,20 @@ export function VaultModal() {
           <p className="text-sm text-[#b1bad3] font-medium uppercase tracking-wider mb-1">Vault Balance</p>
           <h2 className="text-4xl font-bold text-white font-mono">${vaultBalance.toFixed(2)}</h2>
           <div className="flex items-center justify-center gap-2 mt-2 text-[#b1bad3] text-xs">
-             <ShieldCheck className="w-3 h-3" /> Secure Storage
+            <ShieldCheck className="w-3 h-3" /> Secure Storage
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full rounded-none bg-[#0f212e] border-b border-[#2f4553] p-0 h-12">
-            <TabsTrigger 
-              value="deposit" 
+            <TabsTrigger
+              value="deposit"
               className="flex-1 h-full rounded-none border-b-2 border-transparent data-[state=active]:border-[#F7D979] data-[state=active]:bg-[#1a2c38] data-[state=active]:text-white"
             >
               Deposit
             </TabsTrigger>
-            <TabsTrigger 
-              value="withdraw" 
+            <TabsTrigger
+              value="withdraw"
               className="flex-1 h-full rounded-none border-b-2 border-transparent data-[state=active]:border-[#1475e1] data-[state=active]:bg-[#1a2c38] data-[state=active]:text-white"
             >
               Withdraw
@@ -127,16 +127,16 @@ export function VaultModal() {
 
             <div className="relative">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#b1bad3] font-bold">$</div>
-              <Input 
-                type="number" 
+              <Input
+                type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
                 className="bg-[#0f212e] border-[#2f4553] h-14 pl-8 pr-20 text-lg font-bold text-white focus-visible:ring-1 focus-visible:ring-[#F7D979]"
               />
-              <Button 
-                size="sm" 
-                variant="ghost" 
+              <Button
+                size="sm"
+                variant="ghost"
                 onClick={setMax}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-[#F7D979] hover:text-[#F7D979] hover:bg-[#F7D979]/10 font-bold"
               >
@@ -144,28 +144,27 @@ export function VaultModal() {
               </Button>
             </div>
 
-            <Button 
+            <Button
               onClick={handleTransfer}
               disabled={loading}
-              className={`w-full h-12 font-bold text-base ${
-                activeTab === 'deposit' 
-                  ? 'bg-[#F7D979] text-black hover:bg-[#F7D979]/90' 
+              className={`w-full h-12 font-bold text-base ${activeTab === 'deposit'
+                  ? 'bg-[#F7D979] text-black hover:bg-[#F7D979]/90'
                   : 'bg-[#1475e1] text-white hover:bg-[#1475e1]/90'
-              }`}
+                }`}
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <span className="flex items-center gap-2">
-                  {activeTab === 'deposit' ? 'Deposit to Vault' : 'Withdraw to Wallet'} 
+                  {activeTab === 'deposit' ? 'Deposit to Vault' : 'Withdraw to Wallet'}
                   <ArrowRightLeft className="w-4 h-4" />
                 </span>
               )}
             </Button>
 
             <p className="text-xs text-center text-[#b1bad3]">
-              {activeTab === 'deposit' 
-                ? 'Funds in vault are not available for betting.' 
+              {activeTab === 'deposit'
+                ? 'Funds in vault are not available for betting.'
                 : 'Withdrawn funds are instantly available for play.'}
             </p>
           </div>

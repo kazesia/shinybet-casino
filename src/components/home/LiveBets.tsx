@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useViewport } from '@/hooks/useViewport';
 import { BetDetailModal } from '@/components/bets/BetDetailModal';
+import { StatisticsModal } from '@/components/profile/StatisticsModal';
 
 const CRYPTO_CURRENCIES = [
   { code: 'BTC', icon: '₿', color: 'bg-orange-500' },
@@ -93,10 +94,20 @@ export default function RecentBets() {
   const { isMobile } = useViewport();
   const [selectedBet, setSelectedBet] = useState<DisplayBet | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUsername, setSelectedUsername] = useState<string>('');
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const openBetModal = (bet: DisplayBet) => {
     setSelectedBet(bet);
     setIsModalOpen(true);
+  };
+
+  const openProfileModal = (e: React.MouseEvent, userId: string, username: string) => {
+    e.stopPropagation(); // Prevent row click from opening bet modal
+    setSelectedUserId(userId);
+    setSelectedUsername(username);
+    setIsProfileModalOpen(true);
   };
 
   // --- 1. Fetch Real History Initial Load ---
@@ -203,7 +214,7 @@ export default function RecentBets() {
   const filteredBets = bets;
 
   return (
-    <div className="w-full bg-[#1a2c38] rounded-xl border border-[#2f4553] overflow-hidden shadow-xl flex flex-col">
+    <div className="w-full mt-8 bg-[#1a2c38] rounded-xl border border-[#2f4553] overflow-hidden shadow-xl flex flex-col">
       {/* Header with Tabs */}
       <div className="p-3 border-b border-[#2f4553] bg-[#0f212e]">
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -383,7 +394,12 @@ export default function RecentBets() {
                       {bet.isHidden ? (
                         <span className="italic opacity-50">🙈 Hidden</span>
                       ) : (
-                        bet.profiles?.username || 'Hidden'
+                        <span
+                          className="text-[#1475e1] hover:underline cursor-pointer"
+                          onClick={(e) => openProfileModal(e, bet.user_id, bet.profiles?.username || 'User')}
+                        >
+                          {bet.profiles?.username || 'Hidden'}
+                        </span>
                       )}
                     </TableCell>
 
@@ -434,6 +450,14 @@ export default function RecentBets() {
         bet={selectedBet}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+      />
+
+      {/* User Profile Modal */}
+      <StatisticsModal
+        externalUserId={selectedUserId}
+        externalUsername={selectedUsername}
+        isExternalOpen={isProfileModalOpen}
+        onExternalClose={() => setIsProfileModalOpen(false)}
       />
     </div>
   );

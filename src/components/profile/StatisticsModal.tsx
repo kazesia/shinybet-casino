@@ -11,17 +11,46 @@ import { format } from 'date-fns';
 
 // VIP Tiers Configuration (Shared logic)
 const TIERS = [
-  { name: 'Bronze', minWager: 0 },
-  { name: 'Silver', minWager: 10000 },
-  { name: 'Gold', minWager: 50000 },
-  { name: 'Platinum', minWager: 100000 },
-  { name: 'Diamond', minWager: 500000 },
+  { name: 'Bronze', minWager: 0, color: '#cd7f32' },
+  { name: 'Silver', minWager: 10000, color: '#c0c0c0' },
+  { name: 'Gold', minWager: 50000, color: '#ffd700' },
+  { name: 'Platinum', minWager: 100000, color: '#e5e4e2' },
+  { name: 'Diamond', minWager: 500000, color: '#b9f2ff' },
 ];
 
-export function StatisticsModal() {
+// Format large numbers - only abbreviate billions and trillions
+const formatLargeNumber = (num: number): string => {
+  if (num >= 1_000_000_000_000) {
+    return `$${(num / 1_000_000_000_000).toFixed(2)}T`;
+  } else if (num >= 1_000_000_000) {
+    return `$${(num / 1_000_000_000).toFixed(2)}B`;
+  }
+  return `$${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+interface StatisticsModalProps {
+  // For viewing another user's stats (optional)
+  externalUserId?: string | null;
+  externalUsername?: string;
+  isExternalOpen?: boolean;
+  onExternalClose?: () => void;
+}
+
+export function StatisticsModal({
+  externalUserId,
+  externalUsername,
+  isExternalOpen,
+  onExternalClose
+}: StatisticsModalProps = {}) {
   const { isStatsModalOpen, closeStatsModal } = useUI();
   const { user, profile } = useAuth();
 
+  // Determine if we're viewing external user or current user
+  const isExternalMode = externalUserId !== undefined && externalUserId !== null;
+  const isOpen = isExternalMode ? (isExternalOpen ?? false) : isStatsModalOpen;
+  const targetUserId = isExternalMode ? externalUserId : user?.id;
+
+  const [targetProfile, setTargetProfile] = useState<{ username: string; created_at: string } | null>(null);
   const [stats, setStats] = useState({
     totalBets: 0,
     wins: 0,
@@ -30,29 +59,48 @@ export function StatisticsModal() {
   });
   const [loading, setLoading] = useState(false);
 
+  const handleClose = () => {
+    if (isExternalMode && onExternalClose) {
+      onExternalClose();
+    } else {
+      closeStatsModal();
+    }
+  };
+
   useEffect(() => {
-    if (isStatsModalOpen && user) {
+    if (isOpen && targetUserId) {
       fetchStats();
     }
-  }, [isStatsModalOpen, user]);
+  }, [isOpen, targetUserId]);
 
   const fetchStats = async () => {
+    if (!targetUserId) return;
+
     setLoading(true);
     try {
+      // If external mode, fetch the target user's profile
+      if (isExternalMode) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('username, created_at')
+          .eq('id', targetUserId)
+          .single();
+        setTargetProfile(profileData);
+      }
+
       // 1. Get Wagered Amount from RPC (Most accurate for VIP)
-      const { data: userStats } = await supabase.rpc('get_user_stats', { user_id: user?.id });
+      const { data: userStats } = await supabase.rpc('get_user_stats', { user_id: targetUserId });
 
       // 2. Get Counts directly from bets table
-      // Note: In a real large-scale app, these counts should be incremented in a profile_stats table via triggers
       const { count: totalBets } = await supabase
         .from('bets')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', user?.id);
+        .eq('user_id', targetUserId);
 
       const { count: wins } = await supabase
         .from('bets')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', user?.id)
+        .eq('user_id', targetUserId)
         .eq('result', 'win');
 
       const calculatedTotalBets = totalBets || 0;
@@ -89,19 +137,26 @@ export function StatisticsModal() {
     progressPercent = 100;
   }
 
-  const joinDate = user?.created_at ? format(new Date(user.created_at), 'MMMM d, yyyy') : 'Unknown';
+  // Determine display values based on mode
+  const displayUsername = isExternalMode
+    ? (targetProfile?.username || externalUsername || 'User')
+    : (profile?.username || 'User');
+
+  const displayJoinDate = isExternalMode
+    ? (targetProfile?.created_at ? format(new Date(targetProfile.created_at), 'MMMM d, yyyy') : 'Unknown')
+    : (user?.created_at ? format(new Date(user.created_at), 'MMMM d, yyyy') : 'Unknown');
 
   return (
-    <Dialog open={isStatsModalOpen} onOpenChange={(open) => !open && closeStatsModal()}>
-      <DialogContent className="sm:max-w-[500px] bg-[#1a2c38] border-[#2f4553] text-white p-0 gap-0 overflow-hidden shadow-2xl">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="sm:max-w-[500px] bg-[#1a2c38] border-[#2f4553] text-white p-0 gap-0 overflow-hidden shadow-2xl [&>button]:hidden">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#2f4553]">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-white" />
+            <img src="/icons/statistics.png" alt="Statistics" className="w-5 h-5 invert" />
             <h2 className="text-lg font-bold text-white">Statistics</h2>
           </div>
-          <Button variant="ghost" size="icon" onClick={closeStatsModal} className="text-[#b1bad3] hover:text-white hover:bg-[#2f4553] h-8 w-8 rounded-full">
+          <Button variant="ghost" size="icon" onClick={handleClose} className="text-[#b1bad3] hover:text-white hover:bg-[#2f4553] h-8 w-8 rounded-full">
             <X className="w-5 h-5" />
           </Button>
         </div>
@@ -111,9 +166,9 @@ export function StatisticsModal() {
           {/* User Info */}
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-white">{profile?.username || 'User'}</h2>
+              <h2 className="text-xl font-bold text-white">{displayUsername}</h2>
             </div>
-            <p className="text-sm text-[#b1bad3]">Joined on {joinDate}</p>
+            <p className="text-sm text-[#b1bad3]">Joined on {displayJoinDate}</p>
           </div>
 
           <div className="p-2 bg-[#213743] rounded-lg w-fit">
@@ -123,20 +178,24 @@ export function StatisticsModal() {
           {/* VIP Progress */}
           <div className="space-y-2">
             <div className="flex justify-between items-center text-sm">
-              <span className="font-bold text-white">Your VIP Progress</span>
+              <span className="font-bold text-white">{isExternalMode ? 'VIP Progress' : 'Your VIP Progress'}</span>
               <span className="font-bold text-white">{progressPercent.toFixed(2)}%</span>
             </div>
 
             <div className="relative h-2 bg-[#0f212e] rounded-full overflow-hidden">
               <div
-                className="absolute top-0 left-0 h-full bg-[#b17827] rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${progressPercent}%` }}
+                className="absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${progressPercent}%`, backgroundColor: currentTier.color }}
               />
             </div>
 
-            <div className="flex justify-between text-xs font-medium text-[#b1bad3]">
-              <span className="flex items-center gap-1"><Star className="w-3 h-3" /> {currentTier.name}</span>
-              <span className="flex items-center gap-1"><Star className="w-3 h-3" /> {nextTier ? nextTier.name : 'Max'}</span>
+            <div className="flex justify-between text-xs font-medium">
+              <span className="flex items-center gap-1" style={{ color: currentTier.color }}>
+                <Star className="w-3 h-3" fill={currentTier.color} /> {currentTier.name}
+              </span>
+              <span className="flex items-center gap-1" style={{ color: nextTier?.color || currentTier.color }}>
+                <Star className="w-3 h-3" fill={nextTier?.color || currentTier.color} /> {nextTier ? nextTier.name : 'Max'}
+              </span>
             </div>
           </div>
 
@@ -196,7 +255,7 @@ export function StatisticsModal() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-xl font-bold text-white">
-                  ${loading ? "..." : stats.wagered.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {loading ? "..." : formatLargeNumber(stats.wagered)}
                 </div>
                 <div className="w-5 h-5 rounded-full bg-[#00e701] flex items-center justify-center text-black font-bold text-xs">
                   $

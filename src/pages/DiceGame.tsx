@@ -49,6 +49,7 @@ const DiceGame = () => {
   const [history, setHistory] = useState<Bet[]>([]);
   const [mode, setMode] = useState<'manual' | 'auto'>('manual');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [recentResults, setRecentResults] = useState<{ value: number; isWin: boolean }[]>([]);
 
   // Autobet State
   const [numberOfBets, setNumberOfBets] = useState<number | 'infinity'>(0);
@@ -213,6 +214,7 @@ const DiceGame = () => {
 
       // Update UI
       setLastResult(result);
+      setRecentResults(prev => [...prev.slice(-14), { value: result, isWin }]);
 
       // Stop roll sound and play result sound
       stopRollSound();
@@ -296,6 +298,7 @@ const DiceGame = () => {
         const payout = data.payout;
 
         setLastResult(result);
+        setRecentResults(prev => [...prev.slice(-14), { value: result, isWin }]);
 
         if (isWin) {
           optimisticUpdate(payout);
@@ -618,16 +621,49 @@ const DiceGame = () => {
           )}
 
           {/* Right Game Area */}
-          <div className="flex-1 bg-[#0f212e] p-6 md:p-12 flex flex-col relative">
+          <div className="flex-1 bg-[#0f212e] flex flex-col relative min-h-[500px]">
 
-            {/* Game Visualization */}
-            <div className="flex-1 flex flex-col justify-center items-center min-h-[300px] space-y-12">
+            {/* Recent Results Feed - Top Right */}
+            {recentResults.length > 0 && (
+              <div
+                className="absolute top-4 right-4 z-10 overflow-x-auto flex justify-end left-4 no-scrollbar"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                <style>
+                  {`
+                    .no-scrollbar::-webkit-scrollbar {
+                      display: none;
+                    }
+                  `}
+                </style>
+                <div className="flex gap-2 min-w-max px-2">
+                  {recentResults.map((result, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, scale: 0.5, x: 20 }}
+                      animate={{ opacity: 1, scale: 1, x: 0 }}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-sm font-bold whitespace-nowrap",
+                        result.isWin
+                          ? "bg-[#00e701] text-[#0f212e]"
+                          : "bg-[#2f4553] text-white"
+                      )}
+                    >
+                      {result.value.toFixed(2)}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Slider Area - Positioned in upper area */}
+            <div className="flex-1 flex flex-col justify-center items-center px-6 md:px-12 pt-8 pb-24">
 
               {/* Slider Container */}
-              <div className="w-full px-4 relative group">
+              <div className="w-full max-w-3xl">
 
                 {/* Scale Labels */}
-                <div className="flex justify-between text-xs font-bold text-[#b1bad3] mb-8 px-2">
+                <div className="flex justify-between text-sm font-bold text-[#b1bad3] mb-3 px-2">
                   <span>0</span>
                   <span>25</span>
                   <span>50</span>
@@ -635,29 +671,32 @@ const DiceGame = () => {
                   <span>100</span>
                 </div>
 
-                {/* Custom Slider Track */}
-                <div className="relative h-4 bg-[#2f4553] rounded-full cursor-pointer select-none shadow-inner">
-                  {/* Dynamic Gradient Background - flips based on condition */}
-                  <div
-                    className="absolute inset-0 rounded-full opacity-100 transition-all duration-300"
-                    style={{
-                      background: rollCondition === 'over'
-                        ? `linear-gradient(to right, #ff4d4d 0%, #ff4d4d ${rollOver}%, #00e701 ${rollOver}%, #00e701 100%)`
-                        : `linear-gradient(to right, #00e701 0%, #00e701 ${rollOver}%, #ff4d4d ${rollOver}%, #ff4d4d 100%)`
-                    }}
-                  />
+                {/* Outer Pill Container - Thick dark border */}
+                <div className="bg-[#2f4553] rounded-full p-2 relative">
+                  {/* Inner Track - colored bar */}
+                  <div className="relative h-2.5 rounded-full cursor-pointer select-none overflow-hidden">
+                    {/* Dynamic Gradient Background - red/green */}
+                    <div
+                      className="absolute inset-0 transition-all duration-300"
+                      style={{
+                        background: rollCondition === 'over'
+                          ? `linear-gradient(to right, #ed4245 0%, #ed4245 ${rollOver}%, #00e701 ${rollOver}%, #00e701 100%)`
+                          : `linear-gradient(to right, #00e701 0%, #00e701 ${rollOver}%, #ed4245 ${rollOver}%, #ed4245 100%)`
+                      }}
+                    />
+                  </div>
 
-                  {/* Slider Handle (Cube) */}
+                  {/* Slider Handle (Blue Cube with Stripes) */}
                   <div
-                    className="absolute top-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-xl shadow-2xl flex items-center justify-center cursor-grab active:cursor-grabbing z-20 hover:scale-110 transition-transform border-4 border-[#0f212e]"
-                    style={{ left: `calc(${rollOver}% - 24px)` }}
+                    className="absolute top-1/2 -translate-y-1/2 w-7 h-9 bg-[#5492f7] rounded-md shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing z-20 hover:scale-105 transition-transform"
+                    style={{ left: `calc(${rollOver}% - 14px)` }}
                     onMouseDown={(e) => {
-                      const track = e.currentTarget.parentElement;
-                      if (!track) return;
+                      const container = e.currentTarget.parentElement;
+                      if (!container) return;
 
                       let lastSoundTime = 0;
                       const handleMouseMove = (moveEvent: MouseEvent) => {
-                        const rect = track.getBoundingClientRect();
+                        const rect = container.getBoundingClientRect();
                         const x = Math.max(0, Math.min(moveEvent.clientX - rect.left, rect.width));
                         const percentage = (x / rect.width) * 100;
                         updateFromRollOver(percentage);
@@ -679,7 +718,12 @@ const DiceGame = () => {
                       document.addEventListener('mouseup', handleMouseUp);
                     }}
                   >
-                    <span className="text-[#0f212e] font-bold text-xs">{rollOver.toFixed(0)}</span>
+                    {/* Vertical stripes on handle */}
+                    <div className="flex gap-[2px]">
+                      <div className="w-[2px] h-4 bg-[#3b7ad4] rounded-full" />
+                      <div className="w-[2px] h-4 bg-[#3b7ad4] rounded-full" />
+                      <div className="w-[2px] h-4 bg-[#3b7ad4] rounded-full" />
+                    </div>
                   </div>
 
                   {/* Result Marker (Floating Cube) */}
@@ -687,15 +731,15 @@ const DiceGame = () => {
                     {lastResult !== null && (
                       <motion.div
                         initial={{ opacity: 0, y: -20, scale: 0.5 }}
-                        animate={{ opacity: 1, y: -45, scale: 1 }}
+                        animate={{ opacity: 1, y: -50, scale: 1 }}
                         exit={{ opacity: 0 }}
                         className={cn(
-                          "absolute top-1/2 -translate-y-1/2 w-14 h-14 rounded-xl shadow-2xl flex items-center justify-center z-30 border-4 border-[#0f212e]",
+                          "absolute top-1/2 -translate-y-1/2 w-12 h-12 rounded-lg shadow-2xl flex items-center justify-center z-30",
                           rollCondition === 'over'
                             ? (lastResult >= rollOver ? "bg-[#00e701]" : "bg-[#2f4553]")
                             : (lastResult < rollOver ? "bg-[#00e701]" : "bg-[#2f4553]")
                         )}
-                        style={{ left: `calc(${lastResult}% - 28px)` }}
+                        style={{ left: `calc(${lastResult}% - 24px)` }}
                       >
                         <span className={cn(
                           "font-black text-sm",
@@ -707,7 +751,7 @@ const DiceGame = () => {
                         </span>
                         {/* Little triangle pointer */}
                         <div className={cn(
-                          "absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px]",
+                          "absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px]",
                           rollCondition === 'over'
                             ? (lastResult >= rollOver ? "border-t-[#00e701]" : "border-t-[#2f4553]")
                             : (lastResult < rollOver ? "border-t-[#00e701]" : "border-t-[#2f4553]")
@@ -716,22 +760,44 @@ const DiceGame = () => {
                     )}
                   </AnimatePresence>
                 </div>
-
               </div>
+            </div>
 
-              {/* Stats Inputs Row */}
+            {/* Stats Inputs - At bottom, above footer */}
+            <div className="absolute bottom-14 left-0 right-0 px-6 md:px-12 pb-3">
+              <style>{`
+                /* Hide number input spinners */
+                input[type=number]::-webkit-inner-spin-button, 
+                input[type=number]::-webkit-outer-spin-button { 
+                  -webkit-appearance: none; 
+                  margin: 0; 
+                }
+                input[type=number] {
+                  -moz-appearance: textfield;
+                }
+              `}</style>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full bg-[#213743] p-4 rounded-lg border border-[#2f4553]">
 
                 <div className="space-y-1 relative group">
                   <Label className="text-xs font-bold text-[#b1bad3] group-hover:text-white transition-colors">Multiplier</Label>
-                  <div className="relative">
+                  <div className="relative flex items-center">
                     <Input
                       type="number"
                       value={multiplier}
                       onChange={(e) => updateFromMultiplier(parseFloat(e.target.value))}
-                      className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-10 focus:border-[#2f4553] focus:ring-0"
+                      className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-11 focus:border-[#2f4553] focus:ring-0 pr-12"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b1bad3] text-xs font-bold pointer-events-none">×</span>
+                    <div className="absolute right-2 flex flex-col gap-0.5">
+                      <button
+                        onClick={() => updateFromMultiplier(multiplier + 0.0001)}
+                        className="text-[#b1bad3] hover:text-white text-xs"
+                      >▲</button>
+                      <button
+                        onClick={() => updateFromMultiplier(Math.max(1.0001, multiplier - 0.0001))}
+                        className="text-[#b1bad3] hover:text-white text-xs"
+                      >▼</button>
+                    </div>
+                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-[#b1bad3] text-sm font-bold pointer-events-none">×</span>
                   </div>
                 </div>
 
@@ -739,73 +805,93 @@ const DiceGame = () => {
                   <Label className="text-xs font-bold text-[#b1bad3] group-hover:text-white transition-colors">
                     {rollCondition === 'over' ? 'Roll Over' : 'Roll Under'}
                   </Label>
-                  <div className="relative">
+                  <div className="relative flex items-center">
                     <Input
                       type="number"
                       value={rollOver.toFixed(2)}
                       onChange={(e) => updateFromRollOver(parseFloat(e.target.value))}
-                      className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-10 focus:border-[#2f4553] focus:ring-0"
+                      className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-11 focus:border-[#2f4553] focus:ring-0 pr-12"
                     />
                     <button
                       onClick={() => {
                         playSound('slider');
                         setRollCondition(prev => prev === 'over' ? 'under' : 'over');
                       }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded bg-[#2f4553] hover:bg-[#3d5565] transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded bg-[#2f4553] hover:bg-[#3d5565] transition-colors"
                     >
-                      <RefreshCw className="text-[#b1bad3] w-3 h-3 hover:text-white" />
+                      <RefreshCw className="text-[#b1bad3] w-4 h-4 hover:text-white" />
                     </button>
                   </div>
                 </div>
 
                 <div className="space-y-1 relative group">
                   <Label className="text-xs font-bold text-[#b1bad3] group-hover:text-white transition-colors">Win Chance</Label>
-                  <div className="relative">
+                  <div className="relative flex items-center">
                     <Input
                       type="number"
                       value={winChance.toFixed(4)}
                       onChange={(e) => updateFromWinChance(parseFloat(e.target.value))}
-                      className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-10 focus:border-[#2f4553] focus:ring-0"
+                      className="bg-[#0f212e] border-[#2f4553] text-white font-bold h-11 focus:border-[#2f4553] focus:ring-0 pr-12"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b1bad3] text-xs font-bold pointer-events-none">%</span>
+                    <div className="absolute right-2 flex flex-col gap-0.5">
+                      <button
+                        onClick={() => updateFromWinChance(Math.min(98, winChance + 0.01))}
+                        className="text-[#b1bad3] hover:text-white text-xs"
+                      >▲</button>
+                      <button
+                        onClick={() => updateFromWinChance(Math.max(0.01, winChance - 0.01))}
+                        className="text-[#b1bad3] hover:text-white text-xs"
+                      >▼</button>
+                    </div>
+                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-[#b1bad3] text-sm font-bold pointer-events-none">%</span>
                   </div>
                 </div>
 
               </div>
 
             </div>
-
             {/* Game Footer */}
-            <div className="absolute bottom-0 left-0 right-0 h-12 bg-[#0f212e] border-t border-[#213743] flex items-center justify-between px-4">
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
-                  <Settings2 className="w-4 h-4" />
+            <div className="absolute bottom-0 left-0 right-0 h-14 bg-[#0f212e] border-t border-[#213743] flex items-center justify-between px-4">
+              {/* Left Icons */}
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743] w-10 h-10">
+                  <Settings2 className="w-5 h-5" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={cn("text-[#b1bad3] hover:text-white hover:bg-[#213743]", !soundEnabled && "text-red-500")}
+                  className={cn("text-[#b1bad3] hover:text-white hover:bg-[#213743] w-10 h-10", !soundEnabled && "text-red-500")}
                   onClick={() => setSoundEnabled(!soundEnabled)}
                 >
-                  {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                  {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                </Button>
+                <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743] w-10 h-10">
+                  <BarChart2 className="w-5 h-5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743] w-10 h-10">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="15 3 21 3 21 9" />
+                    <polyline points="9 21 3 21 3 15" />
+                    <line x1="21" y1="3" x2="14" y2="10" />
+                    <line x1="3" y1="21" x2="10" y2="14" />
+                  </svg>
                 </Button>
               </div>
 
-              <div className="absolute left-1/2 -translate-x-1/2 font-bold text-white tracking-tight text-lg">
-                Shiny
+              {/* Center Logo */}
+              <div className="absolute left-1/2 -translate-x-1/2">
+                <span className="font-bold text-white tracking-tight text-lg">
+                  Shiny<span className="text-[#ffd700]">.bet</span>
+                </span>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div
-                  className="flex items-center gap-2 bg-[#213743] px-3 py-1 rounded-full cursor-pointer hover:bg-[#2f4553] transition-colors"
-                  onClick={() => setFairnessModalOpen(true)}
-                >
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-xs font-bold text-white">Fairness</span>
-                </div>
-                <Button variant="ghost" size="icon" className="text-[#b1bad3] hover:text-white hover:bg-[#213743]">
-                  <BarChart2 className="w-4 h-4" />
-                </Button>
+              {/* Right Fairness */}
+              <div
+                className="flex items-center gap-2 bg-[#213743] px-4 py-2 rounded-full cursor-pointer hover:bg-[#2f4553] transition-colors"
+                onClick={() => setFairnessModalOpen(true)}
+              >
+                <Shield className="w-4 h-4 text-green-500" />
+                <span className="text-sm font-bold text-white">Fairness</span>
               </div>
             </div>
 
@@ -870,7 +956,7 @@ const DiceGame = () => {
         onUpdateClientSeed={updateClientSeed}
       />
 
-    </div >
+    </div>
   );
 };
 

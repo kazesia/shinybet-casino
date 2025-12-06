@@ -27,6 +27,7 @@ interface DataTableProps<TData, TValue> {
   pageIndex?: number
   onPageChange?: (page: number) => void
   isLoading?: boolean
+  onRowClick?: (row: TData) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -35,7 +36,8 @@ export function DataTable<TData, TValue>({
   pageCount = -1,
   pageIndex = 0,
   onPageChange,
-  isLoading
+  isLoading,
+  onRowClick
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
 
@@ -70,9 +72,9 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   )
                 })}
@@ -91,7 +93,8 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="border-white/10 hover:bg-white/5"
+                  className={`border-white/10 hover:bg-white/5 ${onRowClick ? 'cursor-pointer' : ''}`}
+                  onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

@@ -6,13 +6,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Loader2,
-    Copy,
-    Dices,
-    Zap,
-    Flame,
-    TrendingUp,
-    Spade,
-    User as UserIcon
+    Copy
 } from "lucide-react";
 import { useBets } from '@/hooks/useBets';
 import { cn } from '@/lib/utils';
@@ -21,25 +15,56 @@ import { BetDetailModal } from '@/components/bets/BetDetailModal';
 
 const PAGE_SIZE = 10;
 
-const getGameIcon = (gameType: string) => {
-    const type = gameType.toLowerCase();
-    switch (type) {
+// Dollar icon component (same as LiveBets)
+const CryptoIcon = () => (
+    <div className="w-4 h-4 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 bg-[#00e701]">
+        $
+    </div>
+);
+
+// Game icon component using thumbnails (same as LiveBets)
+const GameIcon = ({ type }: { type: string }) => {
+    const normalizedType = type.toLowerCase().replace(' ', '');
+    let src = '';
+
+    switch (normalizedType) {
         case 'dice':
-            return <Dices className="w-4 h-4" />;
+            src = '/game-assets/thumbnails/dice_new.png';
+            break;
         case 'plinko':
-            return <Zap className="w-4 h-4" />;
+            src = '/game-assets/thumbnails/plinko_new.jpg';
+            break;
         case 'mines':
-            return <Flame className="w-4 h-4" />;
+            src = '/game-assets/thumbnails/mines_new.jpg';
+            break;
         case 'crash':
-            return <TrendingUp className="w-4 h-4" />;
+            src = '/game-assets/thumbnails/crash_new.jpg';
+            break;
         case 'blackjack':
-            return <Spade className="w-4 h-4" />;
+            src = '/game-assets/thumbnails/blackjack_new.jpg';
+            break;
         case 'coinflip':
-        case 'coin flip':
-            return <UserIcon className="w-4 h-4" />;
+        case 'flip':
+            src = '/game-assets/thumbnails/flip.png';
+            break;
+        case 'limbo':
+            src = '/game-assets/thumbnails/limbo.png';
+            break;
+        case 'dragon-tower':
+        case 'dragontower':
+            src = '/game-assets/thumbnails/dragon-tower.png';
+            break;
         default:
-            return <Dices className="w-4 h-4" />;
+            src = '/game-assets/thumbnails/dice_new.png';
     }
+
+    return (
+        <img
+            src={src}
+            alt={type}
+            className="w-5 h-5 rounded-md object-cover shadow-sm"
+        />
+    );
 };
 
 const MyBets = () => {
@@ -84,9 +109,7 @@ const MyBets = () => {
                 {/* Header */}
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-[#1a2c38] rounded-lg border border-[#2f4553]">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
+                        <img src="/icons/mybets.png" alt="My Bets" className="w-5 h-5" />
                     </div>
                     <h1 className="text-2xl font-bold text-white">My Bets</h1>
                 </div>
@@ -171,7 +194,7 @@ const MyBets = () => {
                                             >
                                                 <TableCell className="font-medium text-white text-sm">
                                                     <div className="flex items-center gap-2">
-                                                        {getGameIcon(bet.game_type)}
+                                                        <GameIcon type={bet.game_type} />
                                                         <span className="capitalize">{bet.game_type}</span>
                                                     </div>
                                                 </TableCell>
@@ -205,9 +228,7 @@ const MyBets = () => {
                                                 <TableCell className="text-right font-medium text-white text-sm">
                                                     <div className="flex items-center justify-end gap-1">
                                                         ${bet.stake_credits.toFixed(2)}
-                                                        <svg className="w-3 h-3 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                                            <circle cx="10" cy="10" r="8" />
-                                                        </svg>
+                                                        <CryptoIcon />
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-right text-[#b1bad3] text-sm font-mono">
@@ -221,9 +242,7 @@ const MyBets = () => {
                                                 )}>
                                                     <div className="flex items-center justify-end gap-1">
                                                         {bet.result === 'win' ? '+' : ''}${bet.payout_credits.toFixed(2)}
-                                                        <svg className="w-3 h-3 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                                            <circle cx="10" cy="10" r="8" />
-                                                        </svg>
+                                                        <CryptoIcon />
                                                     </div>
                                                 </TableCell>
                                             </TableRow>

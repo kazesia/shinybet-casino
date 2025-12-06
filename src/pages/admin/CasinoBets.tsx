@@ -7,10 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BetDetailModal } from '@/components/bets/BetDetailModal';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -20,7 +20,7 @@ export default function CasinoBets() {
     const [result, setResult] = useState('all');
     const [userSearch, setUserSearch] = useState('');
     const [selectedBet, setSelectedBet] = useState<Bet | null>(null);
-    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const { data, isLoading } = useQuery({
         queryKey: ['admin', 'casino-bets', page, gameType, result, userSearch],
@@ -181,7 +181,7 @@ export default function CasinoBets() {
                                     <TableRow
                                         key={bet.id}
                                         className="border-admin-border hover:bg-white/5 cursor-pointer"
-                                        onClick={() => { setSelectedBet(bet); setIsSheetOpen(true); }}
+                                        onClick={() => { setSelectedBet(bet); setIsModalOpen(true); }}
                                     >
                                         <TableCell className="font-medium text-white">
                                             {bet.profiles?.username || 'Unknown'}
@@ -250,68 +250,12 @@ export default function CasinoBets() {
                 )}
             </Card>
 
-            {/* Detail Sheet */}
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent className="w-[400px] sm:w-[540px] bg-admin-surface border-l-admin-border text-white overflow-y-auto">
-                    <SheetHeader>
-                        <SheetTitle className="text-white">Bet Details</SheetTitle>
-                        <SheetDescription>Complete information for this bet</SheetDescription>
-                    </SheetHeader>
-                    {selectedBet && (
-                        <div className="mt-8 space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 rounded-lg bg-black/30 border border-admin-border">
-                                    <div className="text-xs text-muted-foreground mb-1">Bet ID</div>
-                                    <div className="text-xs font-mono break-all">{selectedBet.id}</div>
-                                </div>
-                                <div className="p-4 rounded-lg bg-black/30 border border-admin-border">
-                                    <div className="text-xs text-muted-foreground mb-1">User</div>
-                                    <div className="text-sm font-medium">{selectedBet.profiles?.username}</div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3">
-                                <h4 className="text-sm font-bold border-b border-admin-border pb-2">Bet Info</h4>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div className="flex justify-between p-2 bg-white/5 rounded">
-                                        <span className="text-muted-foreground">Game</span>
-                                        <span className="font-medium capitalize">{selectedBet.game_type}</span>
-                                    </div>
-                                    <div className="flex justify-between p-2 bg-white/5 rounded">
-                                        <span className="text-muted-foreground">Result</span>
-                                        <Badge variant="outline" className={
-                                            selectedBet.result === 'win' ? 'border-green-500 text-green-500' : 'border-red-500 text-red-500'
-                                        }>
-                                            {selectedBet.result}
-                                        </Badge>
-                                    </div>
-                                    <div className="flex justify-between p-2 bg-white/5 rounded">
-                                        <span className="text-muted-foreground">Stake</span>
-                                        <span className="font-mono text-red-400">{selectedBet.stake_credits.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between p-2 bg-white/5 rounded">
-                                        <span className="text-muted-foreground">Payout</span>
-                                        <span className="font-mono text-green-400">{selectedBet.payout_credits.toFixed(2)}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {selectedBet.provably_fair && (
-                                <div className="space-y-3">
-                                    <h4 className="text-sm font-bold border-b border-admin-border pb-2">Provably Fair Data</h4>
-                                    <pre className="p-3 bg-black/50 rounded border border-admin-border text-xs overflow-auto max-h-64">
-                                        {JSON.stringify(selectedBet.provably_fair, null, 2)}
-                                    </pre>
-                                </div>
-                            )}
-
-                            <div className="text-xs text-muted-foreground">
-                                Created: {new Date(selectedBet.created_at).toLocaleString()}
-                            </div>
-                        </div>
-                    )}
-                </SheetContent>
-            </Sheet>
+            {/* Bet Detail Modal */}
+            <BetDetailModal
+                bet={selectedBet}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
         </div>
     );
 }
