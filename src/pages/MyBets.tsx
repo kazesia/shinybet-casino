@@ -17,6 +17,7 @@ import {
 import { useBets } from '@/hooks/useBets';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { BetDetailModal } from '@/components/bets/BetDetailModal';
 
 const PAGE_SIZE = 10;
 
@@ -44,6 +45,8 @@ const getGameIcon = (gameType: string) => {
 const MyBets = () => {
     const [activeTab, setActiveTab] = useState("casino");
     const [page, setPage] = useState(0);
+    const [selectedBet, setSelectedBet] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const { data, isLoading } = useBets(
         activeTab === 'casino' ? 'all' : activeTab,
@@ -63,9 +66,15 @@ const MyBets = () => {
         if (page > 0) setPage(p => p - 1);
     };
 
-    const copyBetId = (id: string) => {
+    const copyBetId = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
         navigator.clipboard.writeText(id);
         toast.success('Bet ID copied to clipboard');
+    };
+
+    const openBetModal = (bet: any) => {
+        setSelectedBet(bet);
+        setIsModalOpen(true);
     };
 
     return (
@@ -167,16 +176,19 @@ const MyBets = () => {
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="flex items-center gap-2 text-[#b1bad3] hover:text-white cursor-pointer group">
+                                                    <div
+                                                        className="flex items-center gap-2 text-[#1475e1] hover:text-white cursor-pointer group"
+                                                        onClick={() => openBetModal(bet)}
+                                                    >
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                         </svg>
-                                                        <span className="font-mono text-xs truncate max-w-[120px]">
+                                                        <span className="font-mono text-xs truncate max-w-[120px] underline">
                                                             {bet.id.substring(0, 13)}
                                                         </span>
                                                         <Copy
                                                             className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                            onClick={() => copyBetId(bet.id)}
+                                                            onClick={(e) => copyBetId(e, bet.id)}
                                                         />
                                                     </div>
                                                 </TableCell>
@@ -252,6 +264,13 @@ const MyBets = () => {
                     </Card>
                 </div>
             </div>
+
+            {/* Bet Detail Modal */}
+            <BetDetailModal
+                bet={selectedBet}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
         </div>
     );
 };

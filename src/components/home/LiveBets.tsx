@@ -7,6 +7,7 @@ import { Dices, Bomb, Coins, TrendingUp, Gamepad2, Spade, Zap, Ghost, Settings }
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useViewport } from '@/hooks/useViewport';
+import { BetDetailModal } from '@/components/bets/BetDetailModal';
 
 const CRYPTO_CURRENCIES = [
   { code: 'BTC', icon: '₿', color: 'bg-orange-500' },
@@ -90,6 +91,13 @@ export default function RecentBets() {
   const [limit, setLimit] = useState(20);
   const tableRef = useRef<HTMLDivElement>(null);
   const { isMobile } = useViewport();
+  const [selectedBet, setSelectedBet] = useState<DisplayBet | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openBetModal = (bet: DisplayBet) => {
+    setSelectedBet(bet);
+    setIsModalOpen(true);
+  };
 
   // --- 1. Fetch Real History Initial Load ---
   const fetchInitialBets = async () => {
@@ -357,7 +365,8 @@ export default function RecentBets() {
                 return (
                   <TableRow
                     key={bet.id}
-                    className="border-[#2f4553] hover:bg-[#213743] transition-colors"
+                    className="border-[#2f4553] hover:bg-[#213743] transition-colors cursor-pointer"
+                    onClick={() => openBetModal(bet)}
                   >
                     {/* Game Column */}
                     <TableCell className="font-medium text-white py-3">
@@ -419,6 +428,13 @@ export default function RecentBets() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Bet Detail Modal */}
+      <BetDetailModal
+        bet={selectedBet}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }
