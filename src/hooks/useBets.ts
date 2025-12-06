@@ -43,7 +43,6 @@ export const useBets = (gameType = 'all', page = 0, pageSize = 10) => {
             let query = supabase
                 .from('bets')
                 .select('*', { count: 'exact' })
-                .eq('user_id', user.id)
                 .order('created_at', { ascending: false })
                 .range(page * pageSize, (page + 1) * pageSize - 1);
 
@@ -55,24 +54,23 @@ export const useBets = (gameType = 'all', page = 0, pageSize = 10) => {
 
             if (error) throw error;
 
-            // Fetch usernames for the bets
-            const betsWithUsernames = await Promise.all(
-                (data || []).map(async (bet: any) => {
-                    const { data: profile } = await supabase
-                        .from('profiles')
-                        .select('username')
-                        .eq('id', bet.user_id)
-                        .single();
+            // Fetch profiles for all unique user IDs
+            const userIds = [...new Set((data || []).map(b => b.user_id))];
+            const { data: profiles } = await supabase
+                .from('profiles')
+                .select('id, username')
+                .in('id', userIds);
 
-                    return {
-                        ...bet,
-                        display_username: profile?.username || `User${bet.user_id.substring(0, 4)}`
-                    };
-                })
-            );
+            const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+            const betsWithProfiles = (data || []).map((bet: any) => ({
+                ...bet,
+                profiles: profilesMap.get(bet.user_id),
+                display_username: profilesMap.get(bet.user_id)?.username || `User${bet.user_id.substring(0, 4)}`
+            }));
 
             return {
-                bets: betsWithUsernames as Bet[],
+                bets: betsWithProfiles as Bet[],
                 count: count || 0
             };
         },
