@@ -34,7 +34,7 @@ interface Bet {
     raw_data?: Record<string, any>;
     created_at: string;
     profiles?: {
-        id: string;
+        id?: string;
         username: string;
     };
 }
